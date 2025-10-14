@@ -1,8 +1,10 @@
-"use client"
 
-export default function Button({ title, ...props }) {
+import React from "react";
+import styles from "./button.module.css";
+
+export default function Button({ title, onClick, className = "" }) {
   return (
-    <button {...props}>
+    <button className={`${styles.btn} ${className}`} onClick={onClick}>
       {title}
     </button>
   );
