@@ -2,9 +2,9 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
-import Button from "./components/button";
-import Configuraciones from "./components/configuraciones";
-import Modal from "./components/modal";
+import Button from "../components/button";
+import Configuraciones from "../components/configuraciones";
+import Modal from "../components/modal";
 
 export default function Home() {
   const [open, setOpen] = useState(false);
