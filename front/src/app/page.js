@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import Button from "../components/button";
-import Configuraciones from "../components/configuraciones";
 import Modal from "../components/modal";
 
 export default function Home() {
@@ -20,8 +19,16 @@ export default function Home() {
   }
 
   async function verRanking() {
-    const players = await fetch()
-    setRanking(jugadoresMock);
+    const players = await fetch('http://localhost:4000/getRanking', {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+    const result = await players.json();
+    console.log(result);
+    console.log(result.response)
+    setRanking(result.response);
     setTipoModal("ranking");
     setOpen(true);
   }
@@ -37,10 +44,19 @@ export default function Home() {
     setOpen(false);
   }
 
+  function openSettings(){
+    setTipoModal("settings");
+    setOpen(true);
+  }
+
   return (
     <>
       <div className={styles.page}>
-        <Configuraciones />
+        <Button
+          title="Configuraciones"
+          onClick={openSettings}
+          className=""
+        ><img href=""></img></Button>
       </div>
 
       <main className={styles.hero}>
@@ -57,7 +73,7 @@ export default function Home() {
         isOpen={open}
         onClose={() => setOpen(false)}
         onSubmit={confirmarUnion}
-        titulo={tipoModal}
+        title={tipoModal}
         valorInput={codigo}
         onChangeInput={(e) => setCodigo(e.target.value)}
         tipo={tipoModal}

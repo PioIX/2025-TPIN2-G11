@@ -6,11 +6,11 @@ export default function Modal({
   isOpen,
   onClose,
   onSubmit,
-  titulo,
+  title,
   valorInput,
   onChangeInput,
-  tipo, 
-  ranking = [],    
+  tipo,
+  ranking = [],
 }) {
   if (!isOpen) return null;
 
@@ -30,7 +30,7 @@ export default function Modal({
             />
             <br />
             <br />
-            <Button className={styles.btn} onClick={onSubmit} title={titulo} />
+            <Button className={styles.btn} onClick={onSubmit} title={title} />
           </>
         )}
 
@@ -39,9 +39,9 @@ export default function Modal({
             <h2>🏆 Ranking de jugadores</h2>
             <ul className={styles.rankingList}>
               {ranking.length > 0 ? (
-                ranking.map((jugador, i) => (
+                ranking.map((user, i) => (
                   <li key={i}>
-                    <strong>{i + 1}. {jugador.nombre}</strong> — {jugador.puntos} pts
+                    <strong>{i + 1}. {user.username}</strong> — {user.score} pts
                   </li>
                 ))
               ) : (
@@ -51,6 +51,33 @@ export default function Modal({
           </>
         )}
       </div>
+
+      {tipo === "crearSala" && (
+        <>
+          <h2>🏆 Ranking de jugadores</h2>
+          <ul className={styles.rankingList}>
+            {ranking.length > 0 ? (
+              ranking.map((user, i) => (
+                <li key={i}>
+                  <strong>{i + 1}. {user.username}</strong> — {user.score} pts
+                </li>
+              ))
+            ) : (
+              <p>No hay jugadores aún</p>
+            )}
+          </ul>
+        </>
+      )}
+
+      {tipo == "settings" && (
+        <>
+          <Button className={styles.btn} onClick={onSubmit} title="iniciar sesion" />
+          <Button className={styles.btn} onClick={onSubmit} title="modificar cuenta" />
+          <Button className={styles.btn} onClick={onSubmit} title="cambiar idioma" />
+
+        </>
+
+      )}
     </div>
   );
 }
