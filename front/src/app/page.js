@@ -7,13 +7,25 @@ import Configuraciones from "../components/configuraciones";
 import Modal from "../components/modal";
 
 export default function Home() {
-  const [open, setOpen] = useState(false);
+
   const [codigo, setCodigo] = useState("");
   const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [tipoModal, setTipoModal] = useState("unirme");
+  const [ranking, setRanking] = useState([]);
 
   function abrirModal() {
+    setTipoModal("unirme");
     setOpen(true);
   }
+
+  async function verRanking() {
+    const players = await fetch()
+    setRanking(jugadoresMock);
+    setTipoModal("ranking");
+    setOpen(true);
+  }
+
 
   function crearSala() {
     // TODO: lógica para crear sala
@@ -23,10 +35,6 @@ export default function Home() {
     if (!codigo) return alert("Ingresá un código de sala");
     router.push(`/salaJuego?codigo=${codigo}`);
     setOpen(false);
-  }
-
-  function verRanking() {
-    // TODO: lógica para ver ranking
   }
 
   return (
@@ -49,11 +57,15 @@ export default function Home() {
         isOpen={open}
         onClose={() => setOpen(false)}
         onSubmit={confirmarUnion}
-        titulo="Unirme"
+        titulo={tipoModal}
         valorInput={codigo}
         onChangeInput={(e) => setCodigo(e.target.value)}
+        tipo={tipoModal}
+        ranking={ranking}
       />
-      
+
+
+
     </>
   );
 }

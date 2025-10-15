@@ -42,3 +42,19 @@
 .close:hover {
   transform: scale(1.2);
 }
+
+.rankingList {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.rankingList li {
+  background: #e4ddcf;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  font-weight: 500;
+}
