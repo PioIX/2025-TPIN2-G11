@@ -18,6 +18,7 @@ export default function Home() {
     setOpen(true);
   }
 
+
   async function verRanking() {
     const players = await fetch('http://localhost:4000/getRanking', {
       method: "GET",
@@ -35,8 +36,10 @@ export default function Home() {
 
 
   function crearSala() {
-    // TODO: lógica para crear sala
+    setTipoModal("crearSala");
+    setOpen(true);
   }
+
 
   function confirmarUnion() {
     if (!codigo) return alert("Ingresá un código de sala");
@@ -55,7 +58,7 @@ export default function Home() {
         <Button
           title="Configuraciones"
           onClick={openSettings}
-          className=""
+          className={styles.btnSettings}
         ><img href=""></img></Button>
       </div>
 
@@ -79,9 +82,6 @@ export default function Home() {
         tipo={tipoModal}
         ranking={ranking}
       />
-
-
-
     </>
   );
 }

@@ -48,6 +48,9 @@
   justify-content: center;
 }
 
+.styles.btnSettings{
+  
+}
 
 @media (max-width: 640px) {
   .actions {
