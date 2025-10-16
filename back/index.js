@@ -35,3 +35,30 @@ app.get('/getRanking', async function (req, res) {
         res.send({ mensaje: "Tuviste un error", error: error.message });
     }
 })
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+import { Server } from "socket.io";
+const io = new Server(4000, { cors: { origin: "*" } });
+
+const rooms = {};
+
+io.on("connection", (socket) => {
+  socket.on("joinRoom", ({ codigo, username }) => {
+    socket.join(codigo);
+
+    if (!rooms[codigo]) rooms[codigo] = [];
+    if (!rooms[codigo].some(u => u.id === socket.id)) {
+      rooms[codigo].push({ id: socket.id, username });
+    }
+
+    io.to(codigo).emit("usersInRoom", rooms[codigo]);
+  });
+
+  socket.on("disconnect", () => {
+    for (const codigo in rooms) {
+      rooms[codigo] = rooms[codigo].filter(u => u.id !== socket.id);
+      io.to(codigo).emit("usersInRoom", rooms[codigo]);
+    }
+  });
+});

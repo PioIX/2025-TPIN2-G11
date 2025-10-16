@@ -1,4 +1,5 @@
 "use client";
+import useSocket from "@/hooks/useSocket";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
@@ -6,7 +7,7 @@ import Button from "../components/button";
 import Modal from "../components/modal";
 
 export default function Home() {
-
+  const socket = useSocket();
   const [codigo, setCodigo] = useState("");
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -41,9 +42,12 @@ export default function Home() {
   }
 
 
+  const username = localStorage.getItem("username") || "Invitado";
+
   function confirmarUnion() {
     if (!codigo) return alert("Ingresá un código de sala");
-    router.push(`/salaJuego?codigo=${codigo}`);
+    socket.emit("joinRoom", { codigo, username });
+    router.push(`/gameRoom?codigo=${codigo}`);
     setOpen(false);
   }
 
