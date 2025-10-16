@@ -5,6 +5,7 @@ var cors = require('cors');
 const { realizarQuery } = require('./modulos/mysql');
 const session = require('express-session'); // Para el manejo de las variables de sesión
 
+
 var app = express(); //Inicializo express
 var port = process.env.PORT || 4000; //Ejecuto el servidor en el puerto 4000
 
@@ -26,11 +27,25 @@ const io = require('socket.io')(server, {
     }
 });
 
-const sessionMiddleware = session({
-    //Elegir tu propia key secreta
-    secret: "supersarasa",
-    resave: false,
-    saveUninitialized: false
+
+io.on("connection", (socket) => {
+  socket.on("joinRoom", ({ codigo, username }) => {
+    socket.join(codigo);
+
+    if (!rooms[codigo]) rooms[codigo] = [];
+    if (!rooms[codigo].some(u => u.id === socket.id)) {
+      rooms[codigo].push({ id: socket.id, username });
+    }
+
+    io.to(codigo).emit("usersInRoom", rooms[codigo]);
+  });
+
+  socket.on("disconnect", () => {
+    for (const codigo in rooms) {
+      rooms[codigo] = rooms[codigo].filter(u => u.id !== socket.id);
+      io.to(codigo).emit("usersInRoom", rooms[codigo]);
+    }
+  });
 });
 
 app.use(sessionMiddleware);
@@ -38,8 +53,6 @@ app.use(sessionMiddleware);
 io.use((socket, next) => {
     sessionMiddleware(socket.request, {}, next);
 });
-
-
 
 app.get('/', function (req, res) {
     res.status(200).send({
@@ -114,3 +127,17 @@ app.post("/regUser", async (req, res) => {
     }
 });
 
+app.get('/getRanking', async function (req, res) {
+    try {
+        let response = await realizarQuery(`SELECT username, score FROM Users `)
+        res.send({
+            response
+        });
+    } catch (error) {
+        res.send({ mensaje: "Tuviste un error", error: error.message });
+    }
+})
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
