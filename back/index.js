@@ -44,7 +44,7 @@ io.use((socket, next) => {
 const rooms = {};
 
 io.on("connection", (socket) => {
-  console.log("🟢 Usuario conectado:", socket.id);
+  console.log(" Usuario conectado:", socket.id);
 
   socket.on("joinRoom", ({ codigo, username }) => {
     socket.join(codigo);
@@ -54,7 +54,7 @@ io.on("connection", (socket) => {
       rooms[codigo].push({ id: socket.id, username });
     }
 
-    console.log(`👥 ${username} se unió a la sala ${codigo}`);
+    console.log(` ${username} se unió a la sala ${codigo}`);
     io.to(codigo).emit("usersInRoom", rooms[codigo]);
   });
 
@@ -63,7 +63,7 @@ io.on("connection", (socket) => {
       rooms[codigo] = rooms[codigo].filter(u => u.id !== socket.id);
       io.to(codigo).emit("usersInRoom", rooms[codigo]);
     }
-    console.log("🔴 Usuario desconectado:", socket.id);
+    console.log(" Usuario desconectado:", socket.id);
   });
 });
 
@@ -74,7 +74,7 @@ app.get('/', function (req, res) {
 });
 
 server.listen(port, function () {
-  console.log(`🚀 Server running at http://localhost:${port}`);
+  console.log(` Server running at http://localhost:${port}`);
 });
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

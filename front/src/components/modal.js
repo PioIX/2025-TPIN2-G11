@@ -11,7 +11,12 @@ export default function Modal({
   onChangeInput,
   tipo,
   ranking = [],
-  registered = true
+  registered = true,
+  onSubmitlogin,
+  username,
+  password,
+  setusername,
+  setpassword
 }) {
   if (!isOpen) return null;
 
@@ -66,7 +71,7 @@ export default function Modal({
         {tipo == "settings" && (
           <div className={styles.settings}>
             <li>
-              <ul> <Button className={styles.btn} onClick={onSubmit} title="iniciar sesion" /></ul>
+              <ul> <Button title="INICIAR SESIÓN" onClick={onSubmitlogin} /></ul>
               <br></br>
               <ul> <Button className={styles.btn} onClick={onSubmit} title="modificar cuenta" /></ul>
               <br></br>
@@ -75,30 +80,30 @@ export default function Modal({
           </div>
         )}
 
-        {tipo == "login" && (
-          <div>
-            {registered == true ? (
-              <><li>
-              <ul><input placeholder="ingrese nombre de usuario" value={username}></input></ul>
-              <br></br>
-              <ul><input placeholder="ingrese contraseña" value={password}></input></ul>
-              <br></br>
-              <ul><Button className={styles.btn} onClick={onSubmit} title="iniciar sesion" /></ul>
-              <br></br>
-              <ul><p>no tienes cuenta?<a></a>Registrate</p></ul>
-            </li></>
-            ) : (
-              <li>
-              <ul><input placeholder="ingrese nombre de usuario"></input></ul>
-              <br></br>
-              <ul><input placeholder="ingrese contraseña"></input></ul>
-              <br></br>
-              <ul><Button className={styles.btn} onClick={onSubmit} title="registrarse" /></ul>
-              <br></br>
-              <ul><p>ya tienes cuenta?<a></a>Inicia sesion</p></ul>
-            </li>
-            )}
-            
+        {tipo === "login" && (
+          <div className={styles.loginContainer}>
+            <h2>{registered ? "Iniciar sesión" : "Registrarse"}</h2>
+
+            <input
+              placeholder="Nombre de usuario"
+              value={username}
+              onChange={setusername}
+            />
+            <br />
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onChange={setpassword}
+            />
+            <br />
+            <Button
+              className={styles.btn}
+              onClick={onSubmitlogin}
+              title={registered ? "Iniciar sesión" : "Registrarse"}
+            />
+            <p>{registered ? "no tienes cuenta?" : "ya tienes cuenta?"}</p>
+            <a>{registered ? "registrate!" : "inicia sesion"}</a>
           </div>
         )}
       </div>
