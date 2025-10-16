@@ -16,7 +16,9 @@ export default function Modal({
   username,
   password,
   setusername,
-  setpassword
+  setpassword,
+  onSubmitModalSignin,
+  manageRegistered
 }) {
   if (!isOpen) return null;
 
@@ -71,7 +73,7 @@ export default function Modal({
         {tipo == "settings" && (
           <div className={styles.settings}>
             <li>
-              <ul> <Button title="INICIAR SESIÓN" onClick={onSubmitlogin} /></ul>
+              <ul> <Button title="INICIAR SESIÓN" onClick={onSubmitModalSignin} /></ul>
               <br></br>
               <ul> <Button className={styles.btn} onClick={onSubmit} title="modificar cuenta" /></ul>
               <br></br>
@@ -103,7 +105,9 @@ export default function Modal({
               title={registered ? "Iniciar sesión" : "Registrarse"}
             />
             <p>{registered ? "no tienes cuenta?" : "ya tienes cuenta?"}</p>
-            <a>{registered ? "registrate!" : "inicia sesion"}</a>
+            <a onClick={manageRegistered}>
+              {registered ? "registrate!" : "inicia sesión"}
+            </a>
           </div>
         )}
       </div>

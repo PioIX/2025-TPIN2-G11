@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import useSocket from "../hooks/useSocket";
+import useSocket from "@/hooks/useSocket"
 import styles from "./GameRoom.module.css";
 
 export default function GameRoom() {

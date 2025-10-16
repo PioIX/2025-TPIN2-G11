@@ -80,68 +80,68 @@ server.listen(port, function () {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 app.get("/verifyUser", async (req, res) => {
-    try {
-        let check = await realizarQuery(
-            `SELECT * FROM Users WHERE username = "${req.body.username}" AND password = "${req.body.password}"`
-        );
+  try {
+    const { username, password } = req.query;
 
-        if (check.length > 0) {
-            return res.send({
-                message: "ok",
-                username: req.body.username,
-                id: check[0].id
-            });
-        } else {
-            if (req.body.username == "" || req.body.password == "") {
-                return res.send({
-                    message: "Verifica si ambos campos fueron rellenados"
-                });
-            } else {
-                return res.send({
-                    message: "Verifica si el usuario existe y coincide con la contraseña."
-                });
-            }
-        }
+    const check = await realizarQuery(
+      `SELECT * FROM Users WHERE username = "${username}" AND password = "${password}"`
+    );
 
-    } catch (error) {
-        return res.send(error);
+    if (check.length > 0) {
+      return res.send({
+        message: "ok",
+        username,
+        id: check[0].id
+      });
+    } else {
+      return res.send({
+        message: "Usuario o contraseña incorrectos"
+      });
     }
+  } catch (error) {
+    res.send(error);
+  }
 });
 
+
+
 app.post("/regUser", async (req, res) => {
-    try {
-        const { username, password } = req.body;
+  try {
+    const { username, password } = req.body;
+    console.log(" Datos recibidos:", username, password);
 
-        if (!username || !password) {
-            return res.send({ message: "Por favor complete todos los campos" });
-        }
-        let check = await realizarQuery(
-            `SELECT * FROM Users WHERE username = "${username}"`
-        );
-
-        if (check.length < 1) {
-            await realizarQuery(
-                `INSERT INTO Users(username,password) VALUES("${username}","${password}")`
-            );
-
-            check = await realizarQuery(
-                `SELECT * FROM Users WHERE username = "${username}"`
-            );
-
-            res.send({
-                message: "ok",
-                username: username,
-                id: check[0].id
-            });
-
-        } else {
-            res.send({
-                message: "El nombre de usuario ya está registrado, prueba con otro."
-            });
-        }
-    } catch (error) {
-        res.send(error);
+    if (!username || !password) {
+      return res.status(400).send({ message: "Por favor complete todos los campos" });
     }
+
+    console.log(" Verificando si el usuario existe...");
+    const check = await realizarQuery("SELECT * FROM Users WHERE username = ?", [username]);
+    console.log(" Resultado del SELECT:", check);
+    
+    if (check.length > 0) {
+      return res.status(409).send({ message: "El nombre de usuario ya está registrado" });
+    }
+
+    console.log("Insertando nuevo usuario...");
+    const insertResult = await realizarQuery("INSERT INTO Users (username, password, photo, score) VALUES (?, ?,?,?)", [username, password, null, 0]);
+    console.log("Resultado del INSERT:", insertResult);
+
+    const nuevo = await realizarQuery("SELECT * FROM Users WHERE username = ?", [username]);
+    console.log("Usuario creado:", nuevo);
+
+    return res.send({
+      message: "ok",
+      username,
+      id: nuevo[0].id 
+    });
+
+  } catch (error) {
+    console.error("❌ Error en /regUser:", error);
+    return res.status(500).send({
+      message: "Error al registrar usuario",
+      error: error.message || error
+    });
+  }
 });
 
 app.get('/getRanking', async function (req, res) {

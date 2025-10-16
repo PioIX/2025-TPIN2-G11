@@ -44,7 +44,8 @@ export default function Home() {
         alert(result.message || "Error al registrarse");
       }
     } catch (error) {
-      console.error("Error en SignUp:", error);
+        console.log("Error en la consulta SQL:", err);
+        return [];
     }
   }
 
@@ -55,12 +56,7 @@ export default function Home() {
     }
 
     try {
-      const response = await fetch("http://localhost:4000/verifyUser", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-
+      const response = await fetch(`http://localhost:4000/verifyUser?username=${username}&password=${password}`);
       const result = await response.json();
       console.log(result);
 
@@ -116,6 +112,15 @@ export default function Home() {
     setOpen(true);
   }
 
+  function changeRegistered() {
+    if (registered == true) {
+      setRegistered(false)
+    } else if (registered == false) {
+      setRegistered(true)
+    }
+
+  }
+
   return (
     <>
       <div className={styles.page}>
@@ -150,9 +155,11 @@ export default function Home() {
         setPassword={setPassword}
         toggleRegistered={() => setRegistered(!registered)}
         onSubmitSettings={funcion}
-        onSubmitlogin={abrirLogin}
+        onSubmitModalSignin={abrirLogin}
+        onSubmitlogin={registered == true ? SignIn : SignUp}
         setusername={(e) => setUsername(e.target.value)}
         setpassword={(e) => setPassword(e.target.value)}
+        manageRegistered={changeRegistered}
       />
     </>
   );
