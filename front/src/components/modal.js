@@ -11,6 +11,7 @@ export default function Modal({
   onChangeInput,
   tipo,
   ranking = [],
+  registered = true
 }) {
   if (!isOpen) return null;
 
@@ -71,6 +72,33 @@ export default function Modal({
               <br></br>
               <ul> <Button className={styles.btn} onClick={onSubmit} title="cambiar idioma" /></ul>
             </li>
+          </div>
+        )}
+
+        {tipo == "login" && (
+          <div>
+            {registered == true ? (
+              <><li>
+              <ul><input placeholder="ingrese nombre de usuario" value={username}></input></ul>
+              <br></br>
+              <ul><input placeholder="ingrese contraseña" value={password}></input></ul>
+              <br></br>
+              <ul><Button className={styles.btn} onClick={onSubmit} title="iniciar sesion" /></ul>
+              <br></br>
+              <ul><p>no tienes cuenta?<a></a>Registrate</p></ul>
+            </li></>
+            ) : (
+              <li>
+              <ul><input placeholder="ingrese nombre de usuario"></input></ul>
+              <br></br>
+              <ul><input placeholder="ingrese contraseña"></input></ul>
+              <br></br>
+              <ul><Button className={styles.btn} onClick={onSubmit} title="registrarse" /></ul>
+              <br></br>
+              <ul><p>ya tienes cuenta?<a></a>Inicia sesion</p></ul>
+            </li>
+            )}
+            
           </div>
         )}
       </div>

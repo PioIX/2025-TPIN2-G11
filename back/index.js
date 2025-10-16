@@ -1,34 +1,51 @@
 
-var express = require('express'); //Tipo de servidor: Express
-var bodyParser = require('body-parser'); //Convierte los JSON
-var cors = require('cors');
-const { realizarQuery } = require('./modulos/mysql');
-const session = require('express-session'); // Para el manejo de las variables de sesión
+var express = require('express');              
+var bodyParser = require('body-parser');        
+var cors = require('cors');                     
+var session = require('express-session');       
+const { realizarQuery } = require('./modulos/mysql'); 
+const http = require('http');                   
+const { Server } = require('socket.io');        
 
-
-var app = express(); //Inicializo express
-var port = process.env.PORT || 4000; //Ejecuto el servidor en el puerto 4000
+var app = express();
+var port = process.env.PORT || 4000;
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:3000", "http://localhost:3001"], 
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 
-//Pongo el servidor a escuchar
-const server = app.listen(port, function () {
-    console.log(`Server running in http://localhost:${port}`);
+const sessionMiddleware = session({
+  secret: "clave-secreta",
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } 
 });
 
-const io = require('socket.io')(server, {
-    cors: {
-        // IMPORTANTE: REVISAR PUERTO DEL FRONTEND
-        origin: ["http://localhost:3000", "http://localhost:3001"], // Permitir el origen localhost:3000
-        methods: ["GET", "POST", "PUT", "DELETE"],   // Métodos permitidos
-        credentials: true                           // Habilitar el envío de cookies
-    }
+app.use(sessionMiddleware);
+
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: ["http://localhost:3000", "http://localhost:3001"],
+    methods: ["GET", "POST"],
+    credentials: true
+  }
 });
 
+io.use((socket, next) => {
+  sessionMiddleware(socket.request, {}, next);
+});
+
+const rooms = {};
 
 io.on("connection", (socket) => {
+  console.log("🟢 Usuario conectado:", socket.id);
+
   socket.on("joinRoom", ({ codigo, username }) => {
     socket.join(codigo);
 
@@ -37,6 +54,7 @@ io.on("connection", (socket) => {
       rooms[codigo].push({ id: socket.id, username });
     }
 
+    console.log(`👥 ${username} se unió a la sala ${codigo}`);
     io.to(codigo).emit("usersInRoom", rooms[codigo]);
   });
 
@@ -45,19 +63,18 @@ io.on("connection", (socket) => {
       rooms[codigo] = rooms[codigo].filter(u => u.id !== socket.id);
       io.to(codigo).emit("usersInRoom", rooms[codigo]);
     }
+    console.log("🔴 Usuario desconectado:", socket.id);
   });
 });
 
-app.use(sessionMiddleware);
-
-io.use((socket, next) => {
-    sessionMiddleware(socket.request, {}, next);
+app.get('/', function (req, res) {
+  res.status(200).send({
+    message: 'GET Home route working fine!'
+  });
 });
 
-app.get('/', function (req, res) {
-    res.status(200).send({
-        message: 'GET Home route working fine!'
-    });
+server.listen(port, function () {
+  console.log(`🚀 Server running at http://localhost:${port}`);
 });
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

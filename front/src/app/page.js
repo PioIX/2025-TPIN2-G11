@@ -6,6 +6,7 @@ import styles from "./page.module.css";
 import Button from "../components/button";
 import Modal from "../components/modal";
 
+
 export default function Home() {
   const socket = useSocket();
   const [codigo, setCodigo] = useState("");
@@ -13,6 +14,12 @@ export default function Home() {
   const [open, setOpen] = useState(false);
   const [tipoModal, setTipoModal] = useState("unirme");
   const [ranking, setRanking] = useState([]);
+
+  function iniciarSesion() {
+    setTipoModal("login");
+    setOpen(true);
+    
+  }
 
   function abrirModal() {
     setTipoModal("unirme");
@@ -41,8 +48,6 @@ export default function Home() {
     setOpen(true);
   }
 
-
-  const username = localStorage.getItem("username") || "Invitado";
 
   function confirmarUnion() {
     if (!codigo) return alert("Ingresá un código de sala");
