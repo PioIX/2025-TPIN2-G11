@@ -17,6 +17,9 @@ export default function Home() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [registered, setRegistered] = useState(true);
+  const [codigoSala, setCodigoSala] = useState("");
+  const [cantidadJugadores, setCantidadJugadores] = useState(6);
+
 
 
   async function SignUp() {
@@ -44,8 +47,8 @@ export default function Home() {
         alert(result.message || "Error al registrarse");
       }
     } catch (error) {
-        console.log("Error en la consulta SQL:", err);
-        return [];
+      console.log("Error en la consulta SQL:", err);
+      return [];
     }
   }
 
@@ -88,8 +91,29 @@ export default function Home() {
 
   function crearSala() {
     setTipoModal("crearSala");
+    setFuncion(() => confirmarCreacionSala);
     setOpen(true);
   }
+
+  function confirmarCreacionSala() {
+    console.log("codigoSala:", codigoSala, "cantidad:", cantidadJugadores);
+    const user = localStorage.getItem("username") || "Anfitrión";
+
+    if (!codigoSala || !cantidadJugadores) {
+      alert("Completá todos los campos para crear la sala");
+      return;
+    }
+
+    socket.emit("crearSala", {
+      codigo: codigoSala,
+      anfitrion: user,
+      maxJugadores: cantidadJugadores,
+    });
+
+    router.push(`/gameRoom?codigo=${codigoSala}&host=true`);
+    setOpen(false);
+  }
+
 
   async function verRanking() {
     const players = await fetch("http://localhost:4000/getRanking");
@@ -160,7 +184,13 @@ export default function Home() {
         setusername={(e) => setUsername(e.target.value)}
         setpassword={(e) => setPassword(e.target.value)}
         manageRegistered={changeRegistered}
+        codigoSala={codigoSala}
+        setCodigoSala={setCodigoSala}
+        funcionCodigoSala={(e) => setCodigoSala(e.target.value)}
+        funcionCantidadJugadores={(e) => setCantidadJugadores(e.target.value)}
+        onSubmitCreate={confirmarCreacionSala}
       />
+
     </>
   );
 }

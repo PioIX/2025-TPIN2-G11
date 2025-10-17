@@ -77,6 +77,97 @@ server.listen(port, function () {
   console.log(` Server running at http://localhost:${port}`);
 });
 
+const salas = {}; 
+// Estructura: salas[codigo] = { anfitrion, maxJugadores, jugadores: [] }
+
+io.on("connection", (socket) => {
+  console.log("Usuario conectado:", socket.id);
+
+  // Crear una nueva sala
+  socket.on("crearSala", ({ codigo, anfitrion, maxJugadores }) => {
+    if (salas[codigo]) {
+      socket.emit("errorSala", "Ya existe una sala con ese código");
+      return;
+    }
+
+    salas[codigo] = {
+      anfitrion,
+      maxJugadores: parseInt(maxJugadores),
+      jugadores: [{ id: socket.id, username: anfitrion }]
+    };
+
+    socket.join(codigo);
+    console.log(`Sala creada: ${codigo} (Anfitrión: ${anfitrion})`);
+
+    io.to(socket.id).emit("salaCreada", { codigo, anfitrion });
+    io.to(codigo).emit("usersInRoom", salas[codigo].jugadores);
+  });
+
+  // Unirse a una sala existente
+  socket.on("joinRoom", ({ codigo, username }) => {
+    const sala = salas[codigo];
+
+    if (!sala) {
+      socket.emit("errorSala", "No existe una sala con ese código");
+      return;
+    }
+
+    if (sala.jugadores.find(u => u.id === socket.id)) return; // evita duplicados
+
+    if (sala.jugadores.length >= sala.maxJugadores) {
+      socket.emit("errorSala", "La sala está llena");
+      return;
+    }
+
+    sala.jugadores.push({ id: socket.id, username });
+    socket.join(codigo);
+
+    console.log(`👤 ${username} se unió a la sala ${codigo}`);
+    io.to(codigo).emit("usersInRoom", sala.jugadores);
+  });
+
+  // Iniciar la partida (solo el anfitrión)
+  socket.on("iniciarJuego", ({ codigo }) => {
+    const sala = salas[codigo];
+    if (!sala) return;
+
+    const anfitrion = sala.anfitrion;
+    const anfitrionSocket = sala.jugadores.find(u => u.username === anfitrion);
+
+    if (!anfitrionSocket || anfitrionSocket.id !== socket.id) {
+      socket.emit("errorSala", "Solo el anfitrión puede iniciar la partida");
+      return;
+    }
+
+    console.log(` Juego iniciado en sala ${codigo}`);
+    io.to(codigo).emit("gameStarted", true);
+  });
+
+  // Desconexión
+  socket.on("disconnect", () => {
+    for (const codigo in salas) {
+      const sala = salas[codigo];
+      const index = sala.jugadores.findIndex(u => u.id === socket.id);
+
+      if (index !== -1) {
+        const jugadorSaliente = sala.jugadores.splice(index, 1)[0];
+        console.log(`${jugadorSaliente.username} salió de la sala ${codigo}`);
+
+        // Si el anfitrión se va, la sala se elimina
+        if (jugadorSaliente.username === sala.anfitrion) {
+          io.to(codigo).emit("salaCerrada");
+          delete salas[codigo];
+          console.log(`🚪 Sala ${codigo} eliminada (anfitrión salió)`);
+        } else {
+          io.to(codigo).emit("usersInRoom", sala.jugadores);
+        }
+        break;
+      }
+    }
+  });
+});
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 app.get("/verifyUser", async (req, res) => {

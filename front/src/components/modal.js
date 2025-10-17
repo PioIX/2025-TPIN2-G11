@@ -18,7 +18,12 @@ export default function Modal({
   setusername,
   setpassword,
   onSubmitModalSignin,
-  manageRegistered
+  manageRegistered,
+  codigoSala,
+  cantidadJugadores,
+  funcionCodigoSala,
+  funcionCantidadJugadores,
+  onSubmitCreate
 }) {
   if (!isOpen) return null;
 
@@ -62,13 +67,32 @@ export default function Modal({
 
         {tipo === "crearSala" && (
           <>
-            <input placeholder="ingrese cantidad de usuarios" className={styles.crearSala} type="number"></input>
-            <br></br>
-            <input placeholder="inmhrese codigo" className={styles.crearSala}></input>
-            <br></br>
-            <Button className={styles.btnCrearSala} onClick={onSubmit} title="crear sala"></Button>
+            <h2>Crear nueva sala</h2>
+            <label>Código personalizado:</label>
+            <input
+              type="text"
+              value={codigoSala}
+              onChange={funcionCodigoSala}
+              placeholder="amigos2025"
+            />
+            <label>Cantidad de jugadores:</label>
+            <input
+              type="number"
+              min="6"
+              max="10"
+              value={cantidadJugadores}
+              onChange={funcionCantidadJugadores}
+            />
+            <br /><br />
+            <Button
+              className={styles.btn}
+              onClick={onSubmitCreate}
+              title="Crear sala"
+            />
           </>
         )}
+
+
 
         {tipo == "settings" && (
           <div className={styles.settings}>
