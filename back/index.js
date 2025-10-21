@@ -5,7 +5,8 @@ var cors = require('cors');
 var session = require('express-session');       
 const { realizarQuery } = require('./modulos/mysql'); 
 const http = require('http');                   
-const { Server } = require('socket.io');        
+const { Server } = require('socket.io');  
+const localStorage = require('localStorage');      
 
 var app = express();
 var port = process.env.PORT || 4000;
@@ -43,29 +44,23 @@ io.use((socket, next) => {
 
 const rooms = {};
 
-io.on("connection", (socket) => {
-  console.log(" Usuario conectado:", socket.id);
+// io.on("connection", (socket) => {
+//   console.log(" Usuario conectado:", socket.id);
 
-  socket.on("joinRoom", ({ codigo, username }) => {
-    socket.join(codigo);
+//   socket.on("joinRoom", ({ codigo, username }) => {
+//     socket.join(codigo);
 
-    if (!rooms[codigo]) rooms[codigo] = [];
-    if (!rooms[codigo].some(u => u.id === socket.id)) {
-      rooms[codigo].push({ id: socket.id, username });
-    }
+//     if (!rooms[codigo]) rooms[codigo] = [];
+//     if (!rooms[codigo].some(u => u.id === socket.id)) {
+//       rooms[codigo].push({ id: socket.id, username });
+//     }
 
-    console.log(` ${username} se unió a la sala ${codigo}`);
-    io.to(codigo).emit("usersInRoom", rooms[codigo]);
-  });
+//     console.log(` ${username} se unió a la sala ${codigo}`);
+//     io.to(codigo).emit("usersInRoom", rooms[codigo]);
+//   });
 
-  socket.on("disconnect", () => {
-    for (const codigo in rooms) {
-      rooms[codigo] = rooms[codigo].filter(u => u.id !== socket.id);
-      io.to(codigo).emit("usersInRoom", rooms[codigo]);
-    }
-    console.log(" Usuario desconectado:", socket.id);
-  });
-});
+
+// });
 
 app.get('/', function (req, res) {
   res.status(200).send({
@@ -80,8 +75,9 @@ server.listen(port, function () {
 const salas = {}; 
 // Estructura: salas[codigo] = { anfitrion, maxJugadores, jugadores: [] }
 
+
 io.on("connection", (socket) => {
-  console.log("Usuario conectado:", socket.id);
+  console.log("Usuario conectado:", localStorage.getItem("username") || "invitado", socket.id);
 
   // Crear una nueva sala
   socket.on("crearSala", ({ codigo, anfitrion, maxJugadores }) => {
@@ -112,8 +108,6 @@ io.on("connection", (socket) => {
       return;
     }
 
-    if (sala.jugadores.find(u => u.id === socket.id)) return; // evita duplicados
-
     if (sala.jugadores.length >= sala.maxJugadores) {
       socket.emit("errorSala", "La sala está llena");
       return;
@@ -122,7 +116,7 @@ io.on("connection", (socket) => {
     sala.jugadores.push({ id: socket.id, username });
     socket.join(codigo);
 
-    console.log(`👤 ${username} se unió a la sala ${codigo}`);
+    console.log(`${username} se unió a la sala ${codigo}`);
     io.to(codigo).emit("usersInRoom", sala.jugadores);
   });
 
@@ -130,40 +124,17 @@ io.on("connection", (socket) => {
   socket.on("iniciarJuego", ({ codigo }) => {
     const sala = salas[codigo];
     if (!sala) return;
-
-    const anfitrion = sala.anfitrion;
-    const anfitrionSocket = sala.jugadores.find(u => u.username === anfitrion);
-
-    if (!anfitrionSocket || anfitrionSocket.id !== socket.id) {
-      socket.emit("errorSala", "Solo el anfitrión puede iniciar la partida");
-      return;
-    }
-
     console.log(` Juego iniciado en sala ${codigo}`);
     io.to(codigo).emit("gameStarted", true);
   });
 
   // Desconexión
-  socket.on("disconnect", () => {
-    for (const codigo in salas) {
-      const sala = salas[codigo];
-      const index = sala.jugadores.findIndex(u => u.id === socket.id);
-
-      if (index !== -1) {
-        const jugadorSaliente = sala.jugadores.splice(index, 1)[0];
-        console.log(`${jugadorSaliente.username} salió de la sala ${codigo}`);
-
-        // Si el anfitrión se va, la sala se elimina
-        if (jugadorSaliente.username === sala.anfitrion) {
-          io.to(codigo).emit("salaCerrada");
-          delete salas[codigo];
-          console.log(`🚪 Sala ${codigo} eliminada (anfitrión salió)`);
-        } else {
-          io.to(codigo).emit("usersInRoom", sala.jugadores);
-        }
-        break;
-      }
+    socket.on("disconnect", () => {
+    for (const codigo in rooms) {
+      rooms[codigo] = rooms[codigo].filter(u => u.id !== socket.id);
+      io.to(codigo).emit("usersInRoom", rooms[codigo]);
     }
+    console.log(" Usuario desconectado:", socket.id);
   });
 });
 
@@ -227,7 +198,7 @@ app.post("/regUser", async (req, res) => {
     });
 
   } catch (error) {
-    console.error("❌ Error en /regUser:", error);
+    console.error("Error en /regUser:", error);
     return res.status(500).send({
       message: "Error al registrar usuario",
       error: error.message || error

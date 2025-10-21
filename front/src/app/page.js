@@ -40,7 +40,7 @@ export default function Home() {
 
       if (result.message === "ok") {
         alert("Registrado correctamente");
-        localStorage.setItem("username", result.username);
+        localStorage.setItem("username", username);
         localStorage.setItem("id", result.id);
         setRegistered(true);
       } else {
@@ -65,7 +65,7 @@ export default function Home() {
 
       if (result.message === "ok") {
         alert("Inicio de sesión exitoso");
-        localStorage.setItem("username", result.username);
+        localStorage.setItem("username", username);
         localStorage.setItem("id", result.id);
         setOpen(false);
       } else {
