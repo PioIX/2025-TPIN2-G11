@@ -26,11 +26,13 @@ export default function GameRoom() {
       setGameStart(true);
     });
 
+
     return () => {
       socket.off("usersInRoom");
       socket.off("gameStarted");
     };
-  }, [socket, codigo]);
+    
+  }, );
 
   function iniciarPartida() {
     socket.emit("iniciarJuego", { codigo });

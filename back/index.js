@@ -78,12 +78,6 @@ app.get("/verifyUser", async (req, res) => {
   }
 });
 
-async function username(req, ) {
-  req.session.username= ;
-  user = req.session.username
-  return (user);
-}
-
 
 app.post("/regUser", async (req, res) => {
   try {
@@ -153,13 +147,9 @@ server.listen(port, function () {
 
 
 io.on("connection", (socket) => {
-  console.log(`Usuario conectado: ${} (ID: ${socket.id})`);
-
-  socket.on("usuarioConectado", (username) => {
-    console.log("Usuario conectado:", username, socket.id);
-  });
-
-  // Crear una nueva sala
+  const req = socket.request;
+  console.log(" Nuevo usuario conectado:", socket.id);
+  
   socket.on("crearSala", ({ codigo, anfitrion, maxJugadores }) => {
     if (salas[codigo]) {
       socket.emit("errorSala", "Ya existe una sala con ese código");
@@ -193,11 +183,10 @@ io.on("connection", (socket) => {
       return;
     }
 
-    sala.jugadores.push({ id: socket.id, username });
     socket.join(codigo);
-
     console.log(username, "se unió a la sala ");
     io.to(codigo).emit("usersInRoom", sala.jugadores);
+
   });
 
   // Iniciar la partida (solo el anfitrión)
@@ -210,11 +199,7 @@ io.on("connection", (socket) => {
 
   // Desconexión
   socket.on("disconnect", () => {
-    for (const codigo in rooms) {
-      rooms[codigo] = rooms[codigo].filter(u => u.id !== socket.id);
-      io.to(codigo).emit("usersInRoom", rooms[codigo]);
-    }
-    console.log(" Usuario desconectado:", username);
+    console.log(" Usuario desconectado:", socket.id);
   });
 });
 
