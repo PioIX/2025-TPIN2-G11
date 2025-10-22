@@ -1,5 +1,5 @@
 "use client";
-import useSocket from "@/hooks/useSocket";
+import {useSocket} from "../hooks/useSocket.js";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
@@ -7,7 +7,7 @@ import Button from "../components/button";
 import Modal from "../components/modal";
 
 export default function Home() {
-  const socket = useSocket();
+  const {socket} = useSocket();
   const router = useRouter();
   const [funcion, setFuncion] = useState(() => confirmarUnion);
   const [codigo, setCodigo] = useState("");

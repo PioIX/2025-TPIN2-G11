@@ -43,8 +43,6 @@ io.use((socket, next) => {
   sessionMiddleware(socket.request, {}, next);
 });
 
-const salas = {};
-
 app.get('/', function (req, res) {
   res.status(200).send({
     message: 'GET Home route working fine!'
@@ -140,6 +138,7 @@ app.get("/logout", (req, res) => {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+const salas = [];
 
 server.listen(port, function () {
   console.log(` Server running at http://localhost:${port}`);
@@ -149,34 +148,47 @@ server.listen(port, function () {
 io.on("connection", (socket) => {
   const req = socket.request;
   console.log(" Nuevo usuario conectado:", socket.id);
-  
-  socket.on("crearSala", ({ codigo, anfitrion, maxJugadores }) => {
-    if (salas[codigo]) {
-      socket.emit("errorSala", "Ya existe una sala con ese código");
-      return;
-    }
 
-    salas[codigo] = {
-      anfitrion,
+  socket.on("crearSala", ({ codigo, anfitrion, maxJugadores }) => {
+
+
+    for (let i = 0; i < salas.length; i++) {
+      if (salas[i].codigo === codigo) {
+        console.log("errorSala", "el codigo ya esta en uso");
+        return;
+      }
+    };
+
+    salas.push({
+      codigo: codigo,
+      anfitrion: anfitrion,
       maxJugadores: parseInt(maxJugadores),
       jugadores: [{ id: socket.id, username: anfitrion }]
-    };
+    });
 
     socket.join(codigo);
     console.log(`Sala creada: ${codigo} (Anfitrión: ${anfitrion})`);
 
-    io.to(socket.id).emit("salaCreada", { codigo, anfitrion });
-    io.to(codigo).emit("usersInRoom", salas[codigo].jugadores);
+    io.to(codigo).emit("usersInRoom", [{ id: socket.id, username: anfitrion }]);
   });
 
   // Unirse a una sala existente
   socket.on("joinRoom", ({ codigo, username }) => {
-    const sala = salas[codigo];
 
+    for (let i = 0; i < salas.length; i++) {
+      if (salas[i].codigo === codigo) {
+        var sala = salas[i];
+        sala.jugadores.push({ id: socket.id, username: username });
+        break;
+      }
+    }
+
+    console.log("Salas: ", salas, " Código recibido: ", codigo);
     if (!sala) {
       socket.emit("errorSala", "No existe una sala con ese código");
       return;
     }
+    console.log(username, "se unió a la sala ");
 
     if (sala.jugadores.length >= sala.maxJugadores) {
       socket.emit("errorSala", "La sala está llena");
@@ -184,7 +196,6 @@ io.on("connection", (socket) => {
     }
 
     socket.join(codigo);
-    console.log(username, "se unió a la sala ");
     io.to(codigo).emit("usersInRoom", sala.jugadores);
 
   });

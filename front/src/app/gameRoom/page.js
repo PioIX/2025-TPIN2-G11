@@ -1,21 +1,21 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import useSocket from "@/hooks/useSocket"
 import styles from "./GameRoom.module.css";
+import { useSocket } from "../../hooks/useSocket.js";
 
 export default function GameRoom() {
   const [users, setUsers] = useState([]);
   const [gameStart, setGameStart] = useState(false);
-  const socket = useSocket();
+  const {socket }= useSocket();
   const searchParams = useSearchParams();
   const codigo = searchParams.get("codigo");
   const isHost = searchParams.get("host") === "true";
 
   useEffect(() => {
     if (!socket) return;
-
     const username = localStorage.getItem("username") || "Invitado";
+    console.log("joinRoom", { codigo, username })
     socket.emit("joinRoom", { codigo, username });
 
     socket.on("usersInRoom", (usersList) => {
@@ -26,13 +26,7 @@ export default function GameRoom() {
       setGameStart(true);
     });
 
-
-    return () => {
-      socket.off("usersInRoom");
-      socket.off("gameStarted");
-    };
-    
-  }, );
+  }, [socket, codigo]);
 
   function iniciarPartida() {
     socket.emit("iniciarJuego", { codigo });
