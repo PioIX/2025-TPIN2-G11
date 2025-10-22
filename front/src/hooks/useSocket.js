@@ -5,7 +5,7 @@ export default function useSocket() {
   const socket = useRef(null);
 
   useEffect(() => {
-    socket.current = io("http://localhost:4000"); // tu backend
+    socket.current = io("http://localhost:4000"); 
 
     return () => {
       socket.current.disconnect();

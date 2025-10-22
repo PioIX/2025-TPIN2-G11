@@ -1,12 +1,13 @@
 
-var express = require('express');              
-var bodyParser = require('body-parser');        
-var cors = require('cors');                     
-var session = require('express-session');       
-const { realizarQuery } = require('./modulos/mysql'); 
-const http = require('http');                   
-const { Server } = require('socket.io');  
-const localStorage = require('localStorage');      
+const express = require('express');
+const session = require('express-session');
+var bodyParser = require('body-parser');
+var cors = require('cors');
+const { realizarQuery } = require('./modulos/mysql');
+const http = require('http');
+const { Server } = require('socket.io');
+const { rmSync } = require('fs');
+
 
 var app = express();
 var port = process.env.PORT || 4000;
@@ -14,7 +15,7 @@ var port = process.env.PORT || 4000;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001"], 
+  origin: ["http://localhost:3000", "http://localhost:3001"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
@@ -22,8 +23,8 @@ app.use(cors({
 const sessionMiddleware = session({
   secret: "clave-secreta",
   resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false } 
+  saveUninitialized: false,
+  cookie: { secure: false }
 });
 
 app.use(sessionMiddleware);
@@ -42,25 +43,7 @@ io.use((socket, next) => {
   sessionMiddleware(socket.request, {}, next);
 });
 
-const rooms = {};
-
-// io.on("connection", (socket) => {
-//   console.log(" Usuario conectado:", socket.id);
-
-//   socket.on("joinRoom", ({ codigo, username }) => {
-//     socket.join(codigo);
-
-//     if (!rooms[codigo]) rooms[codigo] = [];
-//     if (!rooms[codigo].some(u => u.id === socket.id)) {
-//       rooms[codigo].push({ id: socket.id, username });
-//     }
-
-//     console.log(` ${username} se unió a la sala ${codigo}`);
-//     io.to(codigo).emit("usersInRoom", rooms[codigo]);
-//   });
-
-
-// });
+const salas = {};
 
 app.get('/', function (req, res) {
   res.status(200).send({
@@ -68,16 +51,113 @@ app.get('/', function (req, res) {
   });
 });
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+app.get("/verifyUser", async (req, res) => {
+  try {
+    const { username, password } = req.query;
+
+    const check = await realizarQuery(
+      `SELECT * FROM Users WHERE username = ? AND password = ? `, [username, password]);
+
+    if (check.length > 0) {
+      req.session.username = username;
+
+      return res.send({
+        message: "ok",
+        username,
+        id: check[0].id
+      });
+    } else {
+      return res.send({
+        message: "Usuario o contraseña incorrectos"
+      });
+    }
+  } catch (error) {
+    res.send(error);
+  }
+});
+
+async function username(req, ) {
+  req.session.username= ;
+  user = req.session.username
+  return (user);
+}
+
+
+app.post("/regUser", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    console.log(" Datos recibidos:", username, password);
+
+    if (!username || !password) {
+      return res.status(400).send({ message: "Por favor complete todos los campos" });
+    }
+
+    console.log(" Verificando si el usuario existe...");
+    const check = await realizarQuery("SELECT * FROM Users WHERE username = ?", [username]);
+    console.log(" Resultado del SELECT:", check);
+
+    if (check.length > 0) {
+      return res.status(409).send({ message: "El nombre de usuario ya está registrado" });
+    }
+
+    console.log("Insertando nuevo usuario...");
+    const insertResult = await realizarQuery("INSERT INTO Users (username, password, photo, score) VALUES (?, ?,?,?)", [username, password, null, 0]);
+    console.log("Resultado del INSERT:", insertResult);
+
+    const nuevo = await realizarQuery("SELECT * FROM Users WHERE username = ?", [username]);
+    req.session.username = username;
+    return res.send({
+      message: "ok",
+      username,
+      id: nuevo[0].id
+    });
+
+  } catch (error) {
+    console.error("Error en /regUser:", error);
+    return res.status(500).send({
+      message: "Error al registrar usuario",
+      error: error.message || error
+    });
+  }
+});
+
+app.get('/getRanking', async function (req, res) {
+  try {
+    let response = await realizarQuery(`SELECT username, score FROM Users `)
+    res.send({
+      response
+    });
+  } catch (error) {
+    res.send({ mensaje: "Tuviste un error", error: error.message });
+  }
+})
+
+app.get("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.send("Error al cerrar sesión");
+    }
+    res.send("Sesión cerrada exitosamente");
+  });
+});
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 server.listen(port, function () {
   console.log(` Server running at http://localhost:${port}`);
 });
 
-const salas = {}; 
-// Estructura: salas[codigo] = { anfitrion, maxJugadores, jugadores: [] }
-
 
 io.on("connection", (socket) => {
-  console.log("Usuario conectado:", localStorage.getItem("username") || "invitado", socket.id);
+  console.log(`Usuario conectado: ${} (ID: ${socket.id})`);
+
+  socket.on("usuarioConectado", (username) => {
+    console.log("Usuario conectado:", username, socket.id);
+  });
 
   // Crear una nueva sala
   socket.on("crearSala", ({ codigo, anfitrion, maxJugadores }) => {
@@ -116,7 +196,7 @@ io.on("connection", (socket) => {
     sala.jugadores.push({ id: socket.id, username });
     socket.join(codigo);
 
-    console.log(`${username} se unió a la sala ${codigo}`);
+    console.log(username, "se unió a la sala ");
     io.to(codigo).emit("usersInRoom", sala.jugadores);
   });
 
@@ -124,99 +204,20 @@ io.on("connection", (socket) => {
   socket.on("iniciarJuego", ({ codigo }) => {
     const sala = salas[codigo];
     if (!sala) return;
-    console.log(` Juego iniciado en sala ${codigo}`);
+    console.log(` Juego iniciado en sala`, codigo);
     io.to(codigo).emit("gameStarted", true);
   });
 
   // Desconexión
-    socket.on("disconnect", () => {
+  socket.on("disconnect", () => {
     for (const codigo in rooms) {
       rooms[codigo] = rooms[codigo].filter(u => u.id !== socket.id);
       io.to(codigo).emit("usersInRoom", rooms[codigo]);
     }
-    console.log(" Usuario desconectado:", socket.id);
+    console.log(" Usuario desconectado:", username);
   });
 });
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-app.get("/verifyUser", async (req, res) => {
-  try {
-    const { username, password } = req.query;
-
-    const check = await realizarQuery(
-      `SELECT * FROM Users WHERE username = "${username}" AND password = "${password}"`
-    );
-
-    if (check.length > 0) {
-      return res.send({
-        message: "ok",
-        username,
-        id: check[0].id
-      });
-    } else {
-      return res.send({
-        message: "Usuario o contraseña incorrectos"
-      });
-    }
-  } catch (error) {
-    res.send(error);
-  }
-});
-
-
-
-app.post("/regUser", async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    console.log(" Datos recibidos:", username, password);
-
-    if (!username || !password) {
-      return res.status(400).send({ message: "Por favor complete todos los campos" });
-    }
-
-    console.log(" Verificando si el usuario existe...");
-    const check = await realizarQuery("SELECT * FROM Users WHERE username = ?", [username]);
-    console.log(" Resultado del SELECT:", check);
-    
-    if (check.length > 0) {
-      return res.status(409).send({ message: "El nombre de usuario ya está registrado" });
-    }
-
-    console.log("Insertando nuevo usuario...");
-    const insertResult = await realizarQuery("INSERT INTO Users (username, password, photo, score) VALUES (?, ?,?,?)", [username, password, null, 0]);
-    console.log("Resultado del INSERT:", insertResult);
-
-    const nuevo = await realizarQuery("SELECT * FROM Users WHERE username = ?", [username]);
-    console.log("Usuario creado:", nuevo);
-
-    return res.send({
-      message: "ok",
-      username,
-      id: nuevo[0].id 
-    });
-
-  } catch (error) {
-    console.error("Error en /regUser:", error);
-    return res.status(500).send({
-      message: "Error al registrar usuario",
-      error: error.message || error
-    });
-  }
-});
-
-app.get('/getRanking', async function (req, res) {
-    try {
-        let response = await realizarQuery(`SELECT username, score FROM Users `)
-        res.send({
-            response
-        });
-    } catch (error) {
-        res.send({ mensaje: "Tuviste un error", error: error.message });
-    }
-})
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
