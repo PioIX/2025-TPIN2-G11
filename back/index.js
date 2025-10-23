@@ -79,7 +79,7 @@ app.get("/getSalas", async (req, res) => {
     const salas = await realizarQuery(
       `SELECT id, code, status, village_won FROM Games WHERE status = true`
     );
-    console.log("🔍 Salas activas desde BD:", salas);
+    console.log("Salas activas desde BD:", salas);
     res.json({ success: true, salas: salas });
   } catch (error) {
     console.error(" Error en /getSalas:", error);
@@ -136,7 +136,7 @@ app.post("/crearSalaBD", async (req, res) => {
 
     const userId = usuario[0].id;
 
-    // Verificar si ya existe una sala con ese código
+    // Verificar si ya existe una sala ACTIVA con ese código
     const salaExistente = await realizarQuery(
       `SELECT code FROM Games WHERE code = ? AND status = true`,
       [codigo]
@@ -149,11 +149,11 @@ app.post("/crearSalaBD", async (req, res) => {
       });
     }
 
-    // Insertar nueva sala usando el ID del usuario
+    // Insertar nueva sala SIN max_players
     const result = await realizarQuery(
       `INSERT INTO Games (code, village_won, status) 
        VALUES (?, ?, true)`,
-      [codigo, userId]  // Usar ID numérico en lugar del username
+      [codigo, userId]
     );
 
     console.log(" Sala creada exitosamente en BD, ID:", result.insertId);
@@ -293,37 +293,52 @@ server.listen(port, function () {
   console.log(` Server running at http://localhost:${port}`);
 });
 
-
+// Socket.io connection handling
 io.on("connection", (socket) => {
   console.log(" Nuevo usuario conectado:", socket.id);
 
+  // En la parte de sockets, modifica el evento "crearSala":
   socket.on("crearSala", async ({ codigo, anfitrion, maxJugadores }) => {
     try {
-      console.log(" Intentando crear sala:", { codigo, anfitrion, maxJugadores });
+      console.log(" Socket: Intentando crear sala:", { codigo, anfitrion, maxJugadores });
 
-      // Verificar en BD si la sala existe
-      const salaExistente = await realizarQuery(
-        `SELECT code FROM Games WHERE code = ? AND status = true`,
-        [codigo]
-      );
+      // Verificar si ya existe en memoria
+      const salaExistente = salas.find(s => s.codigo === codigo && s.activa);
 
-      if (salaExistente.length > 0) {
-        socket.emit("errorSala", "El código ya está en uso");
+      if (salaExistente) {
+        socket.emit("errorSala", "El código ya está en uso en este momento");
         return;
       }
 
-      // Crear sala en BD - usando village_won para el anfitrión
-      await realizarQuery(
-        `INSERT INTO Games (code, village_won, status) VALUES (?, ?, true)`,
-        [codigo, anfitrion]
+      // Buscar la sala en BD para verificar que fue creada por HTTP
+      const salaBD = await realizarQuery(
+        `SELECT id, code, village_won FROM Games 
+       WHERE code = ? AND status = true`,
+        [codigo]
       );
 
-      // Mantener en memoria para la sesión actual
+      if (salaBD.length === 0) {
+        socket.emit("errorSala", "Primero debes crear la sala desde el formulario");
+        return;
+      }
+
+      // Obtener el username del anfitrión desde la BD
+      const usuarioAnfitrion = await realizarQuery(
+        `SELECT username FROM Users WHERE id = ?`,
+        [salaBD[0].village_won]
+      );
+
+      const anfitrionUsername = usuarioAnfitrion.length > 0 ? usuarioAnfitrion[0].username : anfitrion;
+
+      // Crear sala en memoria
       const nuevaSala = {
         codigo: codigo,
-        anfitrion: anfitrion,
-        maxJugadores: parseInt(maxJugadores) || 6, // Valor por defecto
-        jugadores: [{ id: socket.id, username: anfitrion, socketId: socket.id }]
+        anfitrion: anfitrionUsername,
+        anfitrionSocketId: socket.id,
+        maxJugadores: parseInt(maxJugadores) || 6,
+        jugadores: [{ id: socket.id, username: anfitrionUsername, socketId: socket.id, esAnfitrion: true }],
+        activa: true,
+        creadaEnBD: true
       };
 
       salas.push(nuevaSala);
@@ -331,20 +346,22 @@ io.on("connection", (socket) => {
 
       socket.salaActual = codigo;
       socket.esAnfitrion = true;
-      socket.username = anfitrion;
+      socket.username = anfitrionUsername;
 
-      console.log(" Sala creada exitosamente en BD y memoria");
+      console.log("Sala activada en memoria para:", anfitrionUsername);
+      console.log("Jugadores en sala:", nuevaSala.jugadores);
+
+      // Enviar la lista de jugadores a TODOS en la sala (incluyendo al anfitrión)
       io.to(codigo).emit("usersInRoom", nuevaSala.jugadores);
 
     } catch (error) {
-      console.error(" Error creando sala:", error);
+      console.error(" Error creando sala en socket:", error);
       socket.emit("errorSala", "Error interno del servidor");
     }
   });
-
   socket.on("joinRoom", async ({ codigo, username }) => {
     try {
-      console.log(" Intentando unirse a sala:", { codigo, username });
+      console.log(" Socket: Intentando unirse a sala:", { codigo, username });
 
       // Verificar en BD si la sala existe y está activa
       const salaBD = await realizarQuery(
@@ -358,17 +375,34 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // Buscar en memoria o crear desde BD
-      let sala = salas.find(s => s.codigo === codigo);
+      // Buscar en memoria
+      let sala = salas.find(s => s.codigo === codigo && s.activa);
 
       if (!sala) {
+        // Si no está en memoria pero sí en BD, crear en memoria
+        const usuarioAnfitrion = await realizarQuery(
+          `SELECT username FROM Users WHERE id = ?`,
+          [salaBD[0].village_won]
+        );
+
+        const anfitrionUsername = usuarioAnfitrion.length > 0 ? usuarioAnfitrion[0].username : "Anfitrión";
+
         sala = {
           codigo: codigo,
-          anfitrion: salaBD[0].village_won, // Usamos village_won como anfitrión
-          maxJugadores: 6, // Valor por defecto ya que no tenemos la columna
-          jugadores: []
+          anfitrion: anfitrionUsername,
+          anfitrionSocketId: null,
+          maxJugadores: 6, // Valor por defecto ya que no tenemos la columna en BD
+          jugadores: [],
+          activa: true,
+          creadaEnBD: true
         };
         salas.push(sala);
+      }
+
+      // Verificar si el jugador ya está en la sala
+      if (sala.jugadores.find(j => j.username === username)) {
+        socket.emit("errorSala", "Ya estás en esta sala");
+        return;
       }
 
       if (sala.jugadores.length >= sala.maxJugadores) {
@@ -377,15 +411,28 @@ io.on("connection", (socket) => {
       }
 
       // Unir al jugador
-      const nuevoJugador = { id: socket.id, username: username, socketId: socket.id };
-      sala.jugadores.push(nuevoJugador);
-      socket.join(codigo);
+      const nuevoJugador = {
+        id: socket.id,
+        username: username,
+        socketId: socket.id,
+        esAnfitrion: (username === sala.anfitrion && !sala.anfitrionSocketId)
+      };
 
+      sala.jugadores.push(nuevoJugador);
+
+      // Si es el anfitrión reconectándose, actualizar su socket ID
+      if (username === sala.anfitrion && !sala.anfitrionSocketId) {
+        sala.anfitrionSocketId = socket.id;
+        nuevoJugador.esAnfitrion = true;
+        console.log("Anfitrión reconectado:", username);
+      }
+
+      socket.join(codigo);
       socket.salaActual = codigo;
-      socket.esAnfitrion = false;
+      socket.esAnfitrion = nuevoJugador.esAnfitrion;
       socket.username = username;
 
-      console.log(" Usuario unido exitosamente");
+      console.log("Usuario unido exitosamente:", username);
       io.to(codigo).emit("usersInRoom", sala.jugadores);
 
     } catch (error) {
@@ -394,20 +441,162 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("cerrarSala", async ({ codigo }) => {
+    try {
+      console.log(" Cerrando sala:", codigo);
+
+      // Marcar como inactiva en BD
+      await realizarQuery(
+        `UPDATE Games SET status = false WHERE code = ?`,
+        [codigo]
+      );
+
+      // Eliminar de memoria
+      const index = salas.findIndex(s => s.codigo === codigo);
+      if (index !== -1) {
+        salas.splice(index, 1);
+      }
+
+      // Notificar a todos los jugadores
+      io.to(codigo).emit("salaCerrada", "El anfitrión cerró la sala");
+      io.in(codigo).socketsLeave(codigo);
+
+      console.log("Sala cerrada completamente:", codigo);
+
+    } catch (error) {
+      console.error(" Error cerrando sala:", error);
+    }
+  });
+
+  socket.on("abandonarSala", async ({ codigo }) => {
+    try {
+      const sala = salas.find(s => s.codigo === codigo && s.activa);
+      if (!sala) return;
+
+      // Remover jugador de la sala en memoria
+      sala.jugadores = sala.jugadores.filter(j => j.socketId !== socket.id);
+
+      // Si el anfitrión abandona, cerrar la sala
+      if (socket.esAnfitrion && socket.username === sala.anfitrion) {
+        console.log("Anfitrión abandonó la sala, cerrando...");
+
+        // Marcar como inactiva en BD
+        await realizarQuery(
+          `UPDATE Games SET status = false WHERE code = ?`,
+          [codigo]
+        );
+
+        // Notificar a otros jugadores
+        io.to(codigo).emit("salaCerrada", "El anfitrión abandonó la sala");
+        io.in(codigo).socketsLeave(codigo);
+
+        // Eliminar de memoria
+        const index = salas.findIndex(s => s.codigo === codigo);
+        if (index !== -1) {
+          salas.splice(index, 1);
+        }
+      } else {
+        // Solo actualizar lista de jugadores
+        io.to(codigo).emit("usersInRoom", sala.jugadores);
+      }
+
+      socket.leave(codigo);
+      console.log("Usuario abandonó sala:", socket.username);
+
+    } catch (error) {
+      console.error(" Error abandonando sala:", error);
+    }
+  });
+
+  socket.on("iniciarJuego", ({ codigo }) => {
+    try {
+      console.log("Intentando iniciar juego en sala:", codigo);
+
+      const sala = salas.find(s => s.codigo === codigo && s.activa);
+      if (!sala) {
+        socket.emit("errorSala", "La sala no existe");
+        return;
+      }
+
+      // Verificar que el que inicia es el anfitrión
+      if (socket.id !== sala.anfitrionSocketId) {
+        socket.emit("errorSala", "Solo el anfitrión puede iniciar el juego");
+        return;
+      }
+
+      // Verificar cantidad mínima de jugadores
+      if (sala.jugadores.length < 2) {
+        socket.emit("errorSala", "Se necesitan al menos 2 jugadores para iniciar");
+        return;
+      }
+
+      console.log("Juego iniciado en sala:", codigo);
+      io.to(codigo).emit("gameStarted", true);
+
+    } catch (error) {
+      console.error("Error iniciando juego:", error);
+      socket.emit("errorSala", "Error al iniciar el juego");
+    }
+  });
+
   socket.on("disconnect", async () => {
-    console.log("🔌 Usuario desconectado:", socket.id);
+    console.log("Usuario desconectado:", socket.id, socket.username);
 
     if (socket.salaActual && socket.esAnfitrion) {
       try {
-        // Cerrar sala en BD cuando el anfitrión se desconecta
-        await realizarQuery(
-          `UPDATE Games SET status = false WHERE code = ?`,
-          [socket.salaActual]
-        );
-        console.log("🗑️ Sala cerrada en BD por desconexión del anfitrión");
+        const sala = salas.find(s => s.codigo === socket.salaActual && s.activa);
+        if (sala) {
+          console.log("Anfitrión desconectado, cerrando sala:", socket.salaActual);
+
+          // Marcar como inactiva en BD
+          await realizarQuery(
+            `UPDATE Games SET status = false WHERE code = ?`,
+            [socket.salaActual]
+          );
+
+          // Notificar a otros jugadores
+          io.to(socket.salaActual).emit("salaCerrada", "El anfitrión se desconectó");
+          io.in(socket.salaActual).socketsLeave(socket.salaActual);
+
+          // Eliminar de memoria
+          const index = salas.findIndex(s => s.codigo === socket.salaActual);
+          if (index !== -1) {
+            salas.splice(index, 1);
+          }
+        }
       } catch (error) {
-        console.error(" Error cerrando sala en BD:", error);
+        console.error(" Error cerrando sala en desconexión:", error);
+      }
+    } else if (socket.salaActual) {
+      // Solo jugador normal - remover de la lista
+      const sala = salas.find(s => s.codigo === socket.salaActual && s.activa);
+      if (sala) {
+        sala.jugadores = sala.jugadores.filter(j => j.socketId !== socket.id);
+        io.to(socket.salaActual).emit("usersInRoom", sala.jugadores);
       }
     }
   });
 });
+
+// Limpieza automática de salas huérfanas
+setInterval(async () => {
+  try {
+    // Cerrar salas en BD que no están en memoriasoc
+    const salasActivasBD = await realizarQuery(
+      `SELECT code FROM Games WHERE status = true`
+    );
+
+    for (const salaBD of salasActivasBD) {
+      const salaEnMemoria = salas.find(s => s.codigo === salaBD.code && s.activa);
+      if (!salaEnMemoria) {
+        await realizarQuery(
+          `UPDATE Games SET status = false WHERE code = ?`,
+          [salaBD.code]
+        );
+        console.log("Sala huérfana limpiada:", salaBD.code);
+      }
+    }
+  } catch (error) {
+    console.error(" Error en limpieza automática:", error);
+  }
+}, 5 * 60 * 1000); // 5 minutos
