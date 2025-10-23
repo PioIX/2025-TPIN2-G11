@@ -138,7 +138,11 @@ app.get("/logout", (req, res) => {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+
 const salas = [];
+app.get("/vectorSalas", (req, res) => {
+  res.send(salas);
+})
 
 server.listen(port, function () {
   console.log(` Server running at http://localhost:${port}`);

@@ -5,49 +5,51 @@ import Button from "./button";
 export default function Modal({
   isOpen,
   onClose,
-  onSubmit,
   title,
-  valorInput,
-  onChangeInput,
   tipo,
-  ranking = [],
-  registered = true,
-  onSubmitlogin,
-  username,
-  password,
-  setusername,
-  setpassword,
-  onSubmitModalSignin,
-  manageRegistered,
   codigoSala,
-  cantidadJugadores,
+  onChangeCodigoSala,
+  onSubmitUnirse,
+  ranking,
+  nuevoCodigoSala,
   funcionCodigoSala,
+  cantidadJugadores,
   funcionCantidadJugadores,
-  onSubmitCreate
+  onSubmitCreate,
+  onSubmitModalSignin,
+  onSubmitModifyAcount,
+  onSubmitCloseSession,
+  registered,
+  username,
+  setusername,
+  password,
+  setpassword,
+  onSubmitlogin,
+  manageRegistered
 }) {
   if (!isOpen) return null;
 
   return (
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <Button className={styles.close} onClick={onClose} title="✕" />
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         {tipo === "unirme" && (
           <>
             <h2>Ingrese el código de sala</h2>
             <input
               type="text"
               placeholder="Ej: 12345"
-              value={valorInput}
-              onChange={onChangeInput}
+              value={codigoSala}
+              onChange={onChangeCodigoSala}
             />
             <br />
             <br />
-            <Button className={styles.btn} onClick={onSubmit} title={title} />
+            <Button className={styles.btn} onClick={onSubmitUnirse} title={title} />
           </>
         )}
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         {tipo === "ranking" && (
           <>
             <h2>🏆 Ranking de jugadores</h2>
@@ -64,14 +66,14 @@ export default function Modal({
             </ul>
           </>
         )}
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         {tipo === "crearSala" && (
           <>
             <h2>Crear nueva sala</h2>
             <label>Código personalizado:</label>
             <input
               type="text"
-              value={codigoSala}
+              value={nuevoCodigoSala}
               onChange={funcionCodigoSala}
               placeholder="amigos2025"
             />
@@ -92,19 +94,21 @@ export default function Modal({
           </>
         )}
 
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         {tipo == "settings" && (
           <div className={styles.settings}>
             <li>
               <ul> <Button title="INICIAR SESIÓN" onClick={onSubmitModalSignin} /></ul>
               <br></br>
-              <ul> <Button className={styles.btn} onClick={onSubmit} title="modificar cuenta" /></ul>
+              <ul> <Button className={styles.btn} onClick={onSubmitModifyAcount} title="modificar cuenta" /></ul>
               <br></br>
-              <ul> <Button className={styles.btn} onClick={onSubmit} title="cambiar idioma" /></ul>
+              <ul> <Button className={styles.btn} onClick={onSubmitCloseSession} title="cerrar sesion" /></ul>
             </li>
           </div>
         )}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         {tipo === "login" && (
           <div className={styles.loginContainer}>

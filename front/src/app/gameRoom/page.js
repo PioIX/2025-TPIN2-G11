@@ -11,10 +11,19 @@ export default function GameRoom() {
   const searchParams = useSearchParams();
   const codigo = searchParams.get("codigo");
   const isHost = searchParams.get("host") === "true";
-
+  const cantidadJugadores = searchParams.get("cantidadJugadores")
+  
   useEffect(() => {
     if (!socket) return;
+
     const username = localStorage.getItem("username") || "Invitado";
+    
+    socket.emit("crearSala", {
+      codigo: codigo,
+      anfitrion: username,
+      maxJugadores: cantidadJugadores,
+    });
+
     console.log("joinRoom", { codigo, username })
     socket.emit("joinRoom", { codigo, username });
 

@@ -1,13 +1,15 @@
 "use client";
-import {useSocket} from "../hooks/useSocket.js";
+import { useSocket } from "../hooks/useSocket.js";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import Button from "../components/button";
 import Modal from "../components/modal";
+import { Salsa } from "next/font/google/index.js";
 
 export default function Home() {
-  const {socket} = useSocket();
+
+  //const {socket} = useSocket();
   const router = useRouter();
   const [funcion, setFuncion] = useState(() => confirmarUnion);
   const [codigo, setCodigo] = useState("");
@@ -104,13 +106,7 @@ export default function Home() {
       return;
     }
 
-    socket.emit("crearSala", {
-      codigo: codigoSala,
-      anfitrion: user,
-      maxJugadores: cantidadJugadores,
-    });
-
-    router.push(`/gameRoom?codigo=${codigoSala}&host=true`);
+    router.push(`/gameRoom?codigo=${codigoSala}&host=true&cantidadJugadores=${cantidadJugadores}`);
     setOpen(false);
   }
 
@@ -123,13 +119,38 @@ export default function Home() {
     setOpen(true);
   }
 
-  function confirmarUnion() {
-    const user = localStorage.getItem("username") || "Invitado";
-    if (!codigo) return alert("Ingresá un código de sala");
-    socket.emit("joinRoom", { codigo, username: user });
-    router.push(`/gameRoom?codigo=${codigo}`);
-    setOpen(false);
+  async function confirmarUnion() {
+  const user = localStorage.getItem("username") || "Invitado";
+  
+  // Verificar que se ingresó un código
+  if (!codigo) {
+    alert("Por favor ingresa un código de sala");
+    return;
   }
+
+  try {
+    const response = await fetch(`http://localhost:4000/vectorSalas`);
+    const salas = await response.json();
+    console.log("Salas disponibles:", salas);
+
+    const salaEncontrada = salas.find(sala => sala.codigo === codigo);
+    
+    if (salaEncontrada) {
+      if (salaEncontrada.jugadores.length >= salaEncontrada.maxJugadores) {
+        alert("La sala está llena");
+        return;
+      }
+      
+      router.push(`/gameRoom?codigo=${codigo}&host=false`);
+      setOpen(false);
+    } else {
+      alert("No existe una sala con ese código");
+    }
+  } catch (error) {
+    console.error("Error al verificar salas:", error);
+    alert("Error al conectar con el servidor");
+  }
+}
 
   function openSettings() {
     setTipoModal("settings");
