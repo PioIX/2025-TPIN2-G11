@@ -94,7 +94,7 @@ export default function Modal({
             <input
               type="number"
               min="6"
-              max="10"
+              max="16"
               value={cantidadJugadores}
               onChange={onChangeCantidadJugadores}
             />
