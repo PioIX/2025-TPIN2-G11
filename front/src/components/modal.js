@@ -7,49 +7,61 @@ export default function Modal({
   onClose,
   title,
   tipo,
-  codigoSala,
-  onChangeCodigoSala,
+  // Props para unirse
+  codigoUnirse,
+  onChangeCodigoUnirse,
   onSubmitUnirse,
-  ranking,
-  nuevoCodigoSala,
-  funcionCodigoSala,
+  // Props para crear sala
+  codigoCrearSala,
+  onChangeCodigoCrearSala,
   cantidadJugadores,
-  funcionCantidadJugadores,
+  onChangeCantidadJugadores,
   onSubmitCreate,
-  onSubmitModalSignin,
-  onSubmitModifyAcount,
+  // Props para ranking
+  ranking,
+  // Props para settings
+  onOpenLogin,
+  onSubmitModifyAccount,
   onSubmitCloseSession,
+  // Props para login/registro
   registered,
   username,
-  setusername,
+  onChangeUsername,
   password,
-  setpassword,
-  onSubmitlogin,
-  manageRegistered
+  onChangePassword,
+  onSubmitLogin,
+  onToggleRegister
 }) {
   if (!isOpen) return null;
 
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    <div className={styles.overlay} onClick={onClose}>
+    <div className={styles.overlay} onClick={handleOverlayClick}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <Button className={styles.close} onClick={onClose} title="✕" />
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        {tipo === "unirme" && (
+        
+        {/* Modal para unirse a sala */}
+        {tipo === "unirse" && (
           <>
             <h2>Ingrese el código de sala</h2>
             <input
               type="text"
               placeholder="Ej: 12345"
-              value={codigoSala}
-              onChange={onChangeCodigoSala}
+              value={codigoUnirse}
+              onChange={onChangeCodigoUnirse}
             />
             <br />
             <br />
-            <Button className={styles.btn} onClick={onSubmitUnirse} title={title} />
+            <Button className={styles.btn} onClick={onSubmitUnirse} title="Unirse" />
           </>
         )}
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        {/* Modal para ranking */}
         {tipo === "ranking" && (
           <>
             <h2>🏆 Ranking de jugadores</h2>
@@ -66,15 +78,16 @@ export default function Modal({
             </ul>
           </>
         )}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        {/* Modal para crear sala */}
         {tipo === "crearSala" && (
           <>
             <h2>Crear nueva sala</h2>
             <label>Código personalizado:</label>
             <input
               type="text"
-              value={nuevoCodigoSala}
-              onChange={funcionCodigoSala}
+              value={codigoCrearSala}
+              onChange={onChangeCodigoCrearSala}
               placeholder="amigos2025"
             />
             <label>Cantidad de jugadores:</label>
@@ -83,7 +96,7 @@ export default function Modal({
               min="6"
               max="10"
               value={cantidadJugadores}
-              onChange={funcionCantidadJugadores}
+              onChange={onChangeCantidadJugadores}
             />
             <br /><br />
             <Button
@@ -94,22 +107,24 @@ export default function Modal({
           </>
         )}
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        {tipo == "settings" && (
+        {/* Modal para configuraciones */}
+        {tipo === "settings" && (
           <div className={styles.settings}>
-            <li>
-              <ul> <Button title="INICIAR SESIÓN" onClick={onSubmitModalSignin} /></ul>
-              <br></br>
-              <ul> <Button className={styles.btn} onClick={onSubmitModifyAcount} title="modificar cuenta" /></ul>
-              <br></br>
-              <ul> <Button className={styles.btn} onClick={onSubmitCloseSession} title="cerrar sesion" /></ul>
-            </li>
+            <ul className={styles.settingsList}>
+              <li>
+                <Button title="INICIAR SESIÓN" onClick={onOpenLogin} />
+              </li>
+              <li>
+                <Button className={styles.btn} onClick={onSubmitModifyAccount} title="Modificar cuenta" />
+              </li>
+              <li>
+                <Button className={styles.btn} onClick={onSubmitCloseSession} title="Cerrar sesión" />
+              </li>
+            </ul>
           </div>
         )}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+        {/* Modal para login/registro */}
         {tipo === "login" && (
           <div className={styles.loginContainer}>
             <h2>{registered ? "Iniciar sesión" : "Registrarse"}</h2>
@@ -117,24 +132,24 @@ export default function Modal({
             <input
               placeholder="Nombre de usuario"
               value={username}
-              onChange={setusername}
+              onChange={onChangeUsername}
             />
             <br />
             <input
               type="password"
               placeholder="Contraseña"
               value={password}
-              onChange={setpassword}
+              onChange={onChangePassword}
             />
             <br />
             <Button
               className={styles.btn}
-              onClick={onSubmitlogin}
+              onClick={onSubmitLogin}
               title={registered ? "Iniciar sesión" : "Registrarse"}
             />
-            <p>{registered ? "no tienes cuenta?" : "ya tienes cuenta?"}</p>
-            <a onClick={manageRegistered}>
-              {registered ? "registrate!" : "inicia sesión"}
+            <p>{registered ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}</p>
+            <a onClick={onToggleRegister} className={styles.toggleLink}>
+              {registered ? "¡Regístrate!" : "¡Inicia sesión!"}
             </a>
           </div>
         )}

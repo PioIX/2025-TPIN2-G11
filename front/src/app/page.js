@@ -8,21 +8,16 @@ import Modal from "../components/modal";
 import { Salsa } from "next/font/google/index.js";
 
 export default function Home() {
-
-  //const {socket} = useSocket();
   const router = useRouter();
-  const [funcion, setFuncion] = useState(() => confirmarUnion);
-  const [codigo, setCodigo] = useState("");
+  const [codigoUnirse, setCodigoUnirse] = useState(""); // Solo para unirse
+  const [codigoCrearSala, setCodigoCrearSala] = useState(""); // Solo para crear
   const [open, setOpen] = useState(false);
-  const [tipoModal, setTipoModal] = useState("unirme");
+  const [tipoModal, setTipoModal] = useState("");
   const [ranking, setRanking] = useState([]);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [registered, setRegistered] = useState(true);
-  const [codigoSala, setCodigoSala] = useState("");
   const [cantidadJugadores, setCantidadJugadores] = useState(6);
-
-
 
   async function SignUp() {
     if (!username || !password) {
@@ -49,8 +44,7 @@ export default function Home() {
         alert(result.message || "Error al registrarse");
       }
     } catch (error) {
-      console.log("Error en la consulta SQL:", err);
-      return [];
+      console.log("Error en la consulta SQL:", error);
     }
   }
 
@@ -79,78 +73,74 @@ export default function Home() {
   }
 
   function abrirModal() {
-    setTipoModal("unirme");
+    setTipoModal("unirse");
     setOpen(true);
-    setFuncion(() => confirmarUnion);
   }
 
   function abrirLogin() {
     setTipoModal("login");
     setRegistered(true);
     setOpen(true);
-    setFuncion(() => SignIn);
   }
 
   function crearSala() {
     setTipoModal("crearSala");
-    setFuncion(() => confirmarCreacionSala);
     setOpen(true);
   }
 
   function confirmarCreacionSala() {
-    console.log("codigoSala:", codigoSala, "cantidad:", cantidadJugadores);
-    const user = localStorage.getItem("username") || "Anfitrión";
+    console.log("codigoCrearSala:", codigoCrearSala, "cantidad:", cantidadJugadores);
 
-    if (!codigoSala || !cantidadJugadores) {
+    if (!codigoCrearSala || !cantidadJugadores) {
       alert("Completá todos los campos para crear la sala");
       return;
     }
 
-    router.push(`/gameRoom?codigo=${codigoSala}&host=true&cantidadJugadores=${cantidadJugadores}`);
+    router.push(`/gameRoom?codigo=${codigoCrearSala}&host=true&cantidadJugadores=${cantidadJugadores}`);
     setOpen(false);
   }
 
-
   async function verRanking() {
-    const players = await fetch("http://localhost:4000/getRanking");
-    const result = await players.json();
-    setRanking(result.response || []);
-    setTipoModal("ranking");
-    setOpen(true);
+    try {
+      const players = await fetch("http://localhost:4000/getRanking");
+      const result = await players.json();
+      setRanking(result.response || []);
+      setTipoModal("ranking");
+      setOpen(true);
+    } catch (error) {
+      console.error("Error al obtener ranking:", error);
+    }
   }
 
   async function confirmarUnion() {
-  const user = localStorage.getItem("username") || "Invitado";
-  
-  // Verificar que se ingresó un código
-  if (!codigo) {
-    alert("Por favor ingresa un código de sala");
-    return;
-  }
-
-  try {
-    const response = await fetch(`http://localhost:4000/vectorSalas`);
-    const salas = await response.json();
-    console.log("Salas disponibles:", salas);
-
-    const salaEncontrada = salas.find(sala => sala.codigo === codigo);
-    
-    if (salaEncontrada) {
-      if (salaEncontrada.jugadores.length >= salaEncontrada.maxJugadores) {
-        alert("La sala está llena");
-        return;
-      }
-      
-      router.push(`/gameRoom?codigo=${codigo}&host=false`);
-      setOpen(false);
-    } else {
-      alert("No existe una sala con ese código");
+    if (!codigoUnirse) {
+      alert("Por favor ingresa un código de sala");
+      return;
     }
-  } catch (error) {
-    console.error("Error al verificar salas:", error);
-    alert("Error al conectar con el servidor");
+
+    try {
+      const response = await fetch(`http://localhost:4000/vectorSalas`);
+      const salas = await response.json();
+      console.log("Salas disponibles:", salas);
+
+      const salaEncontrada = salas.find(sala => sala.codigo === codigoUnirse);
+
+      if (salaEncontrada) {
+        if (salaEncontrada.jugadores.length >= salaEncontrada.maxJugadores) {
+          alert("La sala está llena");
+          return;
+        }
+
+        router.push(`/gameRoom?codigo=${codigoUnirse}&host=false`);
+        setOpen(false);
+      } else {
+        alert("No existe una sala con ese código");
+      }
+    } catch (error) {
+      console.error("Error al verificar salas:", error);
+      alert("Error al conectar con el servidor");
+    }
   }
-}
 
   function openSettings() {
     setTipoModal("settings");
@@ -158,12 +148,26 @@ export default function Home() {
   }
 
   function changeRegistered() {
-    if (registered == true) {
-      setRegistered(false)
-    } else if (registered == false) {
-      setRegistered(true)
-    }
+    setRegistered(prev => !prev);
+  }
 
+  function handleModifyAccount() {
+    alert("Funcionalidad de modificar cuenta en desarrollo");
+  }
+
+  function handleCloseSession() {
+    localStorage.removeItem("username");
+    localStorage.removeItem("id");
+    alert("Sesión cerrada");
+    setOpen(false);
+  }
+
+  function handleAuth() {
+    if (registered) {
+      SignIn();
+    } else {
+      SignUp();
+    }
   }
 
   return (
@@ -187,31 +191,38 @@ export default function Home() {
       <Modal
         isOpen={open}
         onClose={() => setOpen(false)}
-        onSubmit={funcion}
         title={tipoModal}
-        valorInput={codigo}
-        onChangeInput={(e) => setCodigo(e.target.value)}
         tipo={tipoModal}
+        
+        // Props para unirse a sala
+        codigoUnirse={codigoUnirse}
+        onChangeCodigoUnirse={(e) => setCodigoUnirse(e.target.value)}
+        onSubmitUnirse={confirmarUnion}
+        
+        // Props para crear sala
+        codigoCrearSala={codigoCrearSala}
+        onChangeCodigoCrearSala={(e) => setCodigoCrearSala(e.target.value)}
+        cantidadJugadores={cantidadJugadores}
+        onChangeCantidadJugadores={(e) => setCantidadJugadores(e.target.value)}
+        onSubmitCreate={confirmarCreacionSala}
+        
+        // Props para ranking
         ranking={ranking}
+        
+        // Props para settings
+        onOpenLogin={abrirLogin}
+        onSubmitModifyAccount={handleModifyAccount}
+        onSubmitCloseSession={handleCloseSession}
+        
+        // Props para login/registro
         registered={registered}
         username={username}
-        setUsername={setUsername}
+        onChangeUsername={(e) => setUsername(e.target.value)}
         password={password}
-        setPassword={setPassword}
-        toggleRegistered={() => setRegistered(!registered)}
-        onSubmitSettings={funcion}
-        onSubmitModalSignin={abrirLogin}
-        onSubmitlogin={registered == true ? SignIn : SignUp}
-        setusername={(e) => setUsername(e.target.value)}
-        setpassword={(e) => setPassword(e.target.value)}
-        manageRegistered={changeRegistered}
-        codigoSala={codigoSala}
-        setCodigoSala={setCodigoSala}
-        funcionCodigoSala={(e) => setCodigoSala(e.target.value)}
-        funcionCantidadJugadores={(e) => setCantidadJugadores(e.target.value)}
-        onSubmitCreate={confirmarCreacionSala}
+        onChangePassword={(e) => setPassword(e.target.value)}
+        onSubmitLogin={handleAuth}
+        onToggleRegister={changeRegistered}
       />
-
     </>
   );
 }
