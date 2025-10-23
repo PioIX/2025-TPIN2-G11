@@ -40,6 +40,19 @@ io.use((socket, next) => {
   sessionMiddleware(socket.request, {}, next);
 });
 
+// Definir estados del juego
+const estadosJuego = {
+  INICIO: "inicio",
+  NOCHE_LOBIZONES: "noche_lobizones",
+  NOCHE_ESPECIALES: "noche_especiales",
+  DIA_DEBATE: "dia_debate",
+  DIA_VOTACION: "dia_votacion",
+  FINALIZADO: "finalizado"
+};
+
+// Array para almacenar salas en memoria
+const salas = [];
+
 app.get('/', function (req, res) {
   res.status(200).send({
     message: 'GET Home route working fine!'
@@ -284,15 +297,6 @@ app.get("/logout", (req, res) => {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const salas = [];
-app.get("/vectorSalas", (req, res) => {
-  res.send(salas);
-})
-
-server.listen(port, function () {
-  console.log(` Server running at http://localhost:${port}`);
-});
-
 // Socket.io connection handling
 io.on("connection", (socket) => {
   console.log(" Nuevo usuario conectado:", socket.id);
@@ -336,7 +340,24 @@ io.on("connection", (socket) => {
         anfitrion: anfitrionUsername,
         anfitrionSocketId: socket.id,
         maxJugadores: parseInt(maxJugadores) || 6,
-        jugadores: [{ id: socket.id, username: anfitrionUsername, socketId: socket.id, esAnfitrion: true }],
+        jugadores: [{
+          id: socket.id,
+          username: anfitrionUsername,
+          socketId: socket.id,
+          esAnfitrion: true,
+          rol: null,
+          estaVivo: true,
+          votosRecibidos: 0,
+          fueProtegido: false
+        }],
+        estado: estadosJuego.INICIO,
+        ronda: 1,
+        rolesAsignados: false,
+        votosLobizones: {},
+        votosLinchamiento: {},
+        intendente: null,
+        ultimaVictima: null,
+        ganador: null,
         activa: true,
         creadaEnBD: true
       };
@@ -359,6 +380,7 @@ io.on("connection", (socket) => {
       socket.emit("errorSala", "Error interno del servidor");
     }
   });
+
   socket.on("joinRoom", async ({ codigo, username }) => {
     try {
       console.log(" Socket: Intentando unirse a sala:", { codigo, username });
@@ -393,6 +415,14 @@ io.on("connection", (socket) => {
           anfitrionSocketId: null,
           maxJugadores: 6, // Valor por defecto ya que no tenemos la columna en BD
           jugadores: [],
+          estado: estadosJuego.INICIO,
+          ronda: 1,
+          rolesAsignados: false,
+          votosLobizones: {},
+          votosLinchamiento: {},
+          intendente: null,
+          ultimaVictima: null,
+          ganador: null,
           activa: true,
           creadaEnBD: true
         };
@@ -415,7 +445,11 @@ io.on("connection", (socket) => {
         id: socket.id,
         username: username,
         socketId: socket.id,
-        esAnfitrion: (username === sala.anfitrion && !sala.anfitrionSocketId)
+        esAnfitrion: (username === sala.anfitrion && !sala.anfitrionSocketId),
+        rol: null,
+        estaVivo: true,
+        votosRecibidos: 0,
+        fueProtegido: false
       };
 
       sala.jugadores.push(nuevoJugador);
@@ -581,7 +615,7 @@ io.on("connection", (socket) => {
 // Limpieza automática de salas huérfanas
 setInterval(async () => {
   try {
-    // Cerrar salas en BD que no están en memoriasoc
+    // Cerrar salas en BD que no están en memoria
     const salasActivasBD = await realizarQuery(
       `SELECT code FROM Games WHERE status = true`
     );
@@ -600,3 +634,7 @@ setInterval(async () => {
     console.error(" Error en limpieza automática:", error);
   }
 }, 5 * 60 * 1000); // 5 minutos
+
+server.listen(port, function () {
+  console.log(` Server running at http://localhost:${port}`);
+});

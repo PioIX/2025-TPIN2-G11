@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import Button from "../components/button";
 import Modal from "../components/modal";
-import { Salsa } from "next/font/google/index.js";
+
 
 export default function Home() {
   const router = useRouter();

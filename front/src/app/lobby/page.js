@@ -307,7 +307,7 @@ export default function Lobby() {
             <p>Redirigiendo a la pantalla de juego...</p>
             <Button
               title="Comenzar a Jugar"
-              onClick={() => alert("Pantalla de juego en desarrollo")}
+              onClick={router.push("/gameRoom")}
               className={styles.btnPrimary}
             />
           </div>
