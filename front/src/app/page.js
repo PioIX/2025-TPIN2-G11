@@ -9,8 +9,8 @@ import { Salsa } from "next/font/google/index.js";
 
 export default function Home() {
   const router = useRouter();
-  const [codigoUnirse, setCodigoUnirse] = useState(""); // Solo para unirse
-  const [codigoCrearSala, setCodigoCrearSala] = useState(""); // Solo para crear
+  const [codigoUnirse, setCodigoUnirse] = useState(""); 
+  const [codigoCrearSala, setCodigoCrearSala] = useState(""); 
   const [open, setOpen] = useState(false);
   const [tipoModal, setTipoModal] = useState("");
   const [ranking, setRanking] = useState([]);
@@ -96,7 +96,7 @@ export default function Home() {
       return;
     }
 
-    router.push(`/gameRoom?codigo=${codigoCrearSala}&host=true&cantidadJugadores=${cantidadJugadores}`);
+    router.push(`/lobby?codigo=${codigoCrearSala}&host=true&cantidadJugadores=${cantidadJugadores}`);
     setOpen(false);
   }
 
@@ -131,7 +131,7 @@ export default function Home() {
           return;
         }
 
-        router.push(`/gameRoom?codigo=${codigoUnirse}&host=false`);
+        router.push(`/lobby?codigo=${codigoUnirse}&host=false`);
         setOpen(false);
       } else {
         alert("No existe una sala con ese código");
