@@ -6,11 +6,11 @@ export default function Modal({
   isOpen,
   onClose,
   title,
-  tipo,
+  type,
   // Props para unirse
-  codigoUnirse,
-  onChangeCodigoUnirse,
-  onSubmitUnirse,
+  codeJoin,
+  onChangecodeJoin,
+  onSubmiJoinning,
   // Props para crear sala
   codigoCrearSala,
   onChangeCodigoCrearSala,
@@ -46,23 +46,23 @@ export default function Modal({
         <Button className={styles.close} onClick={onClose} title="✕" />
         
         {/* Modal para unirse a sala */}
-        {tipo === "unirse" && (
+        {type === "unirse" && (
           <>
             <h2>Ingrese el código de sala</h2>
             <input
               type="text"
               placeholder="Ej: 12345"
-              value={codigoUnirse}
+              value={codeJoin}
               onChange={onChangeCodigoUnirse}
             />
             <br />
             <br />
-            <Button className={styles.btn} onClick={onSubmitUnirse} title="Unirse" />
+            <Button className={styles.btn} onClick={onSubmiJoinning} title="Unirse" />
           </>
         )}
 
         {/* Modal para ranking */}
-        {tipo === "ranking" && (
+        {type === "ranking" && (
           <>
             <h2>🏆 Ranking de jugadores</h2>
             <ul className={styles.rankingList}>
@@ -80,7 +80,7 @@ export default function Modal({
         )}
 
         {/* Modal para crear sala */}
-        {tipo === "crearSala" && (
+        {type === "crearSala" && (
           <>
             <h2>Crear nueva sala</h2>
             <label>Código personalizado:</label>
@@ -108,7 +108,7 @@ export default function Modal({
         )}
 
         {/* Modal para configuraciones */}
-        {tipo === "settings" && (
+        {type === "settings" && (
           <div className={styles.settings}>
             <ul className={styles.settingsList}>
               <li>
@@ -125,7 +125,7 @@ export default function Modal({
         )}
 
         {/* Modal para login/registro */}
-        {tipo === "login" && (
+        {type === "login" && (
           <div className={styles.loginContainer}>
             <h2>{registered ? "Iniciar sesión" : "Registrarse"}</h2>
 

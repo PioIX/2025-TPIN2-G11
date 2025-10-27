@@ -13,7 +13,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors({
   origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003", "http://localhost:3004", "http://localhost:3005", "http://localhost:3006", "http://localhost:3007"],
-  ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
@@ -64,24 +63,28 @@ app.get('/', function (req, res) {
 
 app.get("/verifyUser", async (req, res) => {
   try {
-    const { username, password } = req.query;
+    const { username, password, alreadyLogged } = req.query;
 
-    const check = await realizarQuery(
-      `SELECT * FROM Users WHERE username = ? AND password = ? `, [username, password]);
-
-    if (check.length > 0) {
-      req.session.username = username;
-
+    if (alreadyLogged === 'true') {
       return res.send({
-        message: "ok",
-        username,
-        id: check[0].id
+        message: "Ya hay una sesión iniciada con este usuario"
       });
     } else {
-      return res.send({
-        message: "Usuario o contraseña incorrectos"
-      });
-    }
+      const check = await realizarQuery(
+        `SELECT * FROM Users WHERE username = ? AND password = ? `, [username, password]);
+
+      if (check.length > 0) {
+        req.session.username = username;
+
+        return res.send({
+          message: "ok",
+          username,
+          id: check[0].id
+        });
+      } else {
+        return res.send({
+          message: "Usuario o contraseña incorrectos"
+        });}}
   } catch (error) {
     res.send(error);
   }
@@ -431,7 +434,7 @@ io.on("connection", (socket) => {
 
       // Verificar si el jugador ya está en la sala
       if (sala.jugadores.find(j => j.username === username)) {
-        socket.emit("errorSala", "Ya estás en esta sala");
+      socket.emit("errorSala", "Ya estás en esta sala");
         return;
       }
 
@@ -520,7 +523,7 @@ io.on("connection", (socket) => {
   socket.on("unirseGameRoom", ({ codigo }) => {
     try {
       console.log("Jugador uniéndose a GameRoom:", socket.username, codigo);
-      
+
       const sala = salas.find(s => s.codigo === codigo && s.activa);
       if (!sala) {
         socket.emit("errorSala", "La sala no existe o el juego terminó");
@@ -533,7 +536,7 @@ io.on("connection", (socket) => {
 
       // Enviar el estado actual de la sala
       socket.emit("salaActualizada", sala);
-      
+
     } catch (error) {
       console.error("Error en unirseGameRoom:", error);
       socket.emit("errorSala", "Error al unirse a la sala de juego");
@@ -556,9 +559,9 @@ io.on("connection", (socket) => {
       console.log(`${candidato.username} elegido como intendente`);
 
       // Notificar a todos
-      io.to(codigo).emit("intendenteElegido", { 
+      io.to(codigo).emit("intendenteElegido", {
         intendente: candidato.username,
-        nuevoEstado: sala.estado 
+        nuevoEstado: sala.estado
       });
       io.to(codigo).emit("salaActualizada", sala);
 
@@ -586,7 +589,7 @@ io.on("connection", (socket) => {
       console.log(`${jugador.username} votó por ${victima.username}`);
 
       // Verificar si todos los lobizones han votado
-      const lobizonesVivos = sala.jugadores.filter(j => 
+      const lobizonesVivos = sala.jugadores.filter(j =>
         j.rol === 'lobizon' && j.estaVivo
       );
       const lobizonesQueVotaron = Object.keys(sala.votosLobizones);
@@ -616,7 +619,7 @@ io.on("connection", (socket) => {
             if (resultadoGanador) {
               sala.ganador = resultadoGanador.ganador;
               sala.estado = estadosJuego.FINALIZADO;
-              
+
               io.to(codigo).emit("juegoTerminado", {
                 ganador: resultadoGanador.ganador,
                 mensaje: resultadoGanador.mensaje
@@ -686,7 +689,7 @@ io.on("connection", (socket) => {
             if (resultadoGanador) {
               sala.ganador = resultadoGanador.ganador;
               sala.estado = estadosJuego.FINALIZADO;
-              
+
               io.to(codigo).emit("juegoTerminado", {
                 ganador: resultadoGanador.ganador,
                 mensaje: resultadoGanador.mensaje
@@ -720,7 +723,7 @@ io.on("connection", (socket) => {
       // Solo el anfitrión puede avanzar fases
       if (socket.id !== sala.anfitrionSocketId) return;
 
-      switch(sala.estado) {
+      switch (sala.estado) {
         case estadosJuego.DIA_DEBATE:
           sala.estado = estadosJuego.DIA_VOTACION;
           break;
@@ -847,7 +850,7 @@ io.on("connection", (socket) => {
 setInterval(async () => {
   try {
     const salasActivasBD = await realizarQuery(`SELECT code FROM Games WHERE status = true`);
-    
+
     for (const salaBD of salasActivasBD) {
       const salaEnMemoria = salas.find(s => s.codigo === salaBD.code && s.activa);
       if (!salaEnMemoria) {
@@ -858,7 +861,7 @@ setInterval(async () => {
   } catch (error) {
     console.error(" Error en limpieza automática:", error);
   }
-}, 5 * 60 * 1000); 
+}, 5 * 60 * 1000);
 
 server.listen(port, function () {
   console.log(` Server running at http://localhost:${port}`);
