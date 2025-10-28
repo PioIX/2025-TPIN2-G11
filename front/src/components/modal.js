@@ -8,14 +8,14 @@ export default function Modal({
   title,
   type,
   // Props para unirse
-  codeJoin,
-  onChangecodeJoin,
+  joinCode,
+  onChangeJoinCode,
   onSubmiJoinning,
   // Props para crear sala
-  codigoCrearSala,
-  onChangeCodigoCrearSala,
-  cantidadJugadores,
-  onChangeCantidadJugadores,
+  roomCode,
+  onChangeRoomCode,
+  playersAmount,
+  onChangePlayersAmount,
   onSubmitCreate,
   // Props para ranking
   ranking,
@@ -46,14 +46,14 @@ export default function Modal({
         <Button className={styles.close} onClick={onClose} title="✕" />
         
         {/* Modal para unirse a sala */}
-        {type === "unirse" && (
+        {type === "join" && (
           <>
             <h2>Ingrese el código de sala</h2>
             <input
               type="text"
               placeholder="Ej: 12345"
-              value={codeJoin}
-              onChange={onChangeCodigoUnirse}
+              value={joinCode}
+              onChange={onChangeJoinCode}
             />
             <br />
             <br />
@@ -86,8 +86,8 @@ export default function Modal({
             <label>Código personalizado:</label>
             <input
               type="text"
-              value={codigoCrearSala}
-              onChange={onChangeCodigoCrearSala}
+              value={roomCode}
+              onChange={onChangeRoomCode}
               placeholder="amigos2025"
             />
             <label>Cantidad de jugadores:</label>
@@ -95,8 +95,8 @@ export default function Modal({
               type="number"
               min="6"
               max="16"
-              value={cantidadJugadores}
-              onChange={onChangeCantidadJugadores}
+              value={playersAmount}
+              onChange={onChangePlayersAmount}
             />
             <br /><br />
             <Button

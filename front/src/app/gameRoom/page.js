@@ -13,7 +13,7 @@ export default function GameRoom() {
         if (!socket) return;
         socket.on("iniciarJuego", (data) => {
             console.log("Redirigiendo a sala de juego:", data);
-            localStorage.setItem('codigoSala', data.codigo);
+            localStorage.setItem('roomCode', data.code);
         });
 
         return () => {
@@ -71,13 +71,13 @@ export default function GameRoom() {
 
         const jugadoresActualizados = sala.jugadores.map((jugador, index) => ({
             ...jugador,
-            rol: rolesDisponibles[index],
+            role: rolesDisponibles[index],
             estaVivo: true,
             votosRecibidos: 0,
             fueProtegido: false
         }));
 
-        console.log("Roles asignados:", jugadoresActualizados.map(j => ({ username: j.username, rol: j.rol })));
+        console.log("Roles asignados:", jugadoresActualizados.map(j => ({ username: j.username, role: j.role })));
         return {
             ...sala,
             jugadores: jugadoresActualizados,
@@ -87,23 +87,23 @@ export default function GameRoom() {
 
     function verificarGanador(sala) {
         const lobizonesVivos = sala.jugadores.filter(j =>
-            j.rol === 'lobizon' && j.estaVivo
+            j.role === 'lobizon' && j.estaVivo
         );
         const aldeanosVivos = sala.jugadores.filter(j =>
-            j.rol !== 'lobizon' && j.estaVivo
+            j.role !== 'lobizon' && j.estaVivo
         );
 
         if (lobizonesVivos.length === 0) {
             return {
                 ...sala,
                 ganador: 'aldeanos',
-                estado: estadosJuego.FINALIZADO
+                state: estadosJuego.FINALIZADO
             };
         } else if (lobizonesVivos.length >= aldeanosVivos.length) {
             return {
                 ...sala,
                 ganador: 'lobizones',
-                estado: estadosJuego.FINALIZADO
+                state: estadosJuego.FINALIZADO
             };
         }
         return sala;
@@ -114,19 +114,19 @@ export default function GameRoom() {
 
         setCargando(true);
 
-        const codigo = localStorage.getItem('codigoSala');
+        const code = localStorage.getItem('roomCode');
         const username = localStorage.getItem('username');
 
-        console.log(" Uniéndose a GameRoom:", { codigo, username });
+        console.log(" Uniéndose a GameRoom:", { code, username });
 
-        if (!codigo) {
+        if (!code) {
             alert("No se encontró código de sala. Redirigiendo...");
             router.push("/");
             return;
         }
 
         // Solicitar datos de la sala
-        socket.emit("unirseGameRoom", { codigo });
+        socket.emit("unirseGameRoom", { code });
 
         // Escuchar datos de la sala
         socket.on("salaActualizada", (salaData) => {
@@ -137,9 +137,9 @@ export default function GameRoom() {
         });
 
         // Manejar errores
-        socket.on("errorSala", (mensaje) => {
-            console.error(" Error en GameRoom:", mensaje);
-            alert(`Error: ${mensaje}`);
+        socket.on("errorSala", (message) => {
+            console.error(" Error en GameRoom:", message);
+            alert(`Error: ${message}`);
             setCargando(false);
         });
 
@@ -162,29 +162,29 @@ export default function GameRoom() {
     const iniciarJuego = () => {
         if (!socket) return;
 
-        const codigo = localStorage.getItem('codigoSala');
-        if (!codigo) {
+        const code = localStorage.getItem('roomCode');
+        if (!code) {
             alert("No se encontró el código de sala");
             return;
         }
 
-        socket.emit("iniciarJuego", { codigo });
+        socket.emit("iniciarJuego", { code });
     };
 
     // Función para votar intendente
-    const votarIntendente = (candidatoSocketId) => {
+    const votarMayor = (candidatoSocketId) => {
         if (!socket) return;
 
-        const codigo = localStorage.getItem('codigoSala');
-        socket.emit("votarIntendente", { codigo, candidatoSocketId });
+        const code = localStorage.getItem('roomCode');
+        socket.emit("votarIntendente", { code, candidatoSocketId });
     };
 
     // Función para votar víctima (lobizones)
-    const votarVictima = (victimaSocketId) => {
+    const voteVictim = (victimSocketId) => {
         if (!socket) return;
 
-        const codigo = localStorage.getItem('codigoSala');
-        socket.emit("votarVictima", { codigo, victimaSocketId });
+        const code = localStorage.getItem('roomCode');
+        socket.emit("voteVictim", { code, victimSocketId });
     };
 
     // Renderizar interfaz según el estado del juego
@@ -193,7 +193,7 @@ export default function GameRoom() {
             return <div className={styles.loading}>Cargando sala...</div>;
         }
 
-        switch (sala.estado) {
+        switch (sala.state) {
             case estadosJuego.INICIO:
                 return (
                     <div className={styles.phase}>
@@ -214,19 +214,19 @@ export default function GameRoom() {
                 );
 
             case estadosJuego.NOCHE_LOBIZONES:
-                const miJugador = jugadores.find(j => j.socketId === socket.id);
+                const myPlayer = jugadores.find(j => j.socketId === socket.id);
                 return (
                     <div className={styles.phase}>
                         <h2>Noche - Turno de Lobizones</h2>
-                        {miJugador && miJugador.rol === 'lobizon' && miJugador.estaVivo ? (
+                        {myPlayer && myPlayer.role === 'lobizon' && myPlayer.estaVivo ? (
                             <div className={styles.votingSection}>
                                 <p>Selecciona a tu víctima:</p>
                                 {jugadores
-                                    .filter(j => j.rol !== 'lobizon' && j.estaVivo)
+                                    .filter(j => j.role !== 'lobizon' && j.estaVivo)
                                     .map(jugador => (
                                         <button
                                             key={jugador.socketId}
-                                            onClick={() => votarVictima(jugador.socketId)}
+                                            onClick={() => voteVictim(jugador.socketId)}
                                             className={`${styles.playerButton} ${styles.dangerButton}`}
                                         >
                                             {jugador.username}
@@ -275,8 +275,8 @@ export default function GameRoom() {
             {/* Información de la sala */}
             {sala && (
                 <div className={styles.salaInfo}>
-                    <p><strong>Estado:</strong> {sala.estado}</p>
-                    {sala.intendente && <p><strong>Intendente:</strong> {sala.intendente}</p>}
+                    <p><strong>Estado:</strong> {sala.state}</p>
+                    {sala.mayor && <p><strong>Intendente:</strong> {sala.mayor}</p>}
                     {sala.ultimaVictima && <p><strong>Última víctima:</strong> {sala.ultimaVictima}</p>}
                 </div>
             )}
@@ -297,7 +297,7 @@ export default function GameRoom() {
                         <span className={styles.playerName}>{jugador.username}</span>
                         <span className={styles.role}>
                             {!jugador.estaVivo ? '💀' :
-                                jugador.rol === 'lobizon' ? '🐺' : '👤'}
+                                jugador.role === 'lobizon' ? '🐺' : '👤'}
                         </span>
                         {!jugador.estaVivo && <span className={styles.deadText}>(Muerto)</span>}
                     </div>

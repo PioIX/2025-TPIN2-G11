@@ -9,15 +9,15 @@ import Modal from "../components/modal";
 
 export default function Home() {
   const router = useRouter();
-  const [codigoUnirse, setCodigoUnirse] = useState("");
-  const [codeCreateRoom, setcodeCreateRoom] = useState("");
+  const [joinCode, setJoinjCode] = useState("");
+  const [roomCode, setRoomCode] = useState("");
   const [open, setOpen] = useState(false);
-  const [typeModal, settypeModal] = useState("");
+  const [typeModal, setTypeModal] = useState("");
   const [ranking, setRanking] = useState([]);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [registered, setRegistered] = useState(true);
-  const [amountPlayers, setamountPlayers] = useState(6);
+  const [playersAmount, setPlayersAmount] = useState(6);
 
   async function SignUp() {
     if (!username || !password) {
@@ -83,23 +83,23 @@ export default function Home() {
   }
 
   function abrirModal() {
-    settypeModal("unirse");
+    setTypeModal("join");
     setOpen(true);
   }
 
   function abrirLogin() {
-    settypeModal("login");
+    setTypeModal("login");
     setRegistered(true);
     setOpen(true);
   }
 
   function crearSala() {
-    settypeModal("crearSala");
+    setTypeModal("crearSala");
     setOpen(true);
   }
 
   async function confirmarCreacionSala() {
-    if (!codeCreateRoom || !amountPlayers) {
+    if (!roomCode || !playersAmount) {
       alert("Completá todos los campos para crear la sala");
       return;
     }
@@ -107,9 +107,9 @@ export default function Home() {
     try {
       const user = localStorage.getItem("username") || "Anfitrión";
       console.log(" Enviando datos para crear sala:", {
-        codigo: codeCreateRoom,
+        code: roomCode,
         anfitrion: user,
-        maxJugadores: amountPlayers
+        maxJugadores: playersAmount
       });
 
       const response = await fetch("http://localhost:4000/crearSalaBD", {
@@ -119,9 +119,9 @@ export default function Home() {
           "Accept": "application/json"
         },
         body: JSON.stringify({
-          codigo: codeCreateRoom,
+          code: roomCode,
           anfitrion: user,
-          maxJugadores: amountPlayers
+          maxJugadores: playersAmount
         })
       });
 
@@ -132,7 +132,7 @@ export default function Home() {
 
       if (result.success) {
         console.log("Sala creada en BD, redirigiendo...");
-        router.push(`/lobby?codigo=${codeCreateRoom}&host=true&amountPlayers=${amountPlayers}`);
+        router.push(`/lobby?code=${roomCode}&host=true&PlayersAmount=${playersAmount}`);
         setOpen(false);
       } else {
         alert(`Error: ${result.message || result.error || "Error desconocido"}`);
@@ -148,7 +148,7 @@ export default function Home() {
       const players = await fetch("http://localhost:4000/getRanking");
       const result = await players.json();
       setRanking(result.response || []);
-      settypeModal("ranking");
+      setTypeModal("ranking");
       setOpen(true);
     } catch (error) {
       console.error("Error al obtener ranking:", error);
@@ -163,18 +163,18 @@ async function confirmarUnion() {
     user = `Invitado-${guestId}`;
   }
 
-  if (!codigoUnirse) {
+  if (!joinCode) {
     alert("Por favor ingresa un código de sala");
     return;
   }
 
   try {
-    const response = await fetch(`http://localhost:4000/verificarSala/${codigoUnirse}`);
+    const response = await fetch(`http://localhost:4000/verificarSala/${joinCode}`);
     const result = await response.json();
 
     if (result.success && result.exists) {
       console.log(" Sala verificada en BD, redirigiendo...");
-      router.push(`/lobby?codigo=${codigoUnirse}&host=false&username=${encodeURIComponent(user)}`);
+      router.push(`/lobby?code=${joinCode}&host=false&username=${encodeURIComponent(user)}`);
       setOpen(false);
     } else {
       alert(result.message || "No existe una sala con ese código");
@@ -187,7 +187,7 @@ async function confirmarUnion() {
 
 
   function openSettings() {
-    settypeModal("settings");
+    setTypeModal("settings");
     setOpen(true);
   }
 
@@ -239,15 +239,15 @@ async function confirmarUnion() {
         tipo={typeModal}
 
         // Props para unirse a sala
-        codigoUnirse={codigoUnirse}
-        onChangeCodigoUnirse={(e) => setCodigoUnirse(e.target.value)}
+        joinCode={joinCode}
+        onChangeJoinCode={(e) => setJoinCode(e.target.value)}
         onSubmitUnirse={confirmarUnion}
 
         // Props para crear sala
-        codeCreateRoom={codeCreateRoom}
-        onChangecodeCreateRoom={(e) => setcodeCreateRoom(e.target.value)}
-        amountPlayers={amountPlayers}
-        onChangeamountPlayers={(e) => setamountPlayers(e.target.value)}
+        roomCode={roomCode}
+        onChangeRoomCode={(e) => setRoomCode(e.target.value)}
+        playersAmount={playersAmount}
+        onChangePlayersAmount={(e) => setPlayersAmount(e.target.value)}
         onSubmitCreate={confirmarCreacionSala}
 
         // Props para ranking
