@@ -1,26 +1,23 @@
 "use client";
-import useSocket from "@/hooks/useSocket";
+import { useSocket } from "../hooks/useSocket.js";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import Button from "../components/button";
 import Modal from "../components/modal";
 
+
 export default function Home() {
-  const socket = useSocket();
   const router = useRouter();
-  const [funcion, setFuncion] = useState(() => confirmarUnion);
-  const [codigo, setCodigo] = useState("");
+  const [joinCode, setJoinjCode] = useState("");
+  const [roomCode, setRoomCode] = useState("");
   const [open, setOpen] = useState(false);
-  const [tipoModal, setTipoModal] = useState("unirme");
+  const [typeModal, setTypeModal] = useState("");
   const [ranking, setRanking] = useState([]);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [registered, setRegistered] = useState(true);
-  const [codigoSala, setCodigoSala] = useState("");
-  const [cantidadJugadores, setCantidadJugadores] = useState(6);
-
-
+  const [playersAmount, setPlayersAmount] = useState(6);
 
   async function SignUp() {
     if (!username || !password) {
@@ -47,8 +44,7 @@ export default function Home() {
         alert(result.message || "Error al registrarse");
       }
     } catch (error) {
-      console.log("Error en la consulta SQL:", err);
-      return [];
+      console.log("Error en la consulta SQL:", error);
     }
   }
 
@@ -58,8 +54,18 @@ export default function Home() {
       return;
     }
 
+    let alreadyLogged = false;
+
+    if (localStorage.getItem("username") != null) {
+      alert("Ya hay una sesión iniciada. Por favor cierre sesión primero.");
+       alreadyLogged = true;
+      return;
+    } else {
+       alreadyLogged = false;
+    }
+
     try {
-      const response = await fetch(`http://localhost:4000/verifyUser?username=${username}&password=${password}`);
+      const response = await fetch(`http://localhost:4000/verifyUser?username=${username}&password=${password}&alreadyLogged=${alreadyLogged}`);
       const result = await response.json();
       console.log(result);
 
@@ -77,72 +83,135 @@ export default function Home() {
   }
 
   function abrirModal() {
-    setTipoModal("unirme");
+    setTypeModal("join");
     setOpen(true);
-    setFuncion(() => confirmarUnion);
   }
 
   function abrirLogin() {
-    setTipoModal("login");
+    setTypeModal("login");
     setRegistered(true);
     setOpen(true);
-    setFuncion(() => SignIn);
   }
 
   function crearSala() {
-    setTipoModal("crearSala");
-    setFuncion(() => confirmarCreacionSala);
+    setTypeModal("crearSala");
     setOpen(true);
   }
 
-  function confirmarCreacionSala() {
-    console.log("codigoSala:", codigoSala, "cantidad:", cantidadJugadores);
-    const user = localStorage.getItem("username") || "Anfitrión";
-
-    if (!codigoSala || !cantidadJugadores) {
+  async function confirmarCreacionSala() {
+    if (!roomCode || !playersAmount) {
       alert("Completá todos los campos para crear la sala");
       return;
     }
 
-    socket.emit("crearSala", {
-      codigo: codigoSala,
-      anfitrion: user,
-      maxJugadores: cantidadJugadores,
-    });
+    try {
+      const user = localStorage.getItem("username") || "Anfitrión";
+      console.log(" Enviando datos para crear sala:", {
+        code: roomCode,
+        anfitrion: user,
+        maxJugadores: playersAmount
+      });
 
-    router.push(`/gameRoom?codigo=${codigoSala}&host=true`);
-    setOpen(false);
+      const response = await fetch("http://localhost:4000/crearSalaBD", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          code: roomCode,
+          anfitrion: user,
+          maxJugadores: playersAmount
+        })
+      });
+
+      console.log("Respuesta del servidor - Status:", response.status);
+
+      const result = await response.json();
+      console.log(" Respuesta del servidor - Data:", result);
+
+      if (result.success) {
+        console.log("Sala creada en BD, redirigiendo...");
+        router.push(`/lobby?code=${roomCode}&host=true&PlayersAmount=${playersAmount}`);
+        setOpen(false);
+      } else {
+        alert(`Error: ${result.message || result.error || "Error desconocido"}`);
+      }
+    } catch (error) {
+      console.error(" Error creando sala:", error);
+      alert(`Error de conexión: ${error.message}`);
+    }
   }
-
 
   async function verRanking() {
-    const players = await fetch("http://localhost:4000/getRanking");
-    const result = await players.json();
-    setRanking(result.response || []);
-    setTipoModal("ranking");
-    setOpen(true);
+    try {
+      const players = await fetch("http://localhost:4000/getRanking");
+      const result = await players.json();
+      setRanking(result.response || []);
+      setTypeModal("ranking");
+      setOpen(true);
+    } catch (error) {
+      console.error("Error al obtener ranking:", error);
+    }
   }
 
-  function confirmarUnion() {
-    const user = localStorage.getItem("username") || "Invitado";
-    if (!codigo) return alert("Ingresá un código de sala");
-    socket.emit("joinRoom", { codigo, username: user });
-    router.push(`/gameRoom?codigo=${codigo}`);
-    setOpen(false);
+async function confirmarUnion() {
+  // Generar un ID único para invitados
+  let user = localStorage.getItem("username");
+  if (!user) {
+    const guestId = Math.random().toString(36).substring(2, 8); // ID único de 6 caracteres
+    user = `Invitado-${guestId}`;
   }
+
+  if (!joinCode) {
+    alert("Por favor ingresa un código de sala");
+    return;
+  }
+
+  try {
+    const response = await fetch(`http://localhost:4000/verificarSala/${joinCode}`);
+    const result = await response.json();
+
+    if (result.success && result.exists) {
+      console.log(" Sala verificada en BD, redirigiendo...");
+      router.push(`/lobby?code=${joinCode}&host=false&username=${encodeURIComponent(user)}`);
+      setOpen(false);
+    } else {
+      alert(result.message || "No existe una sala con ese código");
+    }
+  } catch (error) {
+    console.error(" Error al verificar sala:", error);
+    alert("Error al conectar con el servidor");
+  }
+}
+
 
   function openSettings() {
-    setTipoModal("settings");
+    setTypeModal("settings");
     setOpen(true);
   }
 
   function changeRegistered() {
-    if (registered == true) {
-      setRegistered(false)
-    } else if (registered == false) {
-      setRegistered(true)
-    }
+    setRegistered(prev => !prev);
+  }
 
+  function handleModifyAccount() {
+    alert("Funcionalidad de modificar cuenta en desarrollo");
+  }
+
+  function handleCloseSession() {
+    localStorage.removeItem("username");
+    localStorage.removeItem("id");
+    alert("Sesión cerrada");
+    setOpen(false);
+  }
+
+  function handleAuth() {
+    if (registered) {
+      SignIn();
+    } else {
+      SignUp();
+    }
   }
 
   return (
@@ -166,31 +235,38 @@ export default function Home() {
       <Modal
         isOpen={open}
         onClose={() => setOpen(false)}
-        onSubmit={funcion}
-        title={tipoModal}
-        valorInput={codigo}
-        onChangeInput={(e) => setCodigo(e.target.value)}
-        tipo={tipoModal}
+        title={typeModal}
+        tipo={typeModal}
+
+        // Props para unirse a sala
+        joinCode={joinCode}
+        onChangeJoinCode={(e) => setJoinCode(e.target.value)}
+        onSubmitUnirse={confirmarUnion}
+
+        // Props para crear sala
+        roomCode={roomCode}
+        onChangeRoomCode={(e) => setRoomCode(e.target.value)}
+        playersAmount={playersAmount}
+        onChangePlayersAmount={(e) => setPlayersAmount(e.target.value)}
+        onSubmitCreate={confirmarCreacionSala}
+
+        // Props para ranking
         ranking={ranking}
+
+        // Props para settings
+        onOpenLogin={abrirLogin}
+        onSubmitModifyAccount={handleModifyAccount}
+        onSubmitCloseSession={handleCloseSession}
+
+        // Props para login/registro
         registered={registered}
         username={username}
-        setUsername={setUsername}
+        onChangeUsername={(e) => setUsername(e.target.value)}
         password={password}
-        setPassword={setPassword}
-        toggleRegistered={() => setRegistered(!registered)}
-        onSubmitSettings={funcion}
-        onSubmitModalSignin={abrirLogin}
-        onSubmitlogin={registered == true ? SignIn : SignUp}
-        setusername={(e) => setUsername(e.target.value)}
-        setpassword={(e) => setPassword(e.target.value)}
-        manageRegistered={changeRegistered}
-        codigoSala={codigoSala}
-        setCodigoSala={setCodigoSala}
-        funcionCodigoSala={(e) => setCodigoSala(e.target.value)}
-        funcionCantidadJugadores={(e) => setCantidadJugadores(e.target.value)}
-        onSubmitCreate={confirmarCreacionSala}
+        onChangePassword={(e) => setPassword(e.target.value)}
+        onSubmitLogin={handleAuth}
+        onToggleRegister={changeRegistered}
       />
-
     </>
   );
 }
