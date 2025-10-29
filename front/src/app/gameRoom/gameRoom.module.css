@@ -1,0 +1,316 @@
+/* gameRoom.module.css */
+
+.gameRoom {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #354250 0%, #354250 100%);
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header */
+.header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 20px 30px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.header h1 {
+  margin: 0;
+  color: #333;
+  font-size: 2.5rem;
+  text-align: center;
+  background: linear-gradient(135deg, #354250, #354250);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Información de la sala */
+.salaInfo {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 20px #354250(0, 0, 0, 0.1);
+  border: 1px solid #354250(255, 255, 255, 0.2);
+}
+
+.salaInfo p {
+  margin: 8px 0;
+  color: #354250;
+  font-size: 1.1rem;
+}
+
+.salaInfo strong {
+  color: #333;
+}
+
+/* Contenido principal */
+.main {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+/* Fases del juego */
+.phase {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.phase h2 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+  text-align: center;
+}
+
+.phase p {
+  color: #666;
+  font-size: 1.1rem;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Sección de votación */
+.votingSection {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+/* Botones de jugadores */
+.playerButton {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 15px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.playerButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.playerButton:active {
+  transform: translateY(0);
+}
+
+.playerButton.dangerButton {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.playerButton.dangerButton:hover {
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+/* Panel de jugadores */
+.playersPanel {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.playersPanel h3 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  text-align: center;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 10px;
+}
+
+/* Jugadores individuales */
+.player {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  margin-bottom: 10px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 10px;
+  border-left: 4px solid #667eea;
+  transition: all 0.3s ease;
+}
+
+.player:hover {
+  background: rgba(102, 126, 234, 0.2);
+  transform: translateX(5px);
+}
+
+.player.dead {
+  background: rgba(255, 107, 107, 0.1);
+  border-left-color: #ff6b6b;
+  opacity: 0.7;
+}
+
+.playerName {
+  font-weight: 600;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.role {
+  font-size: 1.3rem;
+  margin-left: 10px;
+}
+
+.deadText {
+  color: #ff6b6b;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* Estados de espera */
+.waiting {
+  text-align: center;
+  color: #666;
+  font-size: 1.2rem;
+  padding: 40px 20px;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 10px;
+  border: 2px dashed rgba(102, 126, 234, 0.3);
+}
+
+/* Mensaje de ganador */
+.winnerMessage {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  padding: 20px;
+  background: linear-gradient(135deg, #ffd89b, #19547b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 20px 0;
+}
+
+/* Botón de reinicio */
+.restartButton {
+  background: linear-gradient(135deg, #56ab2f, #a8e6cf);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 15px 30px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(86, 171, 47, 0.3);
+  display: block;
+  margin: 20px auto;
+}
+
+.restartButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(86, 171, 47, 0.4);
+}
+
+/* Sección de inicio */
+.startSection {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.startButton {
+  background: linear-gradient(135deg, #56ab2f, #a8e6cf);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 18px 35px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(86, 171, 47, 0.3);
+}
+
+.startButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(86, 171, 47, 0.4);
+}
+
+.startButton:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Loading */
+.loading {
+  text-align: center;
+  color: white;
+  font-size: 1.5rem;
+  padding: 60px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .main {
+    grid-template-columns: 1fr;
+  }
+  
+  .header h1 {
+    font-size: 2rem;
+  }
+  
+  .votingSection {
+    grid-template-columns: 1fr;
+  }
+  
+  .playerButton {
+    padding: 12px 15px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Scrollbar personalizado */
+.playersPanel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.playersPanel::-webkit-scrollbar-track {
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 4px;
+}
+
+.playersPanel::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 4px;
+}
+
+.playersPanel::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #764ba2, #667eea);
+}

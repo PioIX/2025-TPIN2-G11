@@ -5,45 +5,64 @@ import Button from "./button";
 export default function Modal({
   isOpen,
   onClose,
-  onSubmit,
   title,
-  valorInput,
-  onChangeInput,
-  tipo,
-  ranking = [],
-  registered = true,
-  onSubmitlogin,
+  type,
+  // Props para unirse
+  joinCode,
+  onChangeJoinCode,
+  onSubmiJoinning,
+  // Props para crear sala
+  roomCode,
+  onChangeRoomCode,
+  playersAmount,
+  onChangePlayersAmount,
+  onSubmitCreate,
+  // Props para ranking
+  ranking,
+  // Props para settings
+  onOpenLogin,
+  onSubmitModifyAccount,
+  onSubmitCloseSession,
+  // Props para login/registro
+  registered,
   username,
+  onChangeUsername,
   password,
-  setusername,
-  setpassword,
-  onSubmitModalSignin,
-  manageRegistered
+  onChangePassword,
+  onSubmitLogin,
+  onToggleRegister
 }) {
   if (!isOpen) return null;
 
-  return (
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
 
-    <div className={styles.overlay} onClick={onClose}>
+  return (
+    <div className={styles.overlay} onClick={handleOverlayClick}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <Button className={styles.close} onClick={onClose} title="✕" />
-
-        {tipo === "unirme" && (
+        
+        {/* Modal para unirse a sala */}
+        {type === "join" && (
           <>
             <h2>Ingrese el código de sala</h2>
             <input
               type="text"
               placeholder="Ej: 12345"
-              value={valorInput}
-              onChange={onChangeInput}
+              value={joinCode}
+              onChange={onChangeJoinCode}
             />
             <br />
             <br />
-            <Button className={styles.btn} onClick={onSubmit} title={title} />
+            <Button className={styles.btn} onClick={onSubmiJoinning} title="Unirse" />
           </>
         )}
 
-        {tipo === "ranking" && (
+        {/* Modal para ranking */}
+        {type === "ranking" && (
           <>
             <h2>🏆 Ranking de jugadores</h2>
             <ul className={styles.rankingList}>
@@ -60,53 +79,77 @@ export default function Modal({
           </>
         )}
 
-        {tipo === "crearSala" && (
+        {/* Modal para crear sala */}
+        {type === "crearSala" && (
           <>
-            <input placeholder="ingrese cantidad de usuarios" className={styles.crearSala} type="number"></input>
-            <br></br>
-            <input placeholder="inmhrese codigo" className={styles.crearSala}></input>
-            <br></br>
-            <Button className={styles.btnCrearSala} onClick={onSubmit} title="crear sala"></Button>
+            <h2>Crear nueva sala</h2>
+            <label>Código personalizado:</label>
+            <input
+              type="text"
+              value={roomCode}
+              onChange={onChangeRoomCode}
+              placeholder="amigos2025"
+            />
+            <label>Cantidad de jugadores:</label>
+            <input
+              type="number"
+              min="6"
+              max="16"
+              value={playersAmount}
+              onChange={onChangePlayersAmount}
+            />
+            <br /><br />
+            <Button
+              className={styles.btn}
+              onClick={onSubmitCreate}
+              title="Crear sala"
+            />
           </>
         )}
 
-        {tipo == "settings" && (
+        {/* Modal para configuraciones */}
+        {type === "settings" && (
           <div className={styles.settings}>
-            <li>
-              <ul> <Button title="INICIAR SESIÓN" onClick={onSubmitModalSignin} /></ul>
-              <br></br>
-              <ul> <Button className={styles.btn} onClick={onSubmit} title="modificar cuenta" /></ul>
-              <br></br>
-              <ul> <Button className={styles.btn} onClick={onSubmit} title="cambiar idioma" /></ul>
-            </li>
+            <ul className={styles.settingsList}>
+              <li>
+                <Button title="INICIAR SESIÓN" onClick={onOpenLogin} />
+              </li>
+              <li>
+                <Button className={styles.btn} onClick={onSubmitModifyAccount} title="Modificar cuenta" />
+              </li>
+              <li>
+                <Button className={styles.btn} onClick={onSubmitCloseSession} title="Cerrar sesión" />
+              </li>
+            </ul>
           </div>
         )}
 
-        {tipo === "login" && (
+        {/* Modal para login/registro */}
+        {type === "login" && (
           <div className={styles.loginContainer}>
             <h2>{registered ? "Iniciar sesión" : "Registrarse"}</h2>
 
             <input
               placeholder="Nombre de usuario"
               value={username}
-              onChange={setusername}
+              onChange={onChangeUsername}
             />
             <br />
             <input
               type="password"
               placeholder="Contraseña"
               value={password}
-              onChange={setpassword}
+              onChange={onChangePassword}
             />
             <br />
             <Button
               className={styles.btn}
-              onClick={onSubmitlogin}
+              onClick={onSubmitLogin}
               title={registered ? "Iniciar sesión" : "Registrarse"}
             />
-            <p>{registered ? "no tienes cuenta?" : "ya tienes cuenta?"}</p>
-            <a onClick={manageRegistered}>
-              {registered ? "registrate!" : "inicia sesión"}
+            <p>{registered ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}</p>
+            <a onClick={onToggleRegister} className={styles.toggleLink}>
+              {registered ? "¡Regístrate!" : "¡Inicia sesión!"}
             </a>
           </div>
         )}
