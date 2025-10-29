@@ -12,17 +12,17 @@ export default function Lobby() {
   const searchParams = useSearchParams();
 
   const roomCode = searchParams.get("code");
-  const esAnfitrion = searchParams.get("host") === "true";
+  const isHost = searchParams.get("host") === "true";
   const playersAmount = searchParams.get("playersAmount") || 6;
   const usernameFromParams = searchParams.get("username"); // Obtener username de la URL
 
   const [players, setPlayers] = useState([]);
   const [username, setUsername] = useState("");
-  const [salaCreada, setSalaCreada] = useState(false);
+  const [createdRoom, setCreatedRoom] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
-  const [mensajeError, setMensajeError] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const seUnioASala = useRef(false);
+  const joinedARoom = useRef(false);
 
   useEffect(() => {
     // USAR EL USERNAME DE LOS PARÁMETROS DE LA URL PRIMERO
@@ -34,7 +34,7 @@ export default function Lobby() {
       socketDisponible: !!socket,
       socketId: socket?.id,
       roomCode,
-      esAnfitrion,
+      isHost,
       username: userToUse,
       usernameFromParams: usernameFromParams
     });
@@ -44,26 +44,26 @@ export default function Lobby() {
       return;
     }
 
-    if (seUnioASala.current) {
+    if (joinedARoom.current) {
       console.log(" Ya se unió a la sala, evitando duplicado");
       return;
     }
 
     const setupSocketListeners = () => {
-      socket.on("usersInRoom", (listaJugadores) => {
-        console.log("Jugadores en sala recibidos:", listaJugadores);
-        setPlayers(listaJugadores);
-        setSalaCreada(true);
+      socket.on("usersInRoom", (playersList) => {
+        console.log("Jugadores en sala recibidos:", playersList);
+        setPlayers(playersList);
+        setCreatedRoom(true);
       });
 
-      socket.on("errorSala", (message) => {
+      socket.on("roomError", (message) => {
         console.error(" Error de sala:", message);
-        setMensajeError(message);
+        setErrorMessage(message);
         alert("Error: " + message);
         setTimeout(() => router.push("/"), 3000);
       });
 
-      socket.on("salaCerrada", (message) => {
+      socket.on("closedRoom", (message) => {
         console.log(" Sala cerrada:", message);
         alert(message);
         router.push("/");
@@ -73,7 +73,7 @@ export default function Lobby() {
         console.log("Juego iniciado recibido:", data);
         setGameStarted(true);
         localStorage.setItem('roomCode', roomCode);
-        localStorage.setItem('esAnfitrion', esAnfitrion.toString());
+        localStorage.setItem('isHost', isHost.toString());
         setTimeout(() => {
           router.push("/gameRoom");
         }, 2000);
@@ -90,7 +90,7 @@ export default function Lobby() {
       console.log(" Uniéndose a sala:", roomCode);
       console.log(" Username a usar:", userToUse);
       
-      if (esAnfitrion) {
+      if (isHost) {
         console.log(" Anfitrión creando sala...");
         socket.emit("crearSala", {
           code: roomCode,
@@ -104,50 +104,49 @@ export default function Lobby() {
           username: userToUse // Usar userToUse en lugar de savedUsername
         });
       }
-      seUnioASala.current = true;
+      joinedARoom.current = true;
     }, 1000);
 
     return () => {
       clearTimeout(timeoutId);
       if (socket) {
         socket.off("usersInRoom");
-        socket.off("errorSala");
-        socket.off("salaCerrada");
+        socket.off("roomError");
+        socket.off("closedRoom");
         socket.off("gameStarted");
         socket.offAny();
       }
     };
-  }, [socket, roomCode, esAnfitrion, playersAmount, router, usernameFromParams]); // Agregar usernameFromParams a las dependencias
+  }, [socket, roomCode, isHost, playersAmount, router, usernameFromParams]); // Agregar usernameFromParams a las dependencias
 
-  // ... el resto del código del lobby permanece igual
-  const iniciarJuego = () => {
-    if (socket && esAnfitrion) {
+  const startGame = () => {
+    if (socket && isHost) {
       console.log(" Emitiendo iniciar juego...");
-      socket.emit("iniciarJuego", { code: roomCode });
+      socket.emit("startGame", { code: roomCode });
       localStorage.setItem('roomCode', roomCode);
-      localStorage.setItem('esAnfitrion', 'true');
+      localStorage.setItem('isHost', 'true');
       setTimeout(() => {
         router.push("/gameRoom");
       }, 2000);
     }
   };
 
-  const cerrarSala = () => {
-    if (socket && esAnfitrion) {
-      console.log(" Cerrando sala...");
-      socket.emit("cerrarSala", { code: roomCode });
+  const closeRoom = () => {
+    if (socket && isHost) {
+      console.log("Cerrando sala...");
+      socket.emit("closeRoom", { code: roomCode });
     }
   };
 
-  const abandonarSala = () => {
+  const leaveRoom = () => {
     if (socket) {
-      console.log(" Abandonando sala...");
-      socket.emit("abandonarSala", { code: roomCode });
+      console.log("Abandonando sala...");
+      socket.emit("leaveRoom", { code: roomCode });
       router.push("/");
     }
   };
 
-  const copiarCodigo = () => {
+  const copyCode = () => {
     navigator.clipboard.writeText(roomCode);
     alert("Código copiado al portapapeles");
   };
@@ -156,12 +155,12 @@ export default function Lobby() {
     router.push("/gameRoom");
   }
 
-  if (mensajeError) {
+  if (errorMessage) {
     return (
       <div className={styles.container}>
         <div className={styles.error}>
           <h2>Error</h2>
-          <p>{mensajeError}</p>
+          <p>{errorMessage}</p>
           <Button title="Volver al Inicio" onClick={() => router.push("/")} />
         </div>
       </div>
@@ -175,26 +174,26 @@ export default function Lobby() {
         <div className={styles.roomInfo}>
           <h1>Sala: {roomCode}</h1>
           <div className={styles.badge}>
-            {esAnfitrion ? "Anfitrión" : "Jugador"}
+            {isHost ? "Anfitrión" : "Jugador"}
           </div>
         </div>
 
         <div className={styles.actions}>
           <Button
             title="Copiar Código"
-            onClick={copiarCodigo}
+            onClick={copyCode}
             className={styles.btnSecondary}
           />
-          {esAnfitrion ? (
+          {isHost ? (
             <Button
               title="Cerrar Sala"
-              onClick={cerrarSala}
+              onClick={closeRoom}
               className={styles.btnDanger}
             />
           ) : (
             <Button
               title="Abandonar"
-              onClick={abandonarSala}
+              onClick={leaveRoom}
               className={styles.btnWarning}
             />
           )}
@@ -211,19 +210,19 @@ export default function Lobby() {
               <div
                 key={jugador.id || jugador.socketId || index}
                 className={`${styles.playerCard} ${jugador.username === username ? styles.currentPlayer : ""
-                  } ${jugador.esAnfitrion ? styles.hostPlayer : ""
+                  } ${jugador.isHost ? styles.hostPlayer : ""
                   }`}
               >
                 <div className={styles.playerAvatar}>
                   {jugador.username === username ? "👤" :
-                    jugador.esAnfitrion ? "👑" : "🎯"}
+                    jugador.isHost ? "👑" : "🎯"}
                 </div>
                 <div className={styles.playerInfo}>
                   <span className={styles.playerName}>
                     {jugador.username}
                     {jugador.username === username && " (Tú)"}
                   </span>
-                  {jugador.esAnfitrion && (
+                  {jugador.isHost && (
                     <span className={styles.hostBadge}>Anfitrión</span>
                   )}
                 </div>
@@ -243,12 +242,12 @@ export default function Lobby() {
 
         {/* Panel de Control */}
         <section className={styles.controlSection}>
-          {esAnfitrion && (
+          {isHost && (
             <div className={styles.hostControls}>
               <div className={styles.controlButtons}>
                 <Button
                   title=" Iniciar Juego"
-                  onClick={iniciarJuego}
+                  onClick={startGame}
                   disabled={players.length < 2}
                   className={styles.btnPrimary}
                 />
@@ -266,14 +265,14 @@ export default function Lobby() {
             <h3>Información de la Sala</h3>
             <div className={styles.infoContent}>
               <p><strong>Código:</strong> {roomCode}</p>
-              <p><strong>Anfitrión:</strong> {players.find(j => j.esAnfitrion)?.username || "Cargando..."}</p>
+              <p><strong>Anfitrión:</strong> {players.find(j => j.isHost)?.username || "Cargando..."}</p>
               <p><strong>Jugadores:</strong> {jugadores.length}/{playersAmount}</p>
-              <p><strong>Estado:</strong> {salaCreada ? " Activa" : " Creando..."}</p>
+              <p><strong>Estado:</strong> {createdRoom ? " Activa" : " Creando..."}</p>
               <p><strong>Socket ID:</strong> {socket?.id || "Desconectado"}</p>
               <p><strong>Tu username:</strong> {username}</p>
             </div>
 
-            {!esAnfitrion && (
+            {!isHost && (
               <div className={styles.guestInfo}>
                 <p> Esperando a que el anfitrión inicie el juego...</p>
               </div>

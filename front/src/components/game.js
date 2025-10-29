@@ -87,7 +87,7 @@ export default function Game() {
               <div className={styles.voting}>
                 <h3>Selecciona a tu víctima:</h3>
                 {players
-                  .filter(j => j.role !== "lobizon" && j.estaVivo)
+                  .filter(j => j.role !== "lobizon" && j.isAlive)
                   .map(player => (
                     <button
                       key={player.socketId}
@@ -149,15 +149,15 @@ export default function Game() {
             <div 
               key={player.socketId} 
               className={`${styles.player} ${
-                !player.estaVivo ? styles.dead : ''
+                !player.isAlive ? styles.dead : ''
               }`}
             >
               <span>{player.username}</span>
               <span className={styles.role}>
-                {!player.estaVivo ? '💀' : 
+                {!player.isAlive ? '💀' : 
                  player.role === 'lobizon' ? '🐺' : '👤'}
               </span>
-              {!player.estaVivo && <span className={styles.deadText}>(Muerto)</span>}
+              {!player.isAlive && <span className={styles.deadText}>(Muerto)</span>}
             </div>
           ))}
         </div>

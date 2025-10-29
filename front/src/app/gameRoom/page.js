@@ -5,24 +5,24 @@ import styles from '../gameRoom/gameRoom.module.css';
 
 export default function GameRoom() {
     const { socket } = useSocket();
-    const [sala, setSala] = useState(null);
-    const [jugadores, setJugadores] = useState([]);
-    const [cargando, setCargando] = useState(true);
+    const [room, setRoom] = useState(null);
+    const [players, setPlayers] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!socket) return;
-        socket.on("iniciarJuego", (data) => {
+        socket.on("startGame", (data) => {
             console.log("Redirigiendo a sala de juego:", data);
             localStorage.setItem('roomCode', data.code);
         });
 
         return () => {
-            socket.off("iniciarJuego");
+            socket.off("startGame");
         };
     }, [socket]);
 
 
-    if (cargando) {
+    if (Loading) {
         return (
             <div className={styles.gameRoom}>
                 <div className={styles.loading}>
@@ -33,7 +33,7 @@ export default function GameRoom() {
         );
     }
 
-    if (!sala) {
+    if (!room) {
         return (
             <div className={styles.gameRoom}>
                 <div className={styles.error}>
@@ -51,7 +51,7 @@ export default function GameRoom() {
     }
 
     // Definir estados del juego
-    const estadosJuego = {
+    const gameStates = {
         INICIO: "inicio",
         NOCHE_LOBIZONES: "noche_lobizones",
         NOCHE_ESPECIALES: "noche_especiales",
@@ -60,59 +60,59 @@ export default function GameRoom() {
         FINALIZADO: "finalizado"
     };
 
-    function asignarRoles(sala) {
-        const rolesDisponibles = [
+    function assignRoles(room) {
+        const availableRoles = [
             'lobizon', 'lobizon', 'lobizon',
             'conurbanense', 'conurbanense', 'conurbanense',
             'palermitano', 'palermitano', 'palermitano'
-        ].slice(0, sala.jugadores.length);
+        ].slice(0, room.players.length);
 
-        rolesDisponibles.sort(() => Math.random() - 0.5);
+        availableRoles.sort(() => Math.random() - 0.5);
 
-        const jugadoresActualizados = sala.jugadores.map((jugador, index) => ({
-            ...jugador,
-            role: rolesDisponibles[index],
-            estaVivo: true,
+        const updatedPlayers = room.players.map((player, index) => ({
+            ...player,
+            role: availableRoles[index],
+            isAlive: true,
             votosRecibidos: 0,
             fueProtegido: false
         }));
 
-        console.log("Roles asignados:", jugadoresActualizados.map(j => ({ username: j.username, role: j.role })));
+        console.log("Roles asignados:", updatedPlayers.map(j => ({ username: j.username, role: j.role })));
         return {
-            ...sala,
-            jugadores: jugadoresActualizados,
-            rolesAsignados: true
+            ...room,
+            players: updatedPlayers,
+            assignedRoles: true
         };
     }
 
-    function verificarGanador(sala) {
-        const lobizonesVivos = sala.jugadores.filter(j =>
-            j.role === 'lobizon' && j.estaVivo
+    function winnerVerify(room) {
+        const lobizonesAlive = room.players.filter(j =>
+            j.role === 'lobizon' && j.isAlive
         );
-        const aldeanosVivos = sala.jugadores.filter(j =>
-            j.role !== 'lobizon' && j.estaVivo
+        const villagersAlive = room.players.filter(j =>
+            j.role !== 'lobizon' && j.isAlive
         );
 
-        if (lobizonesVivos.length === 0) {
+        if (lobizonesAlive.length === 0) {
             return {
-                ...sala,
-                ganador: 'aldeanos',
-                state: estadosJuego.FINALIZADO
+                ...room,
+                winner: 'aldeanos',
+                state: gameStates.FINALIZADO
             };
-        } else if (lobizonesVivos.length >= aldeanosVivos.length) {
+        } else if (lobizonesAlive.length >= villagersAlive.length) {
             return {
-                ...sala,
-                ganador: 'lobizones',
-                state: estadosJuego.FINALIZADO
+                ...room,
+                winner: 'lobizones',
+                state: gameStates.FINALIZADO
             };
         }
-        return sala;
+        return room;
     }
 
     useEffect(() => {
         if (!socket) return;
 
-        setCargando(true);
+        setLoading(true);
 
         const code = localStorage.getItem('roomCode');
         const username = localStorage.getItem('username');
@@ -126,40 +126,40 @@ export default function GameRoom() {
         }
 
         // Solicitar datos de la sala
-        socket.emit("unirseGameRoom", { code });
+        socket.emit("joinGameRoom", { code });
 
         // Escuchar datos de la sala
-        socket.on("salaActualizada", (salaData) => {
-            console.log("Sala recibida en GameRoom:", salaData);
-            setSala(salaData);
-            setJugadores(salaData.jugadores);
-            setCargando(false);
+        socket.on("updatedRoom", (roomData) => {
+            console.log("Sala recibida en GameRoom:", roomData);
+            setRoom(roomData);
+            setplayers(roomData.players);
+            setLoading(false);
         });
 
         // Manejar errores
-        socket.on("errorSala", (message) => {
+        socket.on("roomError", (message) => {
             console.error(" Error en GameRoom:", message);
             alert(`Error: ${message}`);
-            setCargando(false);
+            setLoading(false);
         });
 
         // Si no llegan datos después de 5 segundos, mostrar error
         const timeout = setTimeout(() => {
-            if (cargando) {
+            if (loading) {
                 console.warn("Timeout cargando sala");
-                setCargando(false);
+                setLoading(false);
             }
         }, 5000);
 
         return () => {
             clearTimeout(timeout);
-            socket.off("salaActualizada");
-            socket.off("errorSala");
+            socket.off("updatedRoom");
+            socket.off("roomError");
         };
     }, [socket]);
 
     // Función para iniciar el juego (solo anfitrión)
-    const iniciarJuego = () => {
+    const startGame = () => {
         if (!socket) return;
 
         const code = localStorage.getItem('roomCode');
@@ -168,15 +168,15 @@ export default function GameRoom() {
             return;
         }
 
-        socket.emit("iniciarJuego", { code });
+        socket.emit("startGame", { code });
     };
 
     // Función para votar intendente
-    const votarMayor = (candidatoSocketId) => {
+    const voteMayor = (candidateSocketId) => {
         if (!socket) return;
 
         const code = localStorage.getItem('roomCode');
-        socket.emit("votarIntendente", { code, candidatoSocketId });
+        socket.emit("voteMayor", { code, candidateSocketId });
     };
 
     // Función para votar víctima (lobizones)
@@ -188,48 +188,48 @@ export default function GameRoom() {
     };
 
     // Renderizar interfaz según el estado del juego
-    const renderizarInterfaz = () => {
-        if (!sala) {
+    const rederInterface = () => {
+        if (!room) {
             return <div className={styles.loading}>Cargando sala...</div>;
         }
 
-        switch (sala.state) {
-            case estadosJuego.INICIO:
+        switch (room.state) {
+            case gameStates.INICIO:
                 return (
                     <div className={styles.phase}>
                         <h2> Elección del Intendente</h2>
                         <p>Vota por el intendente:</p>
                         <div className={styles.votingSection}>
-                            {jugadores.map(jugador => (
+                            {players.map(player => (
                                 <button
-                                    key={jugador.socketId}
-                                    onClick={() => votarIntendente(jugador.socketId)}
+                                    key={player.socketId}
+                                    onClick={() => voteMayor(player.socketId)}
                                     className={styles.playerButton}
                                 >
-                                    👤 {jugador.username}
+                                    👤 {player.username}
                                 </button>
                             ))}
                         </div>
                     </div>
                 );
 
-            case estadosJuego.NOCHE_LOBIZONES:
-                const myPlayer = jugadores.find(j => j.socketId === socket.id);
+            case gameStates.NOCHE_LOBIZONES:
+                const myPlayer = players.find(j => j.socketId === socket.id);
                 return (
                     <div className={styles.phase}>
                         <h2>Noche - Turno de Lobizones</h2>
-                        {myPlayer && myPlayer.role === 'lobizon' && myPlayer.estaVivo ? (
+                        {myPlayer && myPlayer.role === 'lobizon' && myPlayer.isAlive ? (
                             <div className={styles.votingSection}>
                                 <p>Selecciona a tu víctima:</p>
-                                {jugadores
-                                    .filter(j => j.role !== 'lobizon' && j.estaVivo)
-                                    .map(jugador => (
+                                {players
+                                    .filter(j => j.role !== 'lobizon' && j.isAlive)
+                                    .map(player => (
                                         <button
-                                            key={jugador.socketId}
-                                            onClick={() => voteVictim(jugador.socketId)}
+                                            key={player.socketId}
+                                            onClick={() => voteVictim(player.socketId)}
                                             className={`${styles.playerButton} ${styles.dangerButton}`}
                                         >
-                                            {jugador.username}
+                                            {player.username}
                                         </button>
                                     ))
                                 }
@@ -240,7 +240,7 @@ export default function GameRoom() {
                     </div>
                 );
 
-            case estadosJuego.NOCHE_ESPECIALES:
+            case gameStates.NOCHE_ESPECIALES:
                 return (
                     <div className={styles.phase}>
                         <h2> Noche - Roles Especiales</h2>
@@ -248,12 +248,12 @@ export default function GameRoom() {
                     </div>
                 );
 
-            case estadosJuego.FINALIZADO:
+            case gameStates.FINALIZADO:
                 return (
                     <div className={styles.phase}>
                         <h2> Juego Terminado</h2>
                         <p className={styles.winnerMessage}>
-                            ¡{sala.ganador === 'aldeanos' ? 'Los aldeanos' : 'Los lobizones'} han ganado!
+                            ¡{room.winner === 'aldeanos' ? 'Los aldeanos' : 'Los lobizones'} han ganado!
                         </p>
                         <button onClick={() => window.location.reload()} className={styles.restartButton}>
                             Jugar de nuevo
@@ -273,41 +273,41 @@ export default function GameRoom() {
             </header>
 
             {/* Información de la sala */}
-            {sala && (
+            {room && (
                 <div className={styles.salaInfo}>
-                    <p><strong>Estado:</strong> {sala.state}</p>
-                    {sala.mayor && <p><strong>Intendente:</strong> {sala.mayor}</p>}
-                    {sala.ultimaVictima && <p><strong>Última víctima:</strong> {sala.ultimaVictima}</p>}
+                    <p><strong>Estado:</strong> {room.state}</p>
+                    {room.mayor && <p><strong>Intendente:</strong> {room.mayor}</p>}
+                    {room.ultimaVictima && <p><strong>Última víctima:</strong> {room.ultimaVictima}</p>}
                 </div>
             )}
 
             {/* Contenido principal del juego */}
             <main className={styles.main}>
-                {renderizarInterfaz()}
+                {rederInterface()}
             </main>
 
-            {/* Panel de jugadores */}
+            {/* Panel de players */}
             <div className={styles.playersPanel}>
                 <h3>Jugadores:</h3>
-                {jugadores.map(jugador => (
+                {players.map(player => (
                     <div
-                        key={jugador.socketId}
-                        className={`${styles.player} ${!jugador.estaVivo ? styles.dead : ''}`}
+                        key={player.socketId}
+                        className={`${styles.player} ${!player.isAlive ? styles.dead : ''}`}
                     >
-                        <span className={styles.playerName}>{jugador.username}</span>
+                        <span className={styles.playerName}>{player.username}</span>
                         <span className={styles.role}>
-                            {!jugador.estaVivo ? '💀' :
-                                jugador.role === 'lobizon' ? '🐺' : '👤'}
+                            {!player.isAlive ? '💀' :
+                                player.role === 'lobizon' ? '🐺' : '👤'}
                         </span>
-                        {!jugador.estaVivo && <span className={styles.deadText}>(Muerto)</span>}
+                        {!player.isAlive && <span className={styles.deadText}>(Muerto)</span>}
                     </div>
                 ))}
             </div>
 
             {/* Botón para iniciar juego (solo visible para anfitrión) */}
-            {sala && !sala.rolesAsignados && (
+            {room && !room.assignedRoles && (
                 <div className={styles.startSection}>
-                    <button onClick={iniciarJuego} className={styles.startButton}>
+                    <button onClick={startGame} className={styles.startButton}>
                         Iniciar Juego
                     </button>
                 </div>
