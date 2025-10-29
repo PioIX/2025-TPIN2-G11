@@ -29,7 +29,7 @@ export default function Lobby() {
     // Si no hay en la URL, usar localStorage, sino "Invitado"
     const userToUse = usernameFromParams || localStorage.getItem("username") || "Invitado";
     setUsername(userToUse);
-    
+
     console.log(" Estado del socket:", {
       socketDisponible: !!socket,
       socketId: socket?.id,
@@ -89,13 +89,13 @@ export default function Lobby() {
     const timeoutId = setTimeout(() => {
       console.log(" Uniéndose a sala:", roomCode);
       console.log(" Username a usar:", userToUse);
-      
+
       if (isHost) {
         console.log(" Anfitrión creando sala...");
         socket.emit("crearSala", {
           code: roomCode,
           anfitrion: userToUse, // Usar userToUse en lugar de savedUsername
-          maxJugadores: parseInt(playersAmount)
+          maxPlayers: parseInt(playersAmount)
         });
       } else {
         console.log(" Jugador uniéndose a sala...");
@@ -206,23 +206,23 @@ export default function Lobby() {
         <section className={styles.playersSection}>
           <h2>Jugadores en la Sala ({players.length}/{playersAmount})</h2>
           <div className={styles.playersGrid}>
-            {players.map((jugador, index) => (
+            {players.map((player, index) => (
               <div
-                key={jugador.id || jugador.socketId || index}
-                className={`${styles.playerCard} ${jugador.username === username ? styles.currentPlayer : ""
-                  } ${jugador.isHost ? styles.hostPlayer : ""
+                key={player.id || player.socketId || index}
+                className={`${styles.playerCard} ${player.username === username ? styles.currentPlayer : ""
+                  } ${player.isHost ? styles.hostPlayer : ""
                   }`}
               >
                 <div className={styles.playerAvatar}>
-                  {jugador.username === username ? "👤" :
-                    jugador.isHost ? "👑" : "🎯"}
+                  {player.username === username ? "👤" :
+                    player.isHost ? "👑" : "🎯"}
                 </div>
                 <div className={styles.playerInfo}>
                   <span className={styles.playerName}>
-                    {jugador.username}
-                    {jugador.username === username && " (Tú)"}
+                    {player.username}
+                    {player.username === username && " (Tú)"}
                   </span>
-                  {jugador.isHost && (
+                  {player.isHost && (
                     <span className={styles.hostBadge}>Anfitrión</span>
                   )}
                 </div>
@@ -265,7 +265,7 @@ export default function Lobby() {
             <h3>Información de la Sala</h3>
             <div className={styles.infoContent}>
               <p><strong>Código:</strong> {roomCode}</p>
-              <p><strong>Anfitrión:</strong> {players.find(j => j.isHost)?.username || "Cargando..."}</p>
+              <p><strong>Anfitrión:</strong> {players.find(p => p.isHost)?.username || "Cargando..."}</p>
               <p><strong>Jugadores:</strong> {jugadores.length}/{playersAmount}</p>
               <p><strong>Estado:</strong> {createdRoom ? " Activa" : " Creando..."}</p>
               <p><strong>Socket ID:</strong> {socket?.id || "Desconectado"}</p>

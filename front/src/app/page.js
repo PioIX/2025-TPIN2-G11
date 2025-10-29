@@ -9,7 +9,7 @@ import Modal from "../components/modal";
 
 export default function Home() {
   const router = useRouter();
-  const [joinCode, setJoinjCode] = useState("");
+  const [joinCode, setJoinCode] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [open, setOpen] = useState(false);
   const [typeModal, setTypeModal] = useState("");
@@ -58,10 +58,10 @@ export default function Home() {
 
     if (localStorage.getItem("username") != null) {
       alert("Ya hay una sesión iniciada. Por favor cierre sesión primero.");
-       alreadyLogged = true;
+      alreadyLogged = true;
       return;
     } else {
-       alreadyLogged = false;
+      alreadyLogged = false;
     }
 
     try {
@@ -108,8 +108,8 @@ export default function Home() {
       const user = localStorage.getItem("username") || "Anfitrión";
       console.log(" Enviando datos para crear sala:", {
         code: roomCode,
-        anfitrion: user,
-        maxJugadores: playersAmount
+        host: user,
+        maxPlayers: playersAmount
       });
 
       const response = await fetch("http://localhost:4000/crearSalaBD", {
@@ -120,8 +120,8 @@ export default function Home() {
         },
         body: JSON.stringify({
           code: roomCode,
-          anfitrion: user,
-          maxJugadores: playersAmount
+          host: user,
+          maxPlayers: playersAmount
         })
       });
 
@@ -155,35 +155,35 @@ export default function Home() {
     }
   }
 
-async function confirmarUnion() {
-  // Generar un ID único para invitados
-  let user = localStorage.getItem("username");
-  if (!user) {
-    const guestId = Math.random().toString(36).substring(2, 8); // ID único de 6 caracteres
-    user = `Invitado-${guestId}`;
-  }
-
-  if (!joinCode) {
-    alert("Por favor ingresa un código de sala");
-    return;
-  }
-
-  try {
-    const response = await fetch(`http://localhost:4000/verificarSala/${joinCode}`);
-    const result = await response.json();
-
-    if (result.success && result.exists) {
-      console.log(" Sala verificada en BD, redirigiendo...");
-      router.push(`/lobby?code=${joinCode}&host=false&username=${encodeURIComponent(user)}`);
-      setOpen(false);
-    } else {
-      alert(result.message || "No existe una sala con ese código");
+  async function confirmarUnion() {
+    // Generar un ID único para invitados
+    let user = localStorage.getItem("username");
+    if (!user) {
+      const guestId = Math.random().toString(36).substring(2, 8); // ID único de 6 caracteres
+      user = `Invitado-${guestId}`;
     }
-  } catch (error) {
-    console.error(" Error al verificar sala:", error);
-    alert("Error al conectar con el servidor");
+
+    if (!joinCode) {
+      alert("Por favor ingresa un código de sala");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:4000/verificarSala/${joinCode}`);
+      const result = await response.json();
+
+      if (result.success && result.exists) {
+        console.log(" Sala verificada en BD, redirigiendo...");
+        router.push(`/lobby?code=${joinCode}&host=false&username=${encodeURIComponent(user)}`);
+        setOpen(false);
+      } else {
+        alert(result.message || "No existe una sala con ese código");
+      }
+    } catch (error) {
+      console.error(" Error al verificar sala:", error);
+      alert("Error al conectar con el servidor");
+    }
   }
-}
 
 
   function openSettings() {
@@ -236,13 +236,12 @@ async function confirmarUnion() {
         isOpen={open}
         onClose={() => setOpen(false)}
         title={typeModal}
-        tipo={typeModal}
+        type={typeModal}
 
         // Props para unirse a sala
         joinCode={joinCode}
         onChangeJoinCode={(e) => setJoinCode(e.target.value)}
         onSubmitUnirse={confirmarUnion}
-
         // Props para crear sala
         roomCode={roomCode}
         onChangeRoomCode={(e) => setRoomCode(e.target.value)}

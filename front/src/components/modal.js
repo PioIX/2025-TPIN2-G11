@@ -44,7 +44,7 @@ export default function Modal({
     <div className={styles.overlay} onClick={handleOverlayClick}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <Button className={styles.close} onClick={onClose} title="✕" />
-        
+
         {/* Modal para unirse a sala */}
         {type === "join" && (
           <>
