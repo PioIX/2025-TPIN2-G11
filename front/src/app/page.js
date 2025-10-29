@@ -9,7 +9,7 @@ import Modal from "../components/modal";
 
 export default function Home() {
   const router = useRouter();
-  const [joinCode, setJoinjCode] = useState("");
+  const [joinCode, setJoinCode] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [open, setOpen] = useState(false);
   const [typeModal, setTypeModal] = useState("");
