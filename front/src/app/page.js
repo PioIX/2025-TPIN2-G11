@@ -58,10 +58,10 @@ export default function Home() {
 
     if (localStorage.getItem("username") != null) {
       alert("Ya hay una sesión iniciada. Por favor cierre sesión primero.");
-       alreadyLogged = true;
+      alreadyLogged = true;
       return;
     } else {
-       alreadyLogged = false;
+      alreadyLogged = false;
     }
 
     try {
@@ -82,23 +82,23 @@ export default function Home() {
     }
   }
 
-  function abrirModal() {
+  function openModal() {
     setTypeModal("join");
     setOpen(true);
   }
 
-  function abrirLogin() {
+  function openLogin() {
     setTypeModal("login");
     setRegistered(true);
     setOpen(true);
   }
 
-  function crearSala() {
-    setTypeModal("crearSala");
+  function createRoom() {
+    setTypeModal("createRoom");
     setOpen(true);
   }
 
-  async function confirmarCreacionSala() {
+  async function confirmCreateRoom() {
     if (!roomCode || !playersAmount) {
       alert("Completá todos los campos para crear la sala");
       return;
@@ -108,8 +108,8 @@ export default function Home() {
       const user = localStorage.getItem("username") || "Anfitrión";
       console.log(" Enviando datos para crear sala:", {
         code: roomCode,
-        anfitrion: user,
-        maxJugadores: playersAmount
+        host: user,
+        maxPlayers: playersAmount
       });
 
       const response = await fetch("http://localhost:4000/crearSalaBD", {
@@ -120,15 +120,15 @@ export default function Home() {
         },
         body: JSON.stringify({
           code: roomCode,
-          anfitrion: user,
-          maxJugadores: playersAmount
+          host: user,
+          maxPlayers: playersAmount
         })
       });
 
       console.log("Respuesta del servidor - Status:", response.status);
 
       const result = await response.json();
-      console.log(" Respuesta del servidor - Data:", result);
+      console.log("Respuesta del servidor - Data:", result);
 
       if (result.success) {
         console.log("Sala creada en BD, redirigiendo...");
@@ -143,7 +143,7 @@ export default function Home() {
     }
   }
 
-  async function verRanking() {
+  async function seeRanking() {
     try {
       const players = await fetch("http://localhost:4000/getRanking");
       const result = await players.json();
@@ -155,35 +155,35 @@ export default function Home() {
     }
   }
 
-async function confirmarUnion() {
-  // Generar un ID único para invitados
-  let user = localStorage.getItem("username");
-  if (!user) {
-    const guestId = Math.random().toString(36).substring(2, 8); // ID único de 6 caracteres
-    user = `Invitado-${guestId}`;
-  }
-
-  if (!joinCode) {
-    alert("Por favor ingresa un código de sala");
-    return;
-  }
-
-  try {
-    const response = await fetch(`http://localhost:4000/verificarSala/${joinCode}`);
-    const result = await response.json();
-
-    if (result.success && result.exists) {
-      console.log(" Sala verificada en BD, redirigiendo...");
-      router.push(`/lobby?code=${joinCode}&host=false&username=${encodeURIComponent(user)}`);
-      setOpen(false);
-    } else {
-      alert(result.message || "No existe una sala con ese código");
+  async function joinConfirm() {
+    let user = localStorage.getItem("username");
+    if (!user) {
+      const guestId = Math.random().toString(36).substring(2, 8); // ID único de 6 caracteres
+      user = `Invitado-${guestId}`;
     }
-  } catch (error) {
-    console.error(" Error al verificar sala:", error);
-    alert("Error al conectar con el servidor");
+
+    if (!joinCode) {
+      alert("Por favor ingresa un código de sala");
+      return;
+    }
+    console.log(joinCode);
+
+    try {
+      const response = await fetch(`http://localhost:4000/verifyRoom/${joinCode}`);
+      const result = await response.json();
+
+      if (result.success && result.exists) {
+        console.log(" Sala verificada en BD, redirigiendo...");
+        router.push(`/lobby?code=${joinCode}&host=false&username=${encodeURIComponent(user)}`);
+        setOpen(false);
+      } else {
+        alert(result.message || "No existe una sala con ese código");
+      }
+    } catch (error) {
+      console.error(" Error al verificar sala:", error);
+      alert("Error al conectar con el servidor");
+    }
   }
-}
 
 
   function openSettings() {
@@ -227,34 +227,33 @@ async function confirmarUnion() {
       <main className={styles.hero}></main>
 
       <div className={styles.actions}>
-        <Button title="CREAR SALA" onClick={crearSala} />
-        <Button title="UNIRME A SALA" onClick={abrirModal} />
-        <Button title="VER RANKING" onClick={verRanking} />
+        <Button title="CREAR SALA" onClick={createRoom} />
+        <Button title="UNIRME A SALA" onClick={openModal} />
+        <Button title="VER RANKING" onClick={seeRanking} />
       </div>
 
       <Modal
         isOpen={open}
         onClose={() => setOpen(false)}
         title={typeModal}
-        tipo={typeModal}
+        type={typeModal}
 
         // Props para unirse a sala
         joinCode={joinCode}
         onChangeJoinCode={(e) => setJoinCode(e.target.value)}
-        onSubmitUnirse={confirmarUnion}
-
+        onSubmitJoinning={joinConfirm}
         // Props para crear sala
         roomCode={roomCode}
         onChangeRoomCode={(e) => setRoomCode(e.target.value)}
         playersAmount={playersAmount}
         onChangePlayersAmount={(e) => setPlayersAmount(e.target.value)}
-        onSubmitCreate={confirmarCreacionSala}
+        onSubmitCreate={confirmCreateRoom}
 
         // Props para ranking
         ranking={ranking}
 
         // Props para settings
-        onOpenLogin={abrirLogin}
+        onOpenLogin={openLogin}
         onSubmitModifyAccount={handleModifyAccount}
         onSubmitCloseSession={handleCloseSession}
 

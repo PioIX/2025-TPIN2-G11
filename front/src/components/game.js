@@ -23,16 +23,16 @@ export default function Game() {
     socket.on("gameStarted", (data) => {
       console.log("Juego iniciado:", data);
       setState(data.state);
-      
+
       // Encontrar mi rol
-      const myPlayer = data.players.find(j => 
-        j.username === localStorage.getItem("username")
+      const myPlayer = data.players.find(p =>
+        p.username === localStorage.getItem("username")
       );
       if (myPlayer) {
         setMyRole(myPlayer.role);
         console.log("🎭 Tu rol es:", myPlayer.rol);
       }
-      
+
       setPlayers(data.players);
     });
 
@@ -87,7 +87,7 @@ export default function Game() {
               <div className={styles.voting}>
                 <h3>Selecciona a tu víctima:</h3>
                 {players
-                  .filter(j => j.role !== "lobizon" && j.isAlive)
+                  .filter(p => p.role !== "lobizon" && p.isAlive)
                   .map(player => (
                     <button
                       key={player.socketId}
@@ -141,21 +141,20 @@ export default function Game() {
 
       <main className={styles.main}>
         {renderContent()}
-        
+
         {/* Panel de jugadores */}
         <div className={styles.playersPanel}>
           <h3>Jugadores:</h3>
           {players.map(player => (
-            <div 
-              key={player.socketId} 
-              className={`${styles.player} ${
-                !player.isAlive ? styles.dead : ''
-              }`}
+            <div
+              key={player.socketId}
+              className={`${styles.player} ${!player.isAlive ? styles.dead : ''
+                }`}
             >
               <span>{player.username}</span>
               <span className={styles.role}>
-                {!player.isAlive ? '💀' : 
-                 player.role === 'lobizon' ? '🐺' : '👤'}
+                {!player.isAlive ? '💀' :
+                  player.role === 'lobizon' ? '🐺' : '👤'}
               </span>
               {!player.isAlive && <span className={styles.deadText}>(Muerto)</span>}
             </div>
