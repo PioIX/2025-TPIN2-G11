@@ -39,7 +39,7 @@ export default function GameRoom() {
                 <div className={styles.error}>
                     <h2>❌ Error</h2>
                     <p>No se pudo cargar la sala</p>
-                    <button 
+                    <button
                         onClick={() => router.push("/")}
                         className={styles.restartButton}
                     >
@@ -77,7 +77,7 @@ export default function GameRoom() {
             fueProtegido: false
         }));
 
-        console.log("Roles asignados:", updatedPlayers.map(j => ({ username: j.username, role: j.role })));
+        console.log("Roles asignados:", updatedPlayers.map(p => ({ username: p.username, role: p.role })));
         return {
             ...room,
             players: updatedPlayers,
@@ -86,11 +86,11 @@ export default function GameRoom() {
     }
 
     function winnerVerify(room) {
-        const lobizonesAlive = room.players.filter(j =>
-            j.role === 'lobizon' && j.isAlive
+        const lobizonesAlive = room.players.filter(p =>
+            p.role === 'lobizon' && p.isAlive
         );
-        const villagersAlive = room.players.filter(j =>
-            j.role !== 'lobizon' && j.isAlive
+        const villagersAlive = room.players.filter(p =>
+            p.role !== 'lobizon' && p.isAlive
         );
 
         if (lobizonesAlive.length === 0) {
@@ -214,7 +214,7 @@ export default function GameRoom() {
                 );
 
             case gameStates.NOCHE_LOBIZONES:
-                const myPlayer = players.find(j => j.socketId === socket.id);
+                const myPlayer = players.find(p => p.socketId === socket.id);
                 return (
                     <div className={styles.phase}>
                         <h2>Noche - Turno de Lobizones</h2>
@@ -222,7 +222,7 @@ export default function GameRoom() {
                             <div className={styles.votingSection}>
                                 <p>Selecciona a tu víctima:</p>
                                 {players
-                                    .filter(j => j.role !== 'lobizon' && j.isAlive)
+                                    .filter(p => p.role !== 'lobizon' && p.isAlive)
                                     .map(player => (
                                         <button
                                             key={player.socketId}
