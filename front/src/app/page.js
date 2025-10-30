@@ -206,6 +206,16 @@ export default function Home() {
     setOpen(false);
   }
 
+  const handleCloseModal = () => {
+    setOpen(false);
+    // Limpiar todos los estados de inputs
+    setJoinCode("");
+    setRoomCode("");
+    setUsername("");
+    setPassword("");
+    setPlayersAmount(6);
+  };
+
   function handleAuth() {
     if (registered) {
       SignIn();
@@ -234,7 +244,7 @@ export default function Home() {
 
       <Modal
         isOpen={open}
-        onClose={() => setOpen(false)}
+        onClose={handleCloseModal}
         title={typeModal}
         type={typeModal}
 

@@ -22,7 +22,7 @@ export default function GameRoom() {
     }, [socket]);
 
 
-    if (Loading) {
+    if (loading) {
         return (
             <div className={styles.gameRoom}>
                 <div className={styles.loading}>
