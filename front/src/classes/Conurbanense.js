@@ -1,12 +1,12 @@
-import Personaje from "./Personaje";
+import Character from "./Character";
 
-export default class Conurbanense extends Personaje {
-    constructor(idPersonaje, habilidad) {
-        super(idPersonaje)
-        this.nombre = "Conurbanense"
-        this.habilidad = habilidad
-        this.objetivo = "Linchar a todos los lobizones"
-        this.puedeSerManipulado = true
+export default class Conurbanense extends Character {
+    constructor(idCharacter, hability) {
+        super(idCharacter)
+        this.name = "Conurbanense"
+        this.hability = hability
+        this.objective = "Linchar a todos los lobizones"
+        this.canBeManipulated = true
     }
 
 

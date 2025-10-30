@@ -1,43 +1,43 @@
-import Personaje from "./Personaje";
+import Character from "./Character";
 
-export default class Intendente extends Personaje {
-    constructor(idPersonaje, rolPrincipal) {
-        super(idPersonaje)
-        this.nombre = "Intendente"
-        this.rolPrincipal = rolPrincipal 
-        this.objetivo = this.rolPrincipal.objetivo
-        this.planPlatitaUsado = false
-        this.herederoDesignado = null
+export default class Intendente extends Character {
+    constructor(idCharacter, principalRole) {
+        super(idCharacter)
+        this.name = "Intendente"
+        this.principalRole = principalRole 
+        this.objective = this.principalRole.objective
+        this.usedPlanPlatita = false
+        this.designatedHeir = null
     }
 
    
-    usarPlanPlatita(idObjetivo, conurbanenses) {
+    usarPlanPlatita(idObjective, conurbanenses) {
         
-        if (this.planPlatitaUsado) {
+        if (this.usedPlanPlatita) {
             console.log("Plan Platita ya fue usado esta partida")
             return false
         }
 
-        this.planPlatitaUsado = true
-        console.log(`📋 INTENDENTE usa Plan Platita - Todos los Conurbanenses votarán por ${idObjetivo}`)
+        this.usedPlanPlatita = true
+        console.log(`📋 INTENDENTE usa Plan Platita - Todos los Conurbanenses votarán por ${idObjective}`)
 
         conurbanenses.forEach(conurbanense => {
-            if (conurbanense.estaVivo && conurbanense.puedeSerManipulado) {
-                conurbanense.fueManipulado = true
-                conurbanense.votoForzado = idObjetivo
+            if (conurbanense.isAlive && conurbanense.canBeManipulated) {
+                conurbanense.wasManipulated = true
+                conurbanense.forcedVote = idObjective
             }
         })
         
         return true
     }
 
-    designarHeredero(idHeredero) {
-        this.herederoDesignado = idHeredero
-        console.log(`👑 Intendente designa a ${idHeredero} como su heredero`)
-        return idHeredero
+    designarHeredero(idHeir) {
+        this.designatedHeir = idHeir
+        console.log(`👑 Intendente designa a ${idHeir} como su heredero`)
+        return idHeir
     }
 
-    romperEmpate(empates) {
+    romperEmpate(draw) {
         //romper empate
        
     }

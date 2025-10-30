@@ -1,52 +1,52 @@
-import Personaje from "./Personaje";
+import Character from "./Character";
 
-export default class Chaman extends Personaje {
-    constructor(idPersonaje) {
-        super(idPersonaje)
-        this.nombre = "Chamán"
-        this.objetivo = "Linchar a todos los lobizones"
-        this.pocionVida = true
-        this.pocionMuerte = true
-        this.pocionVidaUsada = false
-        this.pocionMuerteUsada = false
+export default class Chaman extends Character {
+    constructor(idCharacter) {
+        super(idCharacter)
+        this.name = "Chamán"
+        this.objective = "Linchar a todos los lobizones"
+        this.lifePotion = true
+        this.deathPotion = true
+        this.usedLifePotion = false
+        this.usedDeathPotion = false
     }
 
-    usarPocionVida(idPersonaje) {
+    useLifePotion(idCharacter) {
 
-        if (!this.pocionVida || this.pocionVidaUsada) {
+        if (!this.lifePotion || this.usedLifePotion) {
             console.log("Poción de vida no disponible")
             return false
         }
 
-        this.pocionVidaUsada = true
-        console.log(`CHAMÁN usa Poción de Vida en ${idPersonaje}`)
+        this.usedLifePotion = true
+        console.log(`CHAMÁN usa Poción de Vida en ${idCharacter}`)
         return {
-            objetivo: idPersonaje,
-            tipo: "revivir",
-            exitoso: true
+            objective: idCharacter,
+            type: "revivir",
+            successful: true
         }
     }
 
-    usarPocionMuerte(idPersonaje) {
+    useDeathPotion(idCharacter) {
 
-        if (!this.pocionMuerte || this.pocionMuerteUsada) {
+        if (!this.deathPotion || this.usedDeathPotion) {
             console.log("Poción de muerte no disponible")
             return false
         }
 
-        this.pocionMuerteUsada = true
-        console.log(`CHAMÁN usa Poción de Muerte en ${idPersonaje}`)
+        this.usedDeathPotion = true
+        console.log(`CHAMÁN usa Poción de Muerte en ${idCharacter}`)
         return {
-            objetivo: idPersonaje,
-            tipo: "matar",
-            exitoso: true
+            objective: idCharacter,
+            type: "matar",
+            successful: true
         }
     }
 
-    estadoPociones() {
+    potionsState() {
         return {
-            pocionVida: this.pocionVida && !this.pocionVidaUsada,
-            pocionMuerte: this.pocionMuerte && !this.pocionMuerteUsada
+            lifePotion: this.lifePotion && !this.usedLifePotion,
+            deathPotion: this.deathPotion && !this.usedDeathPotion
         }
     }
 }

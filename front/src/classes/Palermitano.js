@@ -1,11 +1,11 @@
-import Personaje from "./Personaje";
+import Character from "./Character";
 
-export default class Palermitano extends Personaje {
-    constructor(idPersonaje, habilidad) {
-        super(idPersonaje)
-        this.nombre = "Palermitano"
+export default class Palermitano extends Character {
+    constructor(idCharacter, habilidad) {
+        super(idCharacter)
+        this.name = "Palermitano"
         this.habilidad = habilidad
-        this.objetivo = "Linchar a todos los lobizones"
+        this.objective = "Linchar a todos los lobizones"
         this.puedeSerManipulado = false 
     }
 

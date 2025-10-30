@@ -1,10 +1,10 @@
-import Personaje from "./Personaje";
+import Character from "./Character";
 
-export default class Medium extends Personaje {
-    constructor(idPersonaje) {
-        super(idPersonaje)
-        this.nombre = "Medium"
-        this.objetivo = "Linchar a todos los lobizones"
+export default class Medium extends Character {
+    constructor(idCharacter) {
+        super(idCharacter)
+        this.name = "Medium"
+        this.objective = "Linchar a todos los lobizones"
         this.votosMuertos = 0
         this.muertosContactados = []
     }
@@ -24,12 +24,12 @@ export default class Medium extends Personaje {
         }
     }
 
-    votarLinchar(idPersonaje) {
-        if (!this.estaVivo) return null
+    votarLinchar(idCharacter) {
+        if (!this.isAlive) return null
 
-        console.log(` MEDIUM vota por ${idPersonaje} (2 votos: propio + muertos)`)
+        console.log(` MEDIUM vota por ${idCharacter} (2 votos: propio + muertos)`)
         return {
-            votoPersonal: idPersonaje,
+            votoPersonal: idCharacter,
             votoMuertos: this.votosMuertos,
             totalVotos: 2
         }

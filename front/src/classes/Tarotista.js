@@ -1,27 +1,27 @@
-import Personaje from "./Personaje";
+import Character from "./Character";
 
-export default class Tarotista extends Personaje {
-    constructor(idPersonaje) {
-        super(idPersonaje)
-        this.nombre = "Tarotista"
-        this.objetivo = "Linchar a todos los lobizones"
+export default class Tarotista extends Character {
+    constructor(idCharacter) {
+        super(idCharacter)
+        this.name = "Tarotista"
+        this.objective = "Linchar a todos los lobizones"
         this.lecturasRealizadas = []
     }
 
    
-    leerAura(idPersonaje, personajeInvestigado) {
+    leerAura(idCharacter, personajeInvestigado) {
 
         this.lecturasRealizadas.push({
-            objetivo: idPersonaje,
-            esLobizon: personajeInvestigado.esLobizon,
+            objective: idCharacter,
+            isLobizon: personajeInvestigado.isLobizon,
             turno: Date.now()
         })
 
-        console.log(`🔮 TAROTISTA lee el aura de ${idPersonaje}`)
+        console.log(`🔮 TAROTISTA lee el aura de ${idCharacter}`)
         
         return {
-            objetivo: idPersonaje,
-            esLobizon: personajeInvestigado.esLobizon,
+            objective: idCharacter,
+            isLobizon: personajeInvestigado.isLobizon,
             confiable: true 
         }
     }
