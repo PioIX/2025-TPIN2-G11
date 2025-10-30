@@ -2,12 +2,19 @@
 import { useSocket } from '../../hooks/useSocket';
 import { useEffect, useState } from 'react';
 import styles from '../gameRoom/gameRoom.module.css';
+import Lobizon from '@/classes/Lobizon';
 
 export default function GameRoom() {
     const { socket } = useSocket();
     const [room, setRoom] = useState(null);
     const [players, setPlayers] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const Lobizon1 = new Lobizon(1,"Lobizon1", "asdas")
+
+    useEffect(() => {
+        Lobizon1.comerGente(2)
+    }, [])
 
     useEffect(() => {
         if (!socket) return;
