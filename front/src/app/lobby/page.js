@@ -266,7 +266,7 @@ export default function Lobby() {
             <div className={styles.infoContent}>
               <p><strong>Código:</strong> {roomCode}</p>
               <p><strong>Anfitrión:</strong> {players.find(p => p.isHost)?.username || "Cargando..."}</p>
-              <p><strong>Jugadores:</strong> {jugadores.length}/{playersAmount}</p>
+              <p><strong>Jugadores:</strong> {players.length}/{playersAmount}</p>
               <p><strong>Estado:</strong> {createdRoom ? " Activa" : " Creando..."}</p>
               <p><strong>Socket ID:</strong> {socket?.id || "Desconectado"}</p>
               <p><strong>Tu username:</strong> {username}</p>

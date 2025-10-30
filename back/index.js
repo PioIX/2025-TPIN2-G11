@@ -250,7 +250,7 @@ app.post("/crearSalaBD", async (req, res) => {
 });
 
 // Verificar si una sala existe
-app.get("/verificarSala/:code", async (req, res) => { // Cambiado de ":codigo" a ":code"
+app.get("/verifyRoom/:code", async (req, res) => { // Cambiado de ":codigo" a ":code"
   try {
     const { code } = req.params; // Cambiado de "codigo" a "code"
 
@@ -275,7 +275,7 @@ app.get("/verificarSala/:code", async (req, res) => { // Cambiado de ":codigo" a
     });
 
   } catch (error) {
-    console.error(" Error en /verificarSala:", error);
+    console.error(" Error en /verifyRoom:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

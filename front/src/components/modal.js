@@ -10,7 +10,7 @@ export default function Modal({
   // Props para unirse
   joinCode,
   onChangeJoinCode,
-  onSubmiJoinning,
+  onSubmitJoinning,
   // Props para crear sala
   roomCode,
   onChangeRoomCode,
@@ -57,7 +57,7 @@ export default function Modal({
             />
             <br />
             <br />
-            <Button className={styles.btn} onClick={onSubmiJoinning} title="Unirse" />
+            <Button className={styles.btn} onClick={onSubmitJoinning} title="Unirse" />
           </>
         )}
 
@@ -80,7 +80,7 @@ export default function Modal({
         )}
 
         {/* Modal para crear sala */}
-        {type === "crearSala" && (
+        {type === "createRoom" && (
           <>
             <h2>Crear nueva sala</h2>
             <label>Código personalizado:</label>
