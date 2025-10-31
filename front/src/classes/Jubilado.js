@@ -5,45 +5,45 @@ export default class Jubilado extends Character {
         super(idCharacter)
         this.name = "Jubilado"
         this.objective = "Linchar a todos los lobizones"
-        this.venganzaActivada = false
-        this.asesino = null
+        this.activatedRevenge = false
+        this.assasin = null
     }
 
-    activarVenganza(causaMuerte, objective = null) {
+    activateRevenge(deathReason, objective = null) {
 
-        console.log(`JUBILADO activa VENGANZA - Causa: ${causaMuerte}`)
+        console.log(`JUBILADO activa VENGANZA - Causa: ${deathReason}`)
 
-        let victima = null
+        let victim = null
 
-        switch (causaMuerte) {
+        switch (deathReason) {
             case "lobizon":
-                victima = this.seleccionarLoboAleatorio(objective)
+                victim = this.selectRandomLobizon(objective)
                 break
             case "linchamiento":
-                victima = objective
+                victim = objective
                 break
             case "pocion_muerte":
-                victima = objective
+                victim = objective
                 break
         }
 
-        if (victima) {
-            console.log(`Jubilado se lleva consigo a ${victima}`)
+        if (victim) {
+            console.log(`Jubilado se lleva consigo a ${victim}`)
             return {
-                venganza: true,
-                victima: victima,
-                causa: causaMuerte
+                revenge: true,
+                victim: victim,
+                reason: deathReason
             }
         }
 
         return null
     }
 
-    seleccionarLoboAleatorio(lobizones) {
+    selectRandomLobizon(lobizones) {
         if (!lobizones || lobizones.length === 0) return null
-        const lobosVivos = lobizones.filter(lobo => lobo.isAlive)
-        if (lobosVivos.length === 0) return null
-        return lobosVivos[Math.floor(Math.random() * lobosVivos.length)].idCharacter
+        const aliveLobizones = lobizones.filter(wolf => wolf.isAlive)
+        if (aliveLobizones.length === 0) return null
+        return aliveLobizones[Math.floor(Math.random() * aliveLobizones.length)].idCharacter
     }
 
 }

@@ -5,8 +5,8 @@ export default class ViudaNegra extends Character {
         super(idCharacter)
         this.name = "Viuda Negra"
         this.objective = "Linchar a todos los lobizones"
-        this.votosPostMortem = 2
-        this.votosUsados = 0
+        this.postMortemVotes = 2
+        this.usedVotes = 0
     }
 
 
@@ -16,24 +16,24 @@ export default class ViudaNegra extends Character {
             return null
         }
 
-        if (this.votosUsados >= this.votosPostMortem) {
+        if (this.usedVotes >= this.postMortemVotes) {
             console.log("La viuda negra ya usó todos sus votos post-mortem")
             return null
         }
 
-        this.votosUsados++
-        console.log(`VIUDA NEGRA vota desde el más allá por ${idCharacter} (${this.votosUsados}/${this.votosPostMortem})`)
+        this.usedVotes++
+        console.log(`VIUDA NEGRA vota desde el más allá por ${idCharacter} (${this.usedVotes}/${this.postMortemVotes})`)
         
         return {
-            voto: idCharacter,
-            votosRestantes: this.votosPostMortem - this.votosUsados,
-            esPostMortem: true
+            vote: idCharacter,
+            remainingVotes: this.postMortemVotes - this.usedVotes,
+            isPostMortem: true
         }
     }
 
     death() {
         this.isAlive = false
-        console.log(` ${this.name} muere y se convierte en espíritu vengativo (${this.votosPostMortem} votos post-mortem disponibles)`)
+        console.log(` ${this.name} muere y se convierte en espíritu vengativo (${this.postMortemVotes} votos post-mortem disponibles)`)
     }
 
     

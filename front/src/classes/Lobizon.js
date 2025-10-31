@@ -1,10 +1,10 @@
 import Character from "./Character";
 
 export default class Lobizon extends Character {
-    constructor(idCharacter, habilidad) {
+    constructor(idCharacter, hability) {
         super(idCharacter)
         this.name = "Lobizón"
-        this.habilidad = habilidad
+        this.hability = hability
         this.objective = "Eliminar a todo el pueblo"
         this.isLobizon = true
     }
