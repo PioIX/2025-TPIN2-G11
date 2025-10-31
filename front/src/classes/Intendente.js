@@ -35,6 +35,7 @@ export default class Intendente extends Character {
         this.designatedHeir = idHeir
         console.log(`👑 Intendente designa a ${idHeir} como su heredero`)
         return idHeir
+
     }
 
     romperEmpate(draw) {
