@@ -1,15 +1,15 @@
-import Personaje from "./Personaje";
+import Character from "./Character";
 
-export default class Jubilado extends Personaje {
-    constructor(idPersonaje) {
-        super(idPersonaje)
-        this.nombre = "Jubilado"
-        this.objetivo = "Linchar a todos los lobizones"
+export default class Jubilado extends Character {
+    constructor(idCharacter) {
+        super(idCharacter)
+        this.name = "Jubilado"
+        this.objective = "Linchar a todos los lobizones"
         this.venganzaActivada = false
         this.asesino = null
     }
 
-    activarVenganza(causaMuerte, objetivo = null) {
+    activarVenganza(causaMuerte, objective = null) {
 
         console.log(`JUBILADO activa VENGANZA - Causa: ${causaMuerte}`)
 
@@ -17,13 +17,13 @@ export default class Jubilado extends Personaje {
 
         switch (causaMuerte) {
             case "lobizon":
-                victima = this.seleccionarLoboAleatorio(objetivo)
+                victima = this.seleccionarLoboAleatorio(objective)
                 break
             case "linchamiento":
-                victima = objetivo
+                victima = objective
                 break
             case "pocion_muerte":
-                victima = objetivo
+                victima = objective
                 break
         }
 
@@ -41,9 +41,9 @@ export default class Jubilado extends Personaje {
 
     seleccionarLoboAleatorio(lobizones) {
         if (!lobizones || lobizones.length === 0) return null
-        const lobosVivos = lobizones.filter(lobo => lobo.estaVivo)
+        const lobosVivos = lobizones.filter(lobo => lobo.isAlive)
         if (lobosVivos.length === 0) return null
-        return lobosVivos[Math.floor(Math.random() * lobosVivos.length)].idPersonaje
+        return lobosVivos[Math.floor(Math.random() * lobosVivos.length)].idCharacter
     }
 
 }

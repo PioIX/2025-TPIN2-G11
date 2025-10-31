@@ -1,28 +1,28 @@
-import Personaje from "./Personaje";
+import Character from "./Character";
 
-export default class Colectivero extends Personaje {
-    constructor(idPersonaje) {
-        super(idPersonaje)
-        this.nombre = "Colectivero"
-        this.objetivo = "Linchar a todos los lobizones"
-        this.noctambulos = []
+export default class Colectivero extends Character {
+    constructor(idCharacter) {
+        super(idCharacter)
+        this.name = "Colectivero"
+        this.objective = "Linchar a todos los lobizones"
+        this.nightlyOwls = []
     }
 
     
-    observarNoctambulos(personajesNocturnos) {
+    seeNightlyOwls(nocturnalCharacters) {
 
         console.log(` COLECTIVERO observa movimientos nocturnos`)
-        this.noctambulos = personajesNocturnos.map(p => p.idPersonaje)
+        this.nightlyOwls = nocturnalCharacters.map(p => p.idCharacter)
         
         return {
-            observados: this.noctambulos,
-            cantidad: this.noctambulos.length,
-            advertencia: "No sabe qué hicieron, solo que se levantaron"
+            seen: this.nightlyOwls,
+            amount: this.nightlyOwls.length,
+            warning: "No sabe qué hicieron, solo que se levantaron"
         }
     }
 
-    limpiarObservaciones() {
-        this.noctambulos = []
+    cleanObservations() {
+        this.nightlyOwls = []
     }
 
     

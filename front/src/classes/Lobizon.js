@@ -1,18 +1,18 @@
-import Personaje from "./Personaje";
+import Character from "./Character";
 
-export default class Lobizon extends Personaje {
-    constructor(idPersonaje, habilidad) {
-        super(idPersonaje)
-        this.nombre = "Lobizón"
+export default class Lobizon extends Character {
+    constructor(idCharacter, habilidad) {
+        super(idCharacter)
+        this.name = "Lobizón"
         this.habilidad = habilidad
-        this.objetivo = "Eliminar a todo el pueblo"
-        this.esLobizon = true
+        this.objective = "Eliminar a todo el pueblo"
+        this.isLobizon = true
     }
 
-    comerGente(idPersonaje) {
+    comerGente(idCharacter) {
 
-        console.log(`${this.nombre} intenta comerse a ${idPersonaje}`)
-        return idPersonaje 
+        console.log(`${this.name} intenta comerse a ${idCharacter}`)
+        return idCharacter 
     }
 
 }
