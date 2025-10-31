@@ -178,7 +178,6 @@ export default function GameRoom() {
             if (!gameState && connectionStatus !== "game_loaded") {
                 console.log("⏰ Timeout - no gameState received, retrying join...");
                 setHasJoinedRoom(false);
-                setJoinAttempts(0);
             }
         }, 10000);
 
@@ -198,7 +197,7 @@ export default function GameRoom() {
         };
     }, [socket, isConnected, roomCode, hasJoinedRoom, joinAttempts, router, gameState, connectionStatus]);
 
-    // Efecto para reintentar la conexión periódicamente
+    // useEffect para reintentar la conexión periódicamente
     useEffect(() => {
         if (connectionStatus === "join_emitted" && !gameState) {
             const retryInterval = setInterval(() => {
