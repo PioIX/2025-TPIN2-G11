@@ -805,8 +805,8 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Cerrar sala - Mantener compatibilidad con frontend
-  socket.on("closeRoom", async ({ code }) => { // Cambiado de "cerrarSala" a "closeRoom"
+  // Cerrar sala
+  socket.on("closeRoom", async ({ code }) => { 
     try {
       console.log(" Cerrando sala:", code);
 
@@ -814,13 +814,13 @@ io.on("connection", (socket) => {
       await realizarQuery(`UPDATE Games SET status = false WHERE code = ?`, [code]);
 
       // Eliminar de memoria
-      const index = rooms.findIndex(r => r.code === code); // Cambiado de "salas" a "rooms"
+      const index = rooms.findIndex(r => r.code === code); 
       if (index !== -1) {
-        rooms.splice(index, 1); // Cambiado de "salas" a "rooms"
+        rooms.splice(index, 1); 
       }
 
       // Notificar a todos los jugadores
-      io.to(code).emit("closedRoom", "El anfitrión cerró la sala"); // Cambiado de "salaCerrada" a "closedRoom"
+      io.to(code).emit("closedRoom", "El anfitrión cerró la sala"); 
       io.in(code).socketsLeave(code);
 
       console.log("Sala cerrada completamente:", code);
@@ -830,30 +830,30 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Abandonar sala - Mantener compatibilidad con frontend
-  socket.on("leaveRoom", async ({ code }) => { // Cambiado de "abandonarSala" a "leaveRoom"
+  // Abandonar sala 
+  socket.on("leaveRoom", async ({ code }) => { 
     try {
-      const room = rooms.find(r => r.code === code && r.active); // Cambiado de "sala" a "room"
+      const room = rooms.find(r => r.code === code && r.active); 
       if (!room) return;
 
       // Remover jugador de la sala en memoria
-      room.players = room.players.filter(p => p.socketId !== socket.id); // Cambiado de "jugadores" a "players"
+      room.players = room.players.filter(p => p.socketId !== socket.id); 
 
       // Si el anfitrión abandona, cerrar la sala
-      if (socket.isHost && socket.username === room.host) { // Cambiado de "esAnfitrion" a "isHost", "anfitrion" a "host"
+      if (socket.isHost && socket.username === room.host) { 
         console.log("Anfitrión abandonó la sala, cerrando...");
 
         // Marcar como inactiva en BD
         await realizarQuery(`UPDATE Games SET status = false WHERE code = ?`, [code]);
 
         // Notificar a otros jugadores
-        io.to(code).emit("closedRoom", "El anfitrión abandonó la sala"); // Cambiado de "salaCerrada" a "closedRoom"
+        io.to(code).emit("closedRoom", "El anfitrión abandonó la sala");
         io.in(code).socketsLeave(code);
 
         // Eliminar de memoria
-        const index = rooms.findIndex(r => r.code === code); // Cambiado de "salas" a "rooms"
+        const index = rooms.findIndex(r => r.code === code); 
         if (index !== -1) {
-          rooms.splice(index, 1); // Cambiado de "salas" a "rooms"
+          rooms.splice(index, 1); 
         }
       } else {
         // Solo actualizar lista de jugadores
@@ -872,29 +872,29 @@ io.on("connection", (socket) => {
   socket.on("disconnect", async () => {
     console.log("Usuario desconectado:", socket.id, socket.username);
 
-    if (socket.currentRoom && socket.isHost) { // Cambiado de "salaActual" a "currentRoom", "esAnfitrion" a "isHost"
+    if (socket.currentRoom && socket.isHost) { 
       try {
-        const room = rooms.find(r => r.code === socket.currentRoom && r.active); // Cambiado de "sala" a "room"
+        const room = rooms.find(r => r.code === socket.currentRoom && r.active); 
         if (room) {
           console.log("Anfitrión desconectado, cerrando sala:", socket.currentRoom);
 
           await realizarQuery(`UPDATE Games SET status = false WHERE code = ?`, [socket.currentRoom]);
 
-          io.to(socket.currentRoom).emit("closedRoom", "El anfitrión se desconectó"); // Cambiado de "salaCerrada" a "closedRoom"
+          io.to(socket.currentRoom).emit("closedRoom", "El anfitrión se desconectó"); 
           io.in(socket.currentRoom).socketsLeave(socket.currentRoom);
 
-          const index = rooms.findIndex(r => r.code === socket.currentRoom); // Cambiado de "salas" a "rooms"
+          const index = rooms.findIndex(r => r.code === socket.currentRoom); 
           if (index !== -1) {
-            rooms.splice(index, 1); // Cambiado de "salas" a "rooms"
+            rooms.splice(index, 1);
           }
         }
       } catch (error) {
         console.error(" Error cerrando sala en desconexión:", error);
       }
     } else if (socket.currentRoom) {
-      const room = rooms.find(r => r.code === socket.currentRoom && r.active); // Cambiado de "sala" a "room"
+      const room = rooms.find(r => r.code === socket.currentRoom && r.active); 
       if (room) {
-        room.players = room.players.filter(p => p.socketId !== socket.id); // Cambiado de "jugadores" a "players"
+        room.players = room.players.filter(p => p.socketId !== socket.id); 
         io.to(socket.currentRoom).emit("usersInRoom", room.players);
       }
     }
@@ -904,10 +904,10 @@ io.on("connection", (socket) => {
 // Limpiar salas sin anfitrión
 setInterval(async () => {
   try {
-    const activeRoomsDB = await realizarQuery(`SELECT code FROM Games WHERE status = true`); // Cambiado de "salasActivasBD" a "activeRoomsDB"
+    const activeRoomsDB = await realizarQuery(`SELECT code FROM Games WHERE status = true`); 
 
     for (const roomDB of activeRoomsDB) {
-      const roomInMemory = rooms.find(r => r.code === roomDB.code && r.active); // Cambiado de "salaEnMemoria" a "roomInMemory"
+      const roomInMemory = rooms.find(r => r.code === roomDB.code && r.active); 
       if (!roomInMemory) {
         await realizarQuery(`UPDATE Games SET status = false WHERE code = ?`, [roomDB.code]);
         console.log("Sala huérfana limpiada:", roomDB.code);

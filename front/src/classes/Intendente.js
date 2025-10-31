@@ -33,7 +33,7 @@ export default class Intendente extends Personaje {
 
     designarHeredero(idHeredero) {
         this.herederoDesignado = idHeredero
-        console.log(`👑 Intendente designa a ${idHeredero} como su heredero`)
+        console.log(`👑 Intendente designa a ${idHeir} como su heredero`)
         return idHeredero
     }
 
