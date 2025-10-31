@@ -1,12 +1,12 @@
 import Character from "./Character";
 
 export default class Palermitano extends Character {
-    constructor(idCharacter, habilidad) {
+    constructor(idCharacter, hability) {
         super(idCharacter)
         this.name = "Palermitano"
-        this.habilidad = habilidad
+        this.hability = hability
         this.objective = "Linchar a todos los lobizones"
-        this.puedeSerManipulado = false 
+        this.canBeManipulated = false 
     }
 
 

@@ -5,54 +5,54 @@ export default class Pombero extends Character {
         super(idCharacter)
         this.name = "Pombero"
         this.objective = "Linchar a todos los lobizones"
-        this.consagrados = []
-        this.proteccionesOtorgadas = []
-        this.poderesActivos = true
+        this.consecrated = []
+        this.protectionsGranted = []
+        this.activePowers = true
     }
 
-    protegerConsagrado(idCharacter, consagrados) {
+    protectConsecrateds(idCharacter, consecrateds) {
 
-        if (!this.poderesActivos) {
+        if (!this.activePowers) {
             console.log("El pombero perdió sus poderes")
             return null
         }
 
-        const consagrado = consagrados.find(c => c.idCharacter === idCharacter && c.consecratedToPombero)
+        const consecrated = consecrateds.find(c => c.idCharacter === idCharacter && c.consecratedToPombero)
         
 
         console.log(`POMBERO protege a ${idCharacter}`)
-        this.proteccionesOtorgadas.push({
-            protegido: idCharacter,
-            turno: Date.now(),
-            isLobizon: consagrado.isLobizon
+        this.protectionsGranted.push({
+            protected: idCharacter,
+            turn: Date.now(),
+            isLobizon: consecrated.isLobizon
         })
 
-        if (consagrado.isLobizon) {
+        if (consecrated.isLobizon) {
             console.log("¡POMBERO PROTEGIÓ A UN LOBIZÓN! Pierde sus poderes y los lobizones podrán comer dos personas")
-            this.poderesActivos = false
+            this.activePowers = false
             return {
-                protegido: idCharacter,
-                exitoso: true,
-                consecuencia: "lobizon_protegido",
-                mensaje: "Los lobizones podrán atacar a dos personas esta noche"
+                protected: idCharacter,
+                successful: true,
+                consequence: "lobizon_protegido",
+                message: "Los lobizones podrán atacar a dos personas esta noche"
             }
         }
 
         return {
-            protegido: idCharacter,
-            exitoso: true,
-            consecuencia: null
+            protected: idCharacter,
+            successful: true,
+            consequence: null
         }
     }
 
     registerConsecration(idCharacter) {
-        if (!this.consagrados.includes(idCharacter)) {
-            this.consagrados.push(idCharacter)
+        if (!this.consecrateds.includes(idCharacter)) {
+            this.consecrateds.push(idCharacter)
         }
     }
 
-    seleccionarProtegidoNocturno() {
-        if (this.consagrados.length === 0) return null
+    selectNightProtected() {
+        if (this.consecrateds.length === 0) return null
         
         //
     }
