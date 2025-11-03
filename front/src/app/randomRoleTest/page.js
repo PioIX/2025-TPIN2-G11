@@ -6,13 +6,21 @@ import Button from "@/components/button.js";
 
 export default function Page() {
     const [playersAmount, setPlayersAmount] = useState(6);
+    const [roles, setRoles] = useState([])
+    
     const onChangePlayersAmount = (event) => {
         setPlayersAmount(Number(event.target.value));
     };
 
     function randomRole() {
-        alert("saddsa")
+        alert(Math.floor(Math.random() * (playersAmount)))
     }
+
+for(let i=0; i<playersAmount; i++){
+    Math.floor(Math.random() * (playersAmount))
+}
+    
+
     return (
         <>
             <input
