@@ -403,29 +403,29 @@ io.on("connection", (socket) => {
           id: socket.id,
           username: hostUsername,
           socketId: socket.id,
-          isHost: true, 
+          isHost: true,
           role: null,
           isAlive: true,
-          votesReceived: 0, 
+          votesReceived: 0,
           wasProtected: false
         }],
         state: gameStates.INICIO,
         round: 1,
         assignedRoles: false,
-        lobizonesVotes: {}, 
-        lynchVotes: {}, 
-        mayor: null, 
-        lastVictim: null, 
-        winner: null, 
+        lobizonesVotes: {},
+        lynchVotes: {},
+        mayor: null,
+        lastVictim: null,
+        winner: null,
         active: true,
-        createdInDB: true 
+        createdInDB: true
       };
 
-      rooms.push(newRoom); 
+      rooms.push(newRoom);
       socket.join(code);
 
-      socket.currentRoom = code; 
-      socket.isHost = true; 
+      socket.currentRoom = code;
+      socket.isHost = true;
       socket.username = hostUsername;
 
       console.log("Sala activada en memoria para:", hostUsername);
@@ -436,19 +436,19 @@ io.on("connection", (socket) => {
 
     } catch (error) {
       console.error(" Error creando sala en socket:", error);
-      socket.emit("roomError", "Error interno del servidor"); 
+      socket.emit("roomError", "Error interno del servidor");
     }
   });
 
   // Unirse a sala
-  socket.on("joinRoom", async ({ code, username }) => { 
+  socket.on("joinRoom", async ({ code, username }) => {
     try {
       console.log(" Socket: Intentando unirse a sala:", { code, username });
 
       // Verificar en BD si la sala existe y está activa
-      const roomDB = await realizarQuery( 
+      const roomDB = await realizarQuery(
         `SELECT id, code, village_won FROM Games WHERE code = ? AND status = true`,
-        [code] 
+        [code]
       );
 
       if (roomDB.length === 0) {
@@ -461,7 +461,7 @@ io.on("connection", (socket) => {
 
       if (!room) {
         // Si no está en memoria pero sí en BD, crear en memoria
-        const hostUser = await realizarQuery( 
+        const hostUser = await realizarQuery(
           `SELECT username FROM Users WHERE id = ?`,
           [roomDB[0].village_won]
         );
@@ -470,27 +470,27 @@ io.on("connection", (socket) => {
 
         room = {
           code: code,
-          host: hostUsername, 
-          hostSocketId: null, 
+          host: hostUsername,
+          hostSocketId: null,
           maxPlayers: 6,
-          players: [], 
-          state: gameStates.INICIO, 
-          round: 1, 
-          assignedRoles: false, 
-          lobizonesVotes: {}, 
-          lynchVotes: {}, 
-          mayor: null, 
+          players: [],
+          state: gameStates.INICIO,
+          round: 1,
+          assignedRoles: false,
+          lobizonesVotes: {},
+          lynchVotes: {},
+          mayor: null,
           lastVictim: null,
-          winner: null, 
-          active: true, 
-          createdInDB: true 
+          winner: null,
+          active: true,
+          createdInDB: true
         };
-        rooms.push(room); 
+        rooms.push(room);
       }
 
       // Verificar si el jugador ya está en la sala
       if (room.players.find(p => p.username === username)) {
-        socket.emit("roomError", "Ya estás en esta sala"); 
+        socket.emit("roomError", "Ya estás en esta sala");
         return;
       }
 
@@ -500,15 +500,15 @@ io.on("connection", (socket) => {
       }
 
       // Unir al jugador
-      const newPlayer = { 
+      const newPlayer = {
         id: socket.id,
         username: username,
         socketId: socket.id,
-        isHost: (username === room.host && !room.hostSocketId), 
+        isHost: (username === room.host && !room.hostSocketId),
         role: null,
-        isAlive: true, 
+        isAlive: true,
         votesReceived: 0,
-        wasProtected: false 
+        wasProtected: false
       };
 
       room.players.push(newPlayer);
@@ -521,8 +521,8 @@ io.on("connection", (socket) => {
       }
 
       socket.join(code);
-      socket.currentRoom = code; 
-      socket.isHost = newPlayer.isHost; 
+      socket.currentRoom = code;
+      socket.isHost = newPlayer.isHost;
       socket.username = username;
 
       console.log("Usuario unido exitosamente:", username);
@@ -530,7 +530,7 @@ io.on("connection", (socket) => {
 
     } catch (error) {
       console.error(" Error uniéndose a sala:", error);
-      socket.emit("roomError", "Error interno del servidor"); 
+      socket.emit("roomError", "Error interno del servidor");
     }
   });
 
@@ -541,7 +541,7 @@ io.on("connection", (socket) => {
 
       const room = rooms.find(r => r.code === code && r.active);
       if (!room) {
-        socket.emit("roomError", "La sala no existe"); 
+        socket.emit("roomError", "La sala no existe");
         return;
       }
 
@@ -558,16 +558,16 @@ io.on("connection", (socket) => {
       }
 
       // Asignar roles
-      const roomWithRoles = assignRoles(room); 
-      roomWithRoles.assignedRoles = true; 
-      roomWithRoles.state = gameStates.INICIO; 
+      const roomWithRoles = assignRoles(room);
+      roomWithRoles.assignedRoles = true;
+      roomWithRoles.state = gameStates.INICIO;
 
       console.log("Juego iniciado en sala:", code);
       console.log("Roles asignados:", roomWithRoles.players.map(p => ({ username: p.username, role: p.role })));
 
       // Emitir a TODOS los jugadores de la sala
-      io.to(code).emit("gameStarted", roomWithRoles); 
-      io.to(code).emit("updatedRoom", roomWithRoles); 
+      io.to(code).emit("gameStarted", roomWithRoles);
+      io.to(code).emit("updatedRoom", roomWithRoles);
 
     } catch (error) {
       console.error("Error iniciando juego:", error);
@@ -576,7 +576,7 @@ io.on("connection", (socket) => {
   });
 
   // Unirse a GameRoom 
-  socket.on("joinGameRoom", ({ code }) => { 
+  socket.on("joinGameRoom", ({ code }) => {
     try {
       console.log("Jugador uniéndose a GameRoom:", socket.username, code);
 
@@ -588,7 +588,7 @@ io.on("connection", (socket) => {
 
       // Unir al socket a la sala
       socket.join(code);
-      socket.currentRoom = code; 
+      socket.currentRoom = code;
 
       // Enviar el estado actual de la sala
       socket.emit("updatedRoom", room);
@@ -599,214 +599,25 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Votar intendente
-  socket.on("voteMayor", ({ code, candidateSocketId }) => { 
+  socket.on("getRoomState", ({ code }) => {
     try {
       const room = rooms.find(r => r.code === code && r.active);
-      if (!room) return;
-
-      const candidate = room.players.find(p => p.socketId === candidateSocketId); 
-      if (!candidate || !candidate.isAlive) return; 
-
-      // Asignar intendente
-      room.mayor = candidate.username; 
-      room.state = gameStates.NOCHE_LOBIZONES; 
-
-      console.log(`${candidate.username} elegido como intendente`);
-
-      // Notificar a todos
-      io.to(code).emit("changingState", { 
-        state: room.state, 
-        mayor: room.mayor 
-      });
-      io.to(code).emit("updatedRoom", room); 
-
-    } catch (error) {
-      console.error("Error en voteMayor:", error);
-      socket.emit("roomError", "Error al votar intendente"); 
-    }
-  });
-
-  // Votar víctima (lobizones) 
-  socket.on("voteVictim", ({ code, victimSocketId }) => { 
-    try {
-      const room = rooms.find(r => r.code === code && r.active); 
-      if (!room) return;
-
-      const player = room.players.find(p => p.socketId === socket.id); 
-      if (!player || player.role !== 'lobizon' || !player.isAlive) return; 
-
-      const victim = room.players.find(p => p.socketId === victimSocketId); 
-      if (!victim || !victim.isAlive || victim.role === 'lobizon') return; 
-
-      // Registrar voto
-      room.lobizonesVotes[socket.id] = victimSocketId;
-
-      console.log(`${player.username} votó por ${victim.username}`);
-
-      // Verificar si todos los lobizones han votado
-      const lobizonesAlive = room.players.filter(p =>
-        p.role === 'lobizon' && p.isAlive 
-      );
-      const lobizonesWhoVoted = Object.keys(room.lobizonesVotes); 
-
-      if (lobizonesWhoVoted.length === lobizonesAlive.length) {
-        // Contar votos
-        const voteCount = countVotes(room.lobizonesVotes); 
-        let maxVotes = 0;
-        let chosenVictimSocketId = null;
-
-        Object.entries(voteCount).forEach(([socketId, votes]) => {
-          if (votes > maxVotes) {
-            maxVotes = votes;
-            chosenVictimSocketId = socketId;
-          }
-        });
-
-        if (chosenVictimSocketId) {
-          const chosenVictim = room.players.find(p => p.socketId === chosenVictimSocketId); 
-          if (chosenVictim && !chosenVictim.wasProtected) { 
-            chosenVictim.isAlive = false; 
-            room.lastVictim = chosenVictim.username; 
-            console.log(` ${chosenVictim.username} fue atacado por los lobizones`);
-
-            // Verificar si hay ganador
-            const winnerResult = checkWinner(room); 
-            if (winnerResult) {
-              room.winner = winnerResult.winner; 
-              room.state = gameStates.FINALIZADO; 
-
-              io.to(code).emit("gameFinished", { 
-                winner: winnerResult.winner,
-                message: winnerResult.message
-              });
-            } else {
-              room.state = gameStates.DIA_DEBATE;
-            }
-
-            // Limpiar votos para la siguiente ronda
-            room.lobizonesVotes = {}; 
-          }
-        }
-
-        // Notificar a todos
-        io.to(code).emit("updatedRoom", room);
-        io.to(code).emit("changingState", { state: room.state }); 
+      if (!room) {
+        socket.emit("roomError", "La sala no existe");
+        return;
       }
 
-    } catch (error) {
-      console.error("Error en voteVictim:", error);
-      socket.emit("roomError", "Error al votar víctima"); 
-    }
-  });
-
-  // Votar linchamiento (día)
-  socket.on("voteLynch", ({ code, accusedSocketId }) => { 
-    try {
-      const room = rooms.find(r => r.code === code && r.active); 
-      if (!room) return;
-
-      const player = room.players.find(p => p.socketId === socket.id);
-      if (!player || !player.isAlive) return; 
-
-      const accused = room.players.find(p => p.socketId === accusedSocketId); 
-      if (!accused || !accused.isAlive) return; 
-
-      // Registrar voto
-      room.lynchVotes[socket.id] = accusedSocketId; 
-
-      console.log(`${player.username} votó por linchar a ${accused.username}`);
-
-      // Verificar si todos los vivos han votado
-      const alivePlayers = room.players.filter(p => p.isAlive); 
-      const playersWhoVoted = Object.keys(room.lynchVotes); 
-
-      if (playersWhoVoted.length === alivePlayers.length) {
-        // Contar votos
-        const voteCount = countVotes(room.lynchVotes); 
-        let maxVotes = 0;
-        let lynchedSocketId = null; 
-
-        Object.entries(voteCount).forEach(([socketId, votes]) => {
-          if (votes > maxVotes) {
-            maxVotes = votes;
-            lynchedSocketId = socketId;
-          }
-        });
-
-        if (lynchedSocketId) {
-          const lynched = room.players.find(p => p.socketId === lynchedSocketId);
-          if (lynched) {
-            lynched.isAlive = false; 
-            console.log(` ${lynched.username} fue linchado por la aldea`);
-
-            // Verificar si hay ganador
-            const winnerResult = checkWinner(room); 
-            if (winnerResult) {
-              room.winner = winnerResult.winner; 
-              room.state = gameStates.FINALIZADO; 
-
-              io.to(code).emit("gameFinished", { 
-                winner: winnerResult.winner,
-                message: winnerResult.message
-              });
-            } else {
-              room.state = gameStates.NOCHE_LOBIZONES;
-            }
-
-            // Limpiar votos para la siguiente ronda
-            room.lynchVotes = {}; 
-          }
-        }
-
-        // Notificar a todos
-        io.to(code).emit("updatedRoom", room); 
-        io.to(code).emit("changingState", { state: room.state }); 
-      }
+      // Enviar el estado actual de la sala
+      socket.emit("updatedRoom", room);
 
     } catch (error) {
-      console.error("Error en voteLynch:", error);
-      socket.emit("roomError", "Error al votar linchamiento");
-    }
-  });
-
-  // Avanzar a siguiente fase
-  socket.on("nextPhase", ({ code }) => { 
-    try {
-      const room = rooms.find(r => r.code === code && r.active); 
-      if (!room) return;
-
-      // Solo el anfitrión puede avanzar fases
-      if (socket.id !== room.hostSocketId) return;
-
-      switch (room.state) { 
-        case gameStates.DIA_DEBATE:
-          room.state = gameStates.DIA_VOTACION;
-          break;
-        case gameStates.DIA_VOTACION:
-          room.state = gameStates.NOCHE_LOBIZONES;
-          break;
-        case gameStates.NOCHE_LOBIZONES:
-          room.state = gameStates.NOCHE_ESPECIALES;
-          break;
-        case gameStates.NOCHE_ESPECIALES:
-          room.state = gameStates.DIA_DEBATE;
-          room.round++;
-          break;
-      }
-
-      console.log(`🔄 Avanzando a fase: ${room.state}`);
-      io.to(code).emit("changingState", { state: room.state }); 
-      io.to(code).emit("updatedRoom", room); 
-
-    } catch (error) {
-      console.error("Error en nextPhase:", error);
-      socket.emit("roomError", "Error al avanzar fase"); 
+      console.error("Error en getRoomState:", error);
+      socket.emit("roomError", "Error al obtener el estado de la sala");
     }
   });
 
   // Cerrar sala
-  socket.on("closeRoom", async ({ code }) => { 
+  socket.on("closeRoom", async ({ code }) => {
     try {
       console.log(" Cerrando sala:", code);
 
@@ -814,13 +625,13 @@ io.on("connection", (socket) => {
       await realizarQuery(`UPDATE Games SET status = false WHERE code = ?`, [code]);
 
       // Eliminar de memoria
-      const index = rooms.findIndex(r => r.code === code); 
+      const index = rooms.findIndex(r => r.code === code);
       if (index !== -1) {
-        rooms.splice(index, 1); 
+        rooms.splice(index, 1);
       }
 
       // Notificar a todos los jugadores
-      io.to(code).emit("closedRoom", "El anfitrión cerró la sala"); 
+      io.to(code).emit("closedRoom", "El anfitrión cerró la sala");
       io.in(code).socketsLeave(code);
 
       console.log("Sala cerrada completamente:", code);
@@ -831,16 +642,16 @@ io.on("connection", (socket) => {
   });
 
   // Abandonar sala 
-  socket.on("leaveRoom", async ({ code }) => { 
+  socket.on("leaveRoom", async ({ code }) => {
     try {
-      const room = rooms.find(r => r.code === code && r.active); 
+      const room = rooms.find(r => r.code === code && r.active);
       if (!room) return;
 
       // Remover jugador de la sala en memoria
-      room.players = room.players.filter(p => p.socketId !== socket.id); 
+      room.players = room.players.filter(p => p.socketId !== socket.id);
 
       // Si el anfitrión abandona, cerrar la sala
-      if (socket.isHost && socket.username === room.host) { 
+      if (socket.isHost && socket.username === room.host) {
         console.log("Anfitrión abandonó la sala, cerrando...");
 
         // Marcar como inactiva en BD
@@ -851,9 +662,9 @@ io.on("connection", (socket) => {
         io.in(code).socketsLeave(code);
 
         // Eliminar de memoria
-        const index = rooms.findIndex(r => r.code === code); 
+        const index = rooms.findIndex(r => r.code === code);
         if (index !== -1) {
-          rooms.splice(index, 1); 
+          rooms.splice(index, 1);
         }
       } else {
         // Solo actualizar lista de jugadores
@@ -872,18 +683,18 @@ io.on("connection", (socket) => {
   socket.on("disconnect", async () => {
     console.log("Usuario desconectado:", socket.id, socket.username);
 
-    if (socket.currentRoom && socket.isHost) { 
+    if (socket.currentRoom && socket.isHost) {
       try {
-        const room = rooms.find(r => r.code === socket.currentRoom && r.active); 
+        const room = rooms.find(r => r.code === socket.currentRoom && r.active);
         if (room) {
           console.log("Anfitrión desconectado, cerrando sala:", socket.currentRoom);
 
           await realizarQuery(`UPDATE Games SET status = false WHERE code = ?`, [socket.currentRoom]);
 
-          io.to(socket.currentRoom).emit("closedRoom", "El anfitrión se desconectó"); 
+          io.to(socket.currentRoom).emit("closedRoom", "El anfitrión se desconectó");
           io.in(socket.currentRoom).socketsLeave(socket.currentRoom);
 
-          const index = rooms.findIndex(r => r.code === socket.currentRoom); 
+          const index = rooms.findIndex(r => r.code === socket.currentRoom);
           if (index !== -1) {
             rooms.splice(index, 1);
           }
@@ -892,9 +703,9 @@ io.on("connection", (socket) => {
         console.error(" Error cerrando sala en desconexión:", error);
       }
     } else if (socket.currentRoom) {
-      const room = rooms.find(r => r.code === socket.currentRoom && r.active); 
+      const room = rooms.find(r => r.code === socket.currentRoom && r.active);
       if (room) {
-        room.players = room.players.filter(p => p.socketId !== socket.id); 
+        room.players = room.players.filter(p => p.socketId !== socket.id);
         io.to(socket.currentRoom).emit("usersInRoom", room.players);
       }
     }
@@ -904,10 +715,10 @@ io.on("connection", (socket) => {
 // Limpiar salas sin anfitrión
 setInterval(async () => {
   try {
-    const activeRoomsDB = await realizarQuery(`SELECT code FROM Games WHERE status = true`); 
+    const activeRoomsDB = await realizarQuery(`SELECT code FROM Games WHERE status = true`);
 
     for (const roomDB of activeRoomsDB) {
-      const roomInMemory = rooms.find(r => r.code === roomDB.code && r.active); 
+      const roomInMemory = rooms.find(r => r.code === roomDB.code && r.active);
       if (!roomInMemory) {
         await realizarQuery(`UPDATE Games SET status = false WHERE code = ?`, [roomDB.code]);
         console.log("Sala huérfana limpiada:", roomDB.code);

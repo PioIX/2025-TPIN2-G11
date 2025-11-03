@@ -10,7 +10,6 @@ export default class Lobizon extends Character {
     }
 
     comerGente(idCharacter) {
-
         console.log(`${this.name} intenta comerse a ${idCharacter}`)
         return idCharacter 
     }
