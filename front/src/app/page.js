@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import Button from "../components/button";
 import Modal from "../components/modal";
+import Image from "next/image";
 
 
 export default function Home() {
@@ -216,7 +217,15 @@ async function confirmarUnion() {
 
   return (
     <>
+
       <div className={styles.page}>
+        <Image
+          src="/logo.png"
+          alt="logo"
+          width={500}
+          height={470}
+          className={styles.logo}
+        />
         <Button
           title="Configuraciones"
           onClick={openSettings}
@@ -227,9 +236,9 @@ async function confirmarUnion() {
       <main className={styles.hero}></main>
 
       <div className={styles.actions}>
-        <Button title="CREAR SALA" onClick={crearSala} />
-        <Button title="UNIRME A SALA" onClick={abrirModal} />
-        <Button title="VER RANKING" onClick={verRanking} />
+        <Button title="CREAR SALA" onClick={crearSala} className={styles.btnNormal}/>
+        <Button title="UNIRME A SALA" onClick={abrirModal} className={styles.btnNormal}/>
+        <Button title="VER RANKING" onClick={verRanking} className={styles.btnNormal}/>
       </div>
 
       <Modal
