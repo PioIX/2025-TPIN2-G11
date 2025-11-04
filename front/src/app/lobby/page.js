@@ -21,6 +21,8 @@ export default function Lobby() {
   const [createdRoom, setCreatedRoom] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [lobby, setLobby] = useState(true);
+  const [game, setGame] = useState(false);
 
   const joinedARoom = useRef(false);
 
@@ -74,9 +76,8 @@ export default function Lobby() {
         setGameStarted(true);
         localStorage.setItem('roomCode', roomCode);
         localStorage.setItem('isHost', isHost.toString());
-        setTimeout(() => {
-          router.push("/gameRoom");
-        }, 2000);
+        setLobby(false);
+        setGame(true);
       });
 
       socket.onAny((eventName, ...args) => {
@@ -107,16 +108,7 @@ export default function Lobby() {
       joinedARoom.current = true;
     }, 1000);
 
-    return () => {
-      clearTimeout(timeoutId);
-      if (socket) {
-        socket.off("usersInRoom");
-        socket.off("roomError");
-        socket.off("closedRoom");
-        socket.off("gameStarted");
-        socket.offAny();
-      }
-    };
+
   }, [socket, roomCode, isHost, playersAmount, router, usernameFromParams]); // Agregar usernameFromParams a las dependencias
 
   const startGame = () => {
@@ -125,9 +117,8 @@ export default function Lobby() {
       socket.emit("startGame", { code: roomCode });
       localStorage.setItem('roomCode', roomCode);
       localStorage.setItem('isHost', 'true');
-      setTimeout(() => {
-        router.push("/gameRoom");
-      }, 2000);
+      setLobby(false);
+      setGame(true);
     }
   };
 
@@ -168,43 +159,133 @@ export default function Lobby() {
   }
 
   return (
-    <div className={styles.container}>
-      {/* Header */}
-      <header className={styles.header}>
-        <div className={styles.roomInfo}>
-          <h1>Sala: {roomCode}</h1>
-          <div className={styles.badge}>
-            {isHost ? "Anfitrión" : "Jugador"}
+
+    (lobby === true ? <>
+
+      <div className={styles.container}>
+        {/* Header */}
+        <header className={styles.header}>
+          <div className={styles.roomInfo}>
+            <h1>Sala: {roomCode}</h1>
+            <div className={styles.badge}>
+              {isHost ? "Anfitrión" : "Jugador"}
+            </div>
           </div>
-        </div>
 
-        <div className={styles.actions}>
-          <Button
-            title="Copiar Código"
-            onClick={copyCode}
-            className={styles.btnSecondary}
-          />
-          {isHost ? (
+          <div className={styles.actions}>
             <Button
-              title="Cerrar Sala"
-              onClick={closeRoom}
-              className={styles.btnDanger}
+              title="Copiar Código"
+              onClick={copyCode}
+              className={styles.btnSecondary}
             />
-          ) : (
-            <Button
-              title="Abandonar"
-              onClick={leaveRoom}
-              className={styles.btnWarning}
-            />
-          )}
-        </div>
-      </header>
+            {isHost ? (
+              <Button
+                title="Cerrar Sala"
+                onClick={closeRoom}
+                className={styles.btnDanger}
+              />
+            ) : (
+              <Button
+                title="Abandonar"
+                onClick={leaveRoom}
+                className={styles.btnWarning}
+              />
+            )}
+          </div>
+        </header>
 
-      {/* Contenido Principal */}
-      <main className={styles.main}>
-        {/* Panel de Jugadores */}
+        {/* Contenido Principal */}
+        <main className={styles.main}>
+          {/* Panel de Jugadores */}
+          <section className={styles.playersSection}>
+            <h2>Jugadores en la Sala ({players.length}/{playersAmount})</h2>
+            <div className={styles.playersGrid}>
+              {players.map((player, index) => (
+                <div
+                  key={player.id || player.socketId || index}
+                  className={`${styles.playerCard} ${player.username === username ? styles.currentPlayer : ""
+                    } ${player.isHost ? styles.hostPlayer : ""
+                    }`}
+                >
+                  <div className={styles.playerAvatar}>
+                    {player.username === username ? "👤" :
+                      player.isHost ? "👑" : "🎯"}
+                  </div>
+                  <div className={styles.playerInfo}>
+                    <span className={styles.playerName}>
+                      {player.username}
+                      {player.username === username && " (Tú)"}
+                    </span>
+                    {player.isHost && (
+                      <span className={styles.hostBadge}>Anfitrión</span>
+                    )}
+                  </div>
+                  {index === 0 && <div className={styles.crown}>👑</div>}
+                </div>
+              ))}
+
+              {/* Espacios vacíos */}
+              {Array.from({ length: parseInt(playersAmount) - players.length }).map((_, index) => (
+                <div key={`empty-${index}`} className={styles.emptySlot}>
+                  <div className={styles.emptyAvatar}>➕</div>
+                  <span className={styles.waitingText}>Esperando jugador...</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Panel de Control */}
+          <section className={styles.controlSection}>
+            {isHost && (
+              <div className={styles.hostControls}>
+                <div className={styles.controlButtons}>
+                  <Button
+                    title=" Iniciar Juego"
+                    onClick={startGame}
+                    disabled={players.length < 2}
+                    className={styles.btnPrimary}
+                  />
+                </div>
+                {players.length < 2 && (
+                  <p className={styles.warning}>
+                    Se necesitan al menos 2 jugadores para iniciar
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Información de Sala */}
+            <div className={styles.infoPanel}>
+              <h3>Información de la Sala</h3>
+              <div className={styles.infoContent}>
+                <p><strong>Código:</strong> {roomCode}</p>
+                <p><strong>Anfitrión:</strong> {players.find(p => p.isHost)?.username || "Cargando..."}</p>
+                <p><strong>Jugadores:</strong> {players.length}/{playersAmount}</p>
+                <p><strong>Estado:</strong> {createdRoom ? " Activa" : " Creando..."}</p>
+                <p><strong>Socket ID:</strong> {socket?.id || "Desconectado"}</p>
+                <p><strong>Tu username:</strong> {username}</p>
+              </div>
+
+              {!isHost && (
+                <div className={styles.guestInfo}>
+                  <p> Esperando a que el anfitrión inicie el juego...</p>
+                </div>
+              )}
+            </div>
+          </section>
+        </main>
+
+        {/* Footer */}
+        <footer className={styles.footer}>
+          <p>Comparte el código de sala con tus amigos para que se unan</p>
+        </footer>
+
+
+      </div>
+
+    </> :  <>
+
         <section className={styles.playersSection}>
-          <h2>Jugadores en la Sala ({players.length}/{playersAmount})</h2>
           <div className={styles.playersGrid}>
             {players.map((player, index) => (
               <div
@@ -229,77 +310,8 @@ export default function Lobby() {
                 {index === 0 && <div className={styles.crown}>👑</div>}
               </div>
             ))}
-
-            {/* Espacios vacíos */}
-            {Array.from({ length: parseInt(playersAmount) - players.length }).map((_, index) => (
-              <div key={`empty-${index}`} className={styles.emptySlot}>
-                <div className={styles.emptyAvatar}>➕</div>
-                <span className={styles.waitingText}>Esperando jugador...</span>
-              </div>
-            ))}
           </div>
         </section>
 
-        {/* Panel de Control */}
-        <section className={styles.controlSection}>
-          {isHost && (
-            <div className={styles.hostControls}>
-              <div className={styles.controlButtons}>
-                <Button
-                  title=" Iniciar Juego"
-                  onClick={startGame}
-                  disabled={players.length < 2}
-                  className={styles.btnPrimary}
-                />
-              </div>
-              {players.length < 2 && (
-                <p className={styles.warning}>
-                  Se necesitan al menos 2 jugadores para iniciar
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Información de Sala */}
-          <div className={styles.infoPanel}>
-            <h3>Información de la Sala</h3>
-            <div className={styles.infoContent}>
-              <p><strong>Código:</strong> {roomCode}</p>
-              <p><strong>Anfitrión:</strong> {players.find(p => p.isHost)?.username || "Cargando..."}</p>
-              <p><strong>Jugadores:</strong> {players.length}/{playersAmount}</p>
-              <p><strong>Estado:</strong> {createdRoom ? " Activa" : " Creando..."}</p>
-              <p><strong>Socket ID:</strong> {socket?.id || "Desconectado"}</p>
-              <p><strong>Tu username:</strong> {username}</p>
-            </div>
-
-            {!isHost && (
-              <div className={styles.guestInfo}>
-                <p> Esperando a que el anfitrión inicie el juego...</p>
-              </div>
-            )}
-          </div>
-        </section>
-      </main>
-
-      {/* Footer */}
-      <footer className={styles.footer}>
-        <p>Comparte el código de sala con tus amigos para que se unan</p>
-      </footer>
-
-      {/* Modal de Juego Iniciado */}
-      {gameStarted && (
-        <div className={styles.gameStartedModal}>
-          <div className={styles.modalContent}>
-            <h2> ¡El juego ha comenzado!</h2>
-            <p>Redirigiendo a la pantalla de juego...</p>
-            <Button
-              title="Comenzar a Jugar"
-              onClick={goToGame}
-              className={styles.btnPrimary}
-            />
-          </div>
-        </div>
-      )}
-    </div>
-  );
+      </>));
 }

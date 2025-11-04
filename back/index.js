@@ -563,11 +563,7 @@ io.on("connection", (socket) => {
       roomWithRoles.state = gameStates.INICIO;
 
       console.log("Juego iniciado en sala:", code);
-      console.log("Roles asignados:", roomWithRoles.players.map(p => ({ username: p.username, role: p.role })));
-
-      // Emitir a TODOS los jugadores de la sala
-      io.to(code).emit("gameStarted", roomWithRoles);
-      io.to(code).emit("updatedRoom", roomWithRoles);
+    
 
     } catch (error) {
       console.error("Error iniciando juego:", error);
