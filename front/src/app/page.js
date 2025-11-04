@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import Button from "../components/button";
 import Modal from "../components/modal";
+import BackgroundVideo from "../components/video";
 import Image from "next/image";
 
 
@@ -217,9 +218,9 @@ async function confirmarUnion() {
 
   return (
     <>
+      <BackgroundVideo title="VIDEO DE FONDO" className={styles.backgroundVideo}/>
 
-      <div className={styles.page}>
-        <Image
+      <Image
           src="/logo.png"
           alt="logo"
           width={500}
@@ -231,7 +232,6 @@ async function confirmarUnion() {
           onClick={openSettings}
           className={styles.btnSettings}
         />
-      </div>
 
       <main className={styles.hero}></main>
 
