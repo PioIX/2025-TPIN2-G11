@@ -1,9 +1,10 @@
+
 import styles from "./video.module.css";
 
 export default function BackgroundVideo() {
     return (
         <video
-          className="backgroundVideo"
+          className={styles.backgroundVideo}
           autoPlay
           loop
           muted
@@ -12,4 +13,4 @@ export default function BackgroundVideo() {
           <source src="/background-video.mp4" type="video/mp4" />
         </video>
     );
-  }
+}
