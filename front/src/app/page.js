@@ -132,7 +132,7 @@ export default function Home() {
 
       if (result.success) {
         console.log("Sala creada en BD, redirigiendo...");
-        router.push(`/lobby?code=${roomCode}&host=true&PlayersAmount=${playersAmount}`);
+        router.push(`/game?code=${roomCode}&host=true&PlayersAmount=${playersAmount}`);
         setOpen(false);
       } else {
         alert(`Error: ${result.message || result.error || "Error desconocido"}`);
@@ -174,7 +174,7 @@ export default function Home() {
 
       if (result.success && result.exists) {
         console.log(" Sala verificada en BD, redirigiendo...");
-        router.push(`/lobby?code=${joinCode}&host=false&username=${encodeURIComponent(user)}`);
+        router.push(`/game?code=${joinCode}&host=false&username=${encodeURIComponent(user)}`);
         setOpen(false);
       } else {
         alert(result.message || "No existe una sala con ese código");

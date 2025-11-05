@@ -1,11 +1,26 @@
 "use client";
-import { useSocket } from "../../hooks/useSocket.js";
+import { useSocket } from "../hooks/useSocket.js";
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import styles from "../lobby/lobby.module.css";
-import Button from "../../components/button.js";
+import styles from "../components/lobby.module.css";
+import Button from "../components/button.js";
 
-export default function Lobby() {
+export default function Lobby({
+        players,
+        username,
+        createdRoom, 
+        gameStarted,
+        errorMessage,
+        lobby,
+        game,
+        setPlayers,
+        setUsername,
+        setGameStarted,
+        setErrorMessage,
+        setCreatedRoom,
+        setLobby,
+        setGame
+}) {
   const socketObj = useSocket();
   const socket = socketObj?.socket;
   const router = useRouter();
@@ -15,14 +30,6 @@ export default function Lobby() {
   const isHost = searchParams.get("host") === "true";
   const playersAmount = searchParams.get("playersAmount") || 6;
   const usernameFromParams = searchParams.get("username"); // Obtener username de la URL
-
-  const [players, setPlayers] = useState([]);
-  const [username, setUsername] = useState("");
-  const [createdRoom, setCreatedRoom] = useState(false);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [lobby, setLobby] = useState(true);
-  const [game, setGame] = useState(false);
 
   const joinedARoom = useRef(false);
 
@@ -160,7 +167,7 @@ export default function Lobby() {
 
   return (
 
-    (lobby === true ? <>
+    
 
       <div className={styles.container}>
         {/* Header */}
@@ -279,39 +286,7 @@ export default function Lobby() {
         <footer className={styles.footer}>
           <p>Comparte el código de sala con tus amigos para que se unan</p>
         </footer>
+        </div>);
 
 
-      </div>
-
-    </> :  <>
-
-        <section className={styles.playersSection}>
-          <div className={styles.playersGrid}>
-            {players.map((player, index) => (
-              <div
-                key={player.id || player.socketId || index}
-                className={`${styles.playerCard} ${player.username === username ? styles.currentPlayer : ""
-                  } ${player.isHost ? styles.hostPlayer : ""
-                  }`}
-              >
-                <div className={styles.playerAvatar}>
-                  {player.username === username ? "👤" :
-                    player.isHost ? "👑" : "🎯"}
-                </div>
-                <div className={styles.playerInfo}>
-                  <span className={styles.playerName}>
-                    {player.username}
-                    {player.username === username && " (Tú)"}
-                  </span>
-                  {player.isHost && (
-                    <span className={styles.hostBadge}>Anfitrión</span>
-                  )}
-                </div>
-                {index === 0 && <div className={styles.crown}>👑</div>}
-              </div>
-            ))}
-          </div>
-        </section>
-
-      </>));
 }

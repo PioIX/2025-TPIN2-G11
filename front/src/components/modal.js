@@ -31,7 +31,8 @@ export default function Modal({
   onChangePassword,
   onSubmitLogin,
   onToggleRegister,
-  rol
+  rol,
+  players
 }) {
   const mouseDownTarget = useRef(null);
 
@@ -166,19 +167,50 @@ export default function Modal({
         )}
 
         {type === "startGame" && (
-            <div className={styles.startGame}>
-                <>
-                    <h2>Bienvenido a Castro Barros</h2>
-                    <p>usted vino en busca de la paz que la ciudad no puede darte. Pero hnay un problema...¡Una invasion de lobizones! Encuentrenlos y linchenlos antes que se deboren todo el pueblo</p>
-                    <br />
-                    <br />
-                    <p>tu rol es {rol}</p>
-                </>
-            </div>
+          <div className={styles.startGame}>
+            <>
+              <h2>Bienvenido a Castro Barros</h2>
+              <p>usted vino en busca de la paz que la ciudad no puede darte. Pero hnay un problema...¡Una invasion de lobizones! Encuentrenlos y linchenlos antes que se deboren todo el pueblo</p>
+              <br />
+              <br />
+              <p>tu rol es {rol}</p>
+            </>
+          </div>
+        )}
+
+        {type === "mayor" && (
+          <div className={styles.mayor}>
+            <>
+              <h2>Lo primero que tenemos que hacer es votar un <strong>intendente</strong></h2>
+              <p>quien sea intendente desempatarà en los linchamientos y tendra una grn habilidad especial...<strong>el "Plan Platita"</strong></p>
+              <br />
+              <br />
+              <p>a quien votas para intendente?</p>
+                <section className={styles.playersSection}>
+                  <ul>
+
+                    {players.map((player, index) => (
+
+                      <div className={styles.playerInfo}>
+                        <option>
+                          {player.username}
+                          {player.username === username && " (Tú)"}
+                        </option>
+                        {player.isHost && (
+                          <span className={styles.hostBadge}>Anfitrión</span>
+                        )}
+                      </div>
+
+                    ))}
+
+                  </ul>
+                </section>
+            </>
+          </div>
         )}
       </div>
 
-      
+
     </div>
   );
 }
