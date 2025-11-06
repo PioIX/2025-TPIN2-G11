@@ -9,13 +9,45 @@ import Modal from "./modal.js";
 export default function Day({
     players,
     username,
-    isOpenMayor,
-    onCloseMayor}) {
+    role
+}) {
+    const [isOpenMayor, setIsOpenMayor]= useState(false);
+    const [isOpen, setIsOpen]= useState(true);
 
-    
+    function onClose() {
+        setIsOpen(false);
+        setIsOpenMayor(true);
+        console.log(isOpenMayor)
+    }
+
+        useEffect(() => {
+        console.log('Después:', { isOpen, isOpenMayor });
+    }, [isOpen, isOpenMayor]);
+
+    function onCloseMayor(){
+        setIsOpen(false);
+        setIsOpenMayor(false);
+    }
 
     return (
         <>
+            {isOpen == true ?
+                <Modal
+                    isOpen={isOpen}
+                    onClose={onClose}
+                    type={"startGame"}
+                    role={role}
+                ></Modal>
+                : <></>}
+
+            {isOpenMayor == true ? <Modal
+                isOpenMayor={isOpenMayor}
+                onCloseMayor={onCloseMayor}
+                type={"mayor"}
+                players={players}
+            ></Modal> : <></>}
+           
+
             <section className={styles.playersSection}>
                 <div className={styles.playersGrid}>
                     {players.map((player, index) => (
@@ -43,15 +75,7 @@ export default function Day({
                     ))}
                 </div>
             </section>
-                
-            {isOpenMayor == true ?<Modal
-                isOpenMayor={isOpenMayor}
-                onCloseMayor={onCloseMayor}
-                type={"mayor"}
-                players={players}
-            ></Modal>
-            : <></> }
-            
+
         </>
     );
 }

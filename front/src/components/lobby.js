@@ -9,20 +9,13 @@ export default function Lobby({
         players,
         username,
         createdRoom, 
-        gameStarted,
         errorMessage,
-        lobby,
-        game,
-        setPlayers,
-        setUsername,
-        setGameStarted,
-        setErrorMessage,
-        setCreatedRoom,
         setLobby,
         setGame,
         roomCode,
         closeRoom,
-        leaveRoom
+        leaveRoom,
+        socketGame
 }) {
 
   const isHost = useSearchParams().get("host") === "true";
@@ -37,7 +30,7 @@ export default function Lobby({
   function goToGame() {
     setGame(true);
     setLobby(false);
-    // HACER EVENTO SOCKET QUE LES AVUSE AL RESTO QUE LAS VAIABLES DEBEN CAMBISR
+    socketGame();
   }
 
   if (errorMessage) {

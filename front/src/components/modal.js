@@ -43,11 +43,16 @@ export default function Modal({
   const handleOverlayClick = (e) => {
     if (mouseDownTarget.current === e.currentTarget && e.target === e.currentTarget) {
       onClose();
+  
     }
     mouseDownTarget.current = null;
   };
 
-  if (!isOpen) return null;
+  if (type === "mayor") {
+    if (!isOpenMayor) return null;
+  } else {
+    if (!isOpen) return null;
+  }
 
   return (
     <div
@@ -179,8 +184,6 @@ export default function Modal({
           </div>
         )}
 
-
-
         {type === "mayor" && (
           <div className={styles.mayor}>
             <>
@@ -189,31 +192,28 @@ export default function Modal({
               <br />
               <br />
               <p>a quien votas para intendente?</p>
-                <section className={styles.playersSection}>
-                  <ul>
+              <section className={styles.playersSection}>
+                <ul>
 
-                    {players.map((player, index) => (
+                  {players.map((player, index) => (
 
-                      <div className={styles.playerInfo}>
-                        <option>
-                          {player.username}
-                          {player.username === username && " (Tú)"}
-                        </option>
-                        {player.isHost && (
-                          <span className={styles.hostBadge}>Anfitrión</span>
-                        )}
-                      </div>
+                    <div className={styles.playerInfo}>
+                      <option>
+                        {player.username}
+                        {player.username === username && " (Tú)"}
+                      </option>
+                      {player.isHost && (
+                        <span className={styles.hostBadge}>Anfitrión</span>
+                      )}
+                    </div>
 
-                    ))}
+                  ))}
 
-                  </ul>
-                </section>
+                </ul>
+              </section>
             </>
           </div>
         )}
-
-
-
 
       </div>
     </div>

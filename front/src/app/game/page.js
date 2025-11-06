@@ -15,9 +15,7 @@ export default function Game() {
   const [errorMessage, setErrorMessage] = useState("");
   const [lobby, setLobby] = useState(true);
   const [game, setGame] = useState(false);
-  const [isOpen, setOpen] = useState(true);
-  const [rol, setRol] = useState("");
-  const [isOpenMayor, setOpenMayor] = useState(false);
+  const [role, setRole] = useState("");
   const socketObj = useSocket();
   const socket = socketObj?.socket;
   const router = useRouter();
@@ -134,16 +132,6 @@ export default function Game() {
     }
   };
 
-  function onClose() {
-    setOpen(false);
-    setOpenMayor(true)
-  }
-
-  function onCloseMayor() {
-    setOpen(false);
-    setOpenMayor(false)
-  }
-
   useEffect(() => {
     console.log("Estado actual:", {
       lobby,
@@ -157,14 +145,6 @@ export default function Game() {
 
   return (
     <>
-      {isOpen == true && lobby == false ?
-        <Modal
-          isOpen={isOpen}
-          onClose={onClose}
-          type={"startGame"}
-          rol={rol}
-        ></Modal>
-        : <></>}
 
       {lobby === true ? <>
 
@@ -172,29 +152,21 @@ export default function Game() {
           players={players}
           username={username}
           createdRoom={createdRoom}
-          gameStarted={gameStarted}
           errorMessage={errorMessage}
-          lobby={lobby}
-          game={game}
-          setCreatedRoom={setCreatedRoom}
-          setPlayers={setPlayers}
-          setUsername={setUsername}
-          setGameStarted={setGameStarted}
-          setErrorMessage={setErrorMessage}
           setLobby={setLobby}
           setGame={setGame}
           roomCode={roomCode}
           closeRoom={closeRoom}
           leaveRoom={leaveRoom}
+          socketGame={startGame}
         ></Lobby>
 
       </> : <>
         <Day
+          role={role}
           players={players}
           username={username}
           setUsername={setUsername}
-          isOpenMayor={isOpenMayor}
-          onCloseMayor={onCloseMayor}
         ></Day>
 
       </>}
