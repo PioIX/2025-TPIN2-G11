@@ -19,130 +19,15 @@ export default function Lobby({
         setErrorMessage,
         setCreatedRoom,
         setLobby,
-        setGame
+        setGame,
+        roomCode,
+        closeRoom,
+        leaveRoom
 }) {
-  const socketObj = useSocket();
-  const socket = socketObj?.socket;
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const roomCode = searchParams.get("code");
-  const isHost = searchParams.get("host") === "true";
-  const playersAmount = searchParams.get("playersAmount") || 6;
-  const usernameFromParams = searchParams.get("username"); // Obtener username de la URL
-
-  const joinedARoom = useRef(false);
-
-  useEffect(() => {
-    // USAR EL USERNAME DE LOS PARÁMETROS DE LA URL PRIMERO
-    // Si no hay en la URL, usar localStorage, sino "Invitado"
-    const userToUse = usernameFromParams || localStorage.getItem("username") || "Invitado";
-    setUsername(userToUse);
-
-    console.log(" Estado del socket:", {
-      socketDisponible: !!socket,
-      socketId: socket?.id,
-      roomCode,
-      isHost,
-      username: userToUse,
-      usernameFromParams: usernameFromParams
-    });
-
-    if (!socket) {
-      console.log(" Esperando conexión socket...");
-      return;
-    }
-
-    if (joinedARoom.current) {
-      console.log(" Ya se unió a la sala, evitando duplicado");
-      return;
-    }
-
-    const setupSocketListeners = () => {
-      socket.on("usersInRoom", (playersList) => {
-        console.log("Jugadores en sala recibidos:", playersList);
-        setPlayers(playersList);
-        setCreatedRoom(true);
-      });
-
-      socket.on("roomError", (message) => {
-        console.error(" Error de sala:", message);
-        setErrorMessage(message);
-        alert("Error: " + message);
-        setTimeout(() => router.push("/"), 3000);
-      });
-
-      socket.on("closedRoom", (message) => {
-        console.log(" Sala cerrada:", message);
-        alert(message);
-        router.push("/");
-      });
-
-      socket.on("gameStarted", (data) => {
-        console.log("Juego iniciado recibido:", data);
-        setGameStarted(true);
-        localStorage.setItem('roomCode', roomCode);
-        localStorage.setItem('isHost', isHost.toString());
-        setLobby(false);
-        setGame(true);
-      });
-
-      socket.onAny((eventName, ...args) => {
-        console.log(" Evento socket recibido:", eventName, args);
-      });
-    };
-
-    setupSocketListeners();
-
-    const timeoutId = setTimeout(() => {
-      console.log(" Uniéndose a sala:", roomCode);
-      console.log(" Username a usar:", userToUse);
-
-      if (isHost) {
-        console.log(" Anfitrión creando sala...");
-        socket.emit("crearSala", {
-          code: roomCode,
-          anfitrion: userToUse, // Usar userToUse en lugar de savedUsername
-          maxPlayers: parseInt(playersAmount)
-        });
-      } else {
-        console.log(" Jugador uniéndose a sala...");
-        socket.emit("joinRoom", {
-          code: roomCode,
-          username: userToUse // Usar userToUse en lugar de savedUsername
-        });
-      }
-      joinedARoom.current = true;
-    }, 1000);
-
-
-  }, [socket, roomCode, isHost, playersAmount, router, usernameFromParams]); // Agregar usernameFromParams a las dependencias
-
-  const startGame = () => {
-    if (socket && isHost) {
-      console.log(" Emitiendo iniciar juego...");
-      socket.emit("startGame", { code: roomCode });
-      localStorage.setItem('roomCode', roomCode);
-      localStorage.setItem('isHost', 'true');
-      setLobby(false);
-      setGame(true);
-    }
-  };
-
-  const closeRoom = () => {
-    if (socket && isHost) {
-      console.log("Cerrando sala...");
-      socket.emit("closeRoom", { code: roomCode });
-    }
-  };
-
-  const leaveRoom = () => {
-    if (socket) {
-      console.log("Abandonando sala...");
-      socket.emit("leaveRoom", { code: roomCode });
-      router.push("/");
-    }
-  };
+  const isHost = useSearchParams().get("host") === "true";
+  const playersAmount = useSearchParams().get("playersAmount") || 6;
+  
 
   const copyCode = () => {
     navigator.clipboard.writeText(roomCode);
@@ -150,7 +35,9 @@ export default function Lobby({
   };
 
   function goToGame() {
-    router.push("/gameRoom");
+    setGame(true);
+    setLobby(false);
+    // HACER EVENTO SOCKET QUE LES AVUSE AL RESTO QUE LAS VAIABLES DEBEN CAMBISR
   }
 
   if (errorMessage) {
@@ -166,8 +53,6 @@ export default function Lobby({
   }
 
   return (
-
-    
 
       <div className={styles.container}>
         {/* Header */}
@@ -248,7 +133,7 @@ export default function Lobby({
                 <div className={styles.controlButtons}>
                   <Button
                     title=" Iniciar Juego"
-                    onClick={startGame}
+                    onClick={goToGame}
                     disabled={players.length < 2}
                     className={styles.btnPrimary}
                   />
@@ -269,7 +154,6 @@ export default function Lobby({
                 <p><strong>Anfitrión:</strong> {players.find(p => p.isHost)?.username || "Cargando..."}</p>
                 <p><strong>Jugadores:</strong> {players.length}/{playersAmount}</p>
                 <p><strong>Estado:</strong> {createdRoom ? " Activa" : " Creando..."}</p>
-                <p><strong>Socket ID:</strong> {socket?.id || "Desconectado"}</p>
                 <p><strong>Tu username:</strong> {username}</p>
               </div>
 

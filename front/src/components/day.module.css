@@ -1,0 +1,103 @@
+
+.playersSection {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.playersSection h2 {
+  margin-bottom: 20px;
+  color: #333;
+  text-align: center;
+  font-size: 1.5rem;
+}
+
+.playersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.playerCard {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.playerCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.currentPlayer {
+  border-color: #4CAF50;
+  background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+}
+
+.hostPlayer {
+  border-color: #FFD700;
+  background: linear-gradient(135deg, #fff9e6 0%, #ffe082 100%);
+}
+
+.playerAvatar {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.playerInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.playerName {
+  font-weight: bold;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.hostBadge {
+  background: #FFD700;
+  color: #333;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.crown {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.2rem;
+}
+
+.emptySlot {
+  background: rgba(255, 255, 255, 0.7);
+  padding: 30px 20px;
+  border-radius: 12px;
+  text-align: center;
+  border: 2px dashed #ccc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.emptyAvatar {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  opacity: 0.5;
+}
+
+.waitingText {
+  color: #666;
+  font-style: italic;
+}

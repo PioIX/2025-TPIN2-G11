@@ -534,10 +534,10 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Iniciar juego
+  // Iniciar juego - VERSIÓN CORREGIDA
   socket.on("startGame", ({ code }) => {
     try {
-      console.log("Intentando iniciar juego en sala:", code);
+      console.log(" INTENTANDO INICIAR JUEGO EN SALA:", code);
 
       const room = rooms.find(r => r.code === code && r.active);
       if (!room) {
@@ -557,16 +557,31 @@ io.on("connection", (socket) => {
         return;
       }
 
+      console.log(" ASIGNANDO ROLES...");
       // Asignar roles
       const roomWithRoles = assignRoles(room);
-      roomWithRoles.assignedRoles = true;
-      roomWithRoles.state = gameStates.INICIO;
 
-      console.log("Juego iniciado en sala:", code);
-    
+      // Actualizar la sala en memoria
+      Object.assign(room, roomWithRoles);
+      room.assignedRoles = true;
+      room.state = gameStates.INICIO;
+
+      console.log(" JUEGO INICIADO - Emitiendo gameStarted a todos los jugadores");
+      console.log(" Jugadores en la sala:", room.players.map(p => p.username));
+
+      // ¡ESTA ES LA LÍNEA CRÍTICA QUE FALTABA!
+      // Emitir a TODOS los jugadores de la sala
+      io.to(code).emit("gameStarted", {
+        message: "El juego ha comenzado",
+        players: room.players,
+        roomState: room.state,
+        roomCode: code
+      });
+
+      console.log(" EVENTO gameStarted ENVIADO A TODOS LOS JUGADORES");
 
     } catch (error) {
-      console.error("Error iniciando juego:", error);
+      console.error(" Error iniciando juego:", error);
       socket.emit("roomError", "Error al iniciar el juego");
     }
   });

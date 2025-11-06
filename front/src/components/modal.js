@@ -136,6 +136,7 @@ export default function Modal({
           </div>
         )}
 
+
         {/* Modal para login/registro */}
         {type === "login" && (
           <div className={styles.loginContainer}>
@@ -178,6 +179,8 @@ export default function Modal({
           </div>
         )}
 
+
+
         {type === "mayor" && (
           <div className={styles.mayor}>
             <>
@@ -208,9 +211,11 @@ export default function Modal({
             </>
           </div>
         )}
+
+
+
+
       </div>
-
-
     </div>
   );
 }

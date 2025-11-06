@@ -2,22 +2,17 @@
 import { useSocket } from "../hooks/useSocket.js";
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import styles from "../components/lobby.module.css";
+import styles from "../components/day.module.css";
 import Button from "../components/button.js";
 import Modal from "./modal.js";
 
 export default function Day({
     players,
     username,
-    isOpen,
-    setOpen
-}) {
-    
-  
+    isOpenMayor,
+    onCloseMayor}) {
 
-    function onClose(){
-        setOpen(false)
-    }
+    
 
     return (
         <>
@@ -48,13 +43,15 @@ export default function Day({
                     ))}
                 </div>
             </section>
-
-            <Modal
-                isOpen={isOpen}
-                onClose={onClose}
+                
+            {isOpenMayor == true ?<Modal
+                isOpenMayor={isOpenMayor}
+                onCloseMayor={onCloseMayor}
                 type={"mayor"}
                 players={players}
             ></Modal>
+            : <></> }
+            
         </>
     );
 }
