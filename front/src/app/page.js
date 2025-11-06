@@ -221,17 +221,25 @@ async function confirmarUnion() {
       <BackgroundVideo title="VIDEO DE FONDO" className={styles.backgroundVideo}/>
 
       <Image
+          src="/top-frame.png"
+          alt="top frame"
+          width={650}
+          height={470}
+          className={styles.topFrame}
+      />
+      
+      <Image
           src="/logo.png"
           alt="logo"
-          width={500}
-          height={470}
+          width={480}
+          height={450}
           className={styles.logo}
-        />
-        <Button
+      />
+      <Button
           title="Configuraciones"
           onClick={openSettings}
           className={styles.btnSettings}
-        />
+      />
 
       <main className={styles.hero}></main>
 
@@ -240,6 +248,14 @@ async function confirmarUnion() {
         <Button title="UNIRME A SALA" onClick={abrirModal} className={styles.btnNormal}/>
         <Button title="VER RANKING" onClick={verRanking} className={styles.btnNormal}/>
       </div>
+
+      <Image
+          src="/bottom-frame.png"
+          alt="Bottom frame"
+          width={500}
+          height={500}
+          className={styles.bottomFrame}
+      />
 
       <Modal
         isOpen={open}

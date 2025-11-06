@@ -21,11 +21,11 @@
 }
 
 .actions {
-  position: absolute;
-  bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%);
+  padding-top: 570px;
+  padding-bottom: 70px;
+  width: 100%;
   display: flex;
+  flex-direction: column;
   gap: 30px;
   z-index: 40;
   align-items: center;
@@ -58,10 +58,10 @@
   align-items: center;
   justify-content: center;
   height: 56px;
-  padding: 0 44px;
+  width: 275px;
   border-radius: 18px;
   background-image: url('/wood.webp');
-  filter: saturate(200%);
+  filter: saturate(150%);
   background-repeat: repeat;
   background-size: auto;
   color: #ecd2b6;     
@@ -83,10 +83,22 @@
 }
 
 .logo {
-  margin-bottom: 80px;
+  margin-bottom: 50px;
   position: absolute;
   top: 80px;
-  left: calc(50vw - 290px);
+  left: calc(50vw - 250px);
+}
+
+.bottomFrame {
+  position: fixed;
+  bottom: -10px;
+  left: -60px;
+}
+
+.topFrame {
+  position: fixed;
+  top: -20px;
+  right: 0px;
 }
 
 @media (max-width: 640px) {
