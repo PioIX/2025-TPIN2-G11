@@ -141,7 +141,9 @@ export default function Game() {
     });
   }, [lobby, game, gameStarted, players]);
 
-
+  function voteMayor(){
+    
+  }
 
   return (
     <>
@@ -167,6 +169,7 @@ export default function Game() {
           players={players}
           username={username}
           setUsername={setUsername}
+          voteMayor={voteMayor}
         ></Day>
 
       </>}

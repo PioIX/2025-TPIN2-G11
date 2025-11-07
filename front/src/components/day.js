@@ -9,7 +9,8 @@ import Modal from "./modal.js";
 export default function Day({
     players,
     username,
-    role
+    role,
+    voteMayor
 }) {
     const [isOpenMayor, setIsOpenMayor]= useState(false);
     const [isOpen, setIsOpen]= useState(true);
@@ -45,6 +46,7 @@ export default function Day({
                 onCloseMayor={onCloseMayor}
                 type={"mayor"}
                 players={players}
+                voteMayor={voteMayor}
             ></Modal> : <></>}
            
 

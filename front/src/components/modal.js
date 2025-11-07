@@ -32,7 +32,10 @@ export default function Modal({
   onSubmitLogin,
   onToggleRegister,
   rol,
-  players
+  players,
+  isOpenMayor,
+  onCloseMayor,
+  voteMayor
 }) {
   const mouseDownTarget = useRef(null);
 
@@ -61,6 +64,7 @@ export default function Modal({
       onClick={handleOverlayClick}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <Button className={styles.close} onClick={onClose} title="✕" />
+        
 
         {/* Modal para unirse a sala */}
         {type === "join" && (
@@ -186,6 +190,7 @@ export default function Modal({
 
         {type === "mayor" && (
           <div className={styles.mayor}>
+            <Button className={styles.close} onClick={onCloseMayor} title="✕" />
             <>
               <h2>Lo primero que tenemos que hacer es votar un <strong>intendente</strong></h2>
               <p>quien sea intendente desempatarà en los linchamientos y tendra una grn habilidad especial...<strong>el "Plan Platita"</strong></p>
@@ -197,15 +202,14 @@ export default function Modal({
 
                   {players.map((player, index) => (
 
-                    <div className={styles.playerInfo}>
-                      <option>
-                        {player.username}
-                        {player.username === username && " (Tú)"}
-                      </option>
-                      {player.isHost && (
-                        <span className={styles.hostBadge}>Anfitrión</span>
-                      )}
-                    </div>
+                    <form>
+  
+                        <Button
+                        onClick={voteMayor} 
+                        title={player.username}
+                        ></Button>
+
+                    </form>
 
                   ))}
 
