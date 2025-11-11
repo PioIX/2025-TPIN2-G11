@@ -97,3 +97,73 @@
   cursor: not-allowed !important;
   opacity: 0.6;
 }
+
+.tieBreak {
+  text-align: center;
+  max-width: 500px;
+}
+
+.tieBreakHeader {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.tieBreakInfo {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.tieCandidatesList {
+  list-style: none;
+  padding: 0;
+  margin: 15px 0;
+}
+
+.tieCandidate {
+  background: white;
+  margin: 8px 0;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 4px solid #3498db;
+  font-size: 1.1em;
+}
+
+.tieBreakDecision {
+  background: #e8f4fd;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.tieBreakButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.tieBreakBtn {
+  background: linear-gradient(135deg, #3498db, #2980b9) !important;
+  color: white !important;
+  padding: 12px 20px !important;
+  font-size: 1.1em !important;
+  border: none !important;
+}
+
+.tieBreakBtn:hover {
+  background: linear-gradient(135deg, #2980b9, #1f618d) !important;
+  transform: translateY(-2px);
+}
+
+.tieBreakNote {
+  background: #fff3cd;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+}

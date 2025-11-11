@@ -16,17 +16,23 @@ export default function Game() {
   const [lobby, setLobby] = useState(true);
   const [game, setGame] = useState(false);
   const [role, setRole] = useState("");
-  const [mayor, setMayor] = useState(null); 
-  const [hasVotedForMayor, setHasVotedForMayor] = useState(false); 
+  const [mayor, setMayor] = useState(null);
+  const [hasVotedForMayor, setHasVotedForMayor] = useState(false);
   const socketObj = useSocket();
   const socket = socketObj?.socket;
   const router = useRouter();
   const searchParams = useSearchParams();
-
+  const [tieBreakData, setTieBreakData] = useState(null);
+  const [isOpenTieBreak, setIsOpenTieBreak] = useState(false);
   const roomCode = searchParams.get("code");
   const isHost = searchParams.get("host") === "true";
   const playersAmount = searchParams.get("playersAmount") || 6;
-  const usernameFromParams = searchParams.get("username"); 
+  const usernameFromParams = searchParams.get("username");
+  const [hasVotedForLynch, setHasVotedForLynch] = useState(false);
+  const [lynchTieBreakData, setLynchTieBreakData] = useState(null);
+  const [isOpenLynchTieBreak, setIsOpenLynchTieBreak] = useState(false);
+  const [lynchedPlayer, setLynchedPlayer] = useState(null);
+  const [isOpenLynchModal, setIsOpenLynchModal] = useState(false);
 
   const joinedARoom = useRef(false);
 
@@ -75,7 +81,7 @@ export default function Game() {
         localStorage.setItem('isHost', isHost.toString());
         setLobby(false);
         setGame(true);
-        
+
         if (data.players) {
           const currentPlayer = data.players.find(p => p.username === userToUse);
           if (currentPlayer) {
@@ -90,8 +96,8 @@ export default function Game() {
       });
 
       socket.on("mayorVoteUpdate", (data) => {
-        console.log("📊 Actualización de votos para intendente:", data);
-        setPlayers(prevPlayers => 
+        console.log(" Actualización de votos para intendente:", data);
+        setPlayers(prevPlayers =>
           prevPlayers.map(player => ({
             ...player,
             mayorVotes: data.votes[player.username] || 0
@@ -100,20 +106,22 @@ export default function Game() {
 
         Object.entries(data.votes).forEach(([candidate, votes]) => {
           if (votes > 0) {
-            console.log(`🗳️ ${candidate} tiene ${votes} voto(s)`);
+            console.log(` ${candidate} tiene ${votes} voto(s)`);
           }
         });
       });
 
       socket.on("mayorElected", (data) => {
-        console.log("🎉 Intendente electo:", data);
+        console.log(" Intendente electo:", data);
         setMayor(data.mayor);
-        setPlayers(prevPlayers => 
+        setPlayers(prevPlayers =>
           prevPlayers.map(player => ({
             ...player,
             isMayor: player.username === data.mayor
           }))
         );
+        setIsOpenTieBreak(false);
+        setTieBreakData(null);
 
         setTimeout(() => {
           alert(`¡${data.mayor} ha sido electo como intendente con ${data.votes} votos!`);
@@ -121,8 +129,66 @@ export default function Game() {
       });
 
 
+      socket.on("mayorTieBreak", (data) => {
+        console.log("EMPATE - Se requiere desempate del anfitrión:", data);
+        if (isHost) {
+          setTieBreakData(data);
+          setIsOpenTieBreak(true);
+          alert("¡Hay un empate! Debes elegir al intendente.");
+        }
+      });
+
+
+      socket.on("lynchVoteRegistered", (data) => {
+        console.log(` ${data.voter} votó por linchar a ${data.candidate}`);
+        setHasVotedForLynch(true);
+      });
+
+      socket.on("lynchVoteUpdate", (data) => {
+        console.log(" Actualización de votos para linchamiento:", data);
+        setPlayers(prevPlayers =>
+          prevPlayers.map(player => ({
+            ...player,
+            lynchVotes: data.votes[player.username] || 0
+          }))
+        );
+      });
+
+      socket.on("lynchTieBreak", (data) => {
+        console.log(" EMPATE en linchamiento - Se requiere desempate del intendente:", data);
+        if (mayor === username) {
+          setLynchTieBreakData(data);
+          setIsOpenLynchTieBreak(true);
+          alert("¡Hay un empate en el linchamiento! Debes elegir a quién linchar.");
+        }
+      });
+
+      socket.on("lynchResult", (data) => {
+        console.log(" Resultado del linchamiento:", data);
+        setLynchedPlayer(data.lynched);
+        setIsOpenLynchTieBreak(false);
+        setLynchTieBreakData(null);
+        setHasVotedForLynch(false);
+
+        if (data.lynched) {
+          alert(`¡${data.lynched} ha sido linchado!`);
+        } else {
+          alert("No se linchó a nadie.");
+        }
+      });
+
+      socket.on("alreadyVotedLynch", (data) => {
+        console.log(" Ya habías votado para linchamiento:", data);
+        alert("Ya has votado para linchamiento");
+      });
+
+      socket.on("startLynchVote", () => {
+        console.log(" Iniciando votación de linchamiento...");
+        setIsOpenLynchModal(true);
+      });
+
       socket.on("alreadyVoted", (data) => {
-        console.log("❌ Ya habías votado:", data);
+        console.log(" Ya habías votado:", data);
         alert("Ya has votado por el intendente");
       });
 
@@ -140,14 +206,14 @@ export default function Game() {
         console.log(" Anfitrión creando sala...");
         socket.emit("crearSala", {
           code: roomCode,
-          anfitrion: userToUse, 
+          anfitrion: userToUse,
           maxPlayers: parseInt(playersAmount)
         });
       } else {
         console.log(" Jugador uniéndose a sala...");
         socket.emit("joinRoom", {
           code: roomCode,
-          username: userToUse 
+          username: userToUse
         });
       }
       joinedARoom.current = true;
@@ -182,6 +248,19 @@ export default function Game() {
     }
   };
 
+  const decideTieBreak = (chosenCandidate) => {
+    if (socket && roomCode && tieBreakData) {
+      console.log(`👑 Anfitrión decide desempate: ${chosenCandidate}`);
+      socket.emit("mayorTieBreakDecision", {
+        code: roomCode,
+        chosenCandidate: chosenCandidate,
+        tieCandidates: tieBreakData.tieCandidates
+      });
+      setIsOpenTieBreak(false);
+      setTieBreakData(null);
+    }
+  };
+
   useEffect(() => {
     console.log("Estado actual:", {
       lobby,
@@ -201,6 +280,35 @@ export default function Game() {
       });
       setHasVotedForMayor(true);
     }
+  };
+
+  const voteLynch = (candidateUsername) => {
+    if (socket && roomCode && !hasVotedForLynch) {
+      console.log(` ${username} votando por linchar a ${candidateUsername}`);
+      socket.emit("voteLynch", {
+        code: roomCode,
+        voter: username,
+        candidate: candidateUsername
+      });
+      setHasVotedForLynch(true);
+    }
+  };
+
+  const decideLynchTieBreak = (chosenCandidate) => {
+    if (socket && roomCode && lynchTieBreakData) {
+      console.log(` Intendente decide desempate de linchamiento: ${chosenCandidate}`);
+      socket.emit("lynchTieBreakDecision", {
+        code: roomCode,
+        chosenCandidate: chosenCandidate,
+        tieCandidates: lynchTieBreakData.tieCandidates
+      });
+      setIsOpenLynchTieBreak(false);
+      setLynchTieBreakData(null);
+    }
+  };
+
+  const closeLynchModal = () => {
+    setIsOpenLynchModal(false);
   };
 
   return (
@@ -230,8 +338,19 @@ export default function Game() {
           voteMayor={voteMayor}
           hasVotedForMayor={hasVotedForMayor}
           mayor={mayor}
+          tieBreakData={tieBreakData}
+          isOpenTieBreak={isOpenTieBreak}
+          decideTieBreak={decideTieBreak}
+          voteLynch={voteLynch}
+          hasVotedForLynch={hasVotedForLynch}
+          lynchTieBreakData={lynchTieBreakData}
+          isOpenLynchTieBreak={isOpenLynchTieBreak}
+          decideLynchTieBreak={decideLynchTieBreak}
+          lynchedPlayer={lynchedPlayer}
+          isOpenLynchModal={isOpenLynchModal}
+          closeLynchModal={closeLynchModal}
         />
-
+        
       </>}
     </>
   );

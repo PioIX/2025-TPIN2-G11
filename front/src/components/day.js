@@ -12,17 +12,30 @@ export default function Day({
     role,
     voteMayor,
     mayor,
-    hasVotedForMayor
+    hasVotedForMayor,
+    tieBreakData,
+    isOpenTieBreak,
+    decideTieBreak,
+    voteLynch,
+    hasVotedForLynch,
+    lynchTieBreakData,
+    isOpenLynchTieBreak,
+    decideLynchTieBreak,
+    lynchedPlayer,
+    isOpenLynchModal,
+    closeLynchModal
 }) {
     const [isOpenMayor, setIsOpenMayor] = useState(false);
     const [isOpen, setIsOpen] = useState(true);
 
     useEffect(() => {
-        if (mayor) {
-            setIsOpenMayor(false);
-            console.log("✅ Modal de votación cerrado - Intendente electo:", mayor);
-        }
-    }, [mayor]);
+        console.log('Estado de modales:', {
+            isOpen,
+            isOpenMayor,
+            isOpenTieBreak,
+            tieBreakCandidates: tieBreakData?.tieCandidates
+        });
+    }, [isOpen, isOpenMayor, isOpenTieBreak, tieBreakData]);
 
     function onClose() {
         setIsOpen(false);
@@ -70,6 +83,44 @@ export default function Day({
                 </div>
             )}
 
+            {isOpenTieBreak && tieBreakData && (
+                <Modal
+                    isOpen={isOpenTieBreak}
+                    onClose={() => { }}
+                    type={"tieBreak"}
+                    tieBreakData={tieBreakData}
+                    decideTieBreak={decideTieBreak}
+                />
+            )}
+
+            {isOpenLynchModal && (
+                <Modal
+                    isOpen={isOpenLynchModal}
+                    onClose={closeLynchModal}
+                    type={"lynch"}
+                    players={players.filter(player => player.isAlive)}
+                    voteLynch={voteLynch}
+                    hasVotedForLynch={hasVotedForLynch}
+                    lynchedPlayer={lynchedPlayer}
+                />
+            )}
+
+            {isOpenLynchTieBreak && lynchTieBreakData && (
+                <Modal
+                    isOpen={isOpenLynchTieBreak}
+                    onClose={() => { }}
+                    type={"lynchTieBreak"}
+                    lynchTieBreakData={lynchTieBreakData}
+                    decideLynchTieBreak={decideLynchTieBreak}
+                />
+            )}
+
+            {lynchedPlayer && (
+                <div className={styles.lynchInfo}>
+                    <h2>🔨 ¡{lynchedPlayer} ha sido linchado!</h2>
+                </div>
+            )}
+
             <section className={styles.playersSection}>
                 <div className={styles.playersGrid}>
                     {players.map((player, index) => (
@@ -83,7 +134,7 @@ export default function Day({
                             <div className={styles.playerAvatar}>
                                 {player.username === username ? "👤" :
                                     player.isHost ? "👑" : "🎯"}
-                                    
+
                             </div>
                             <div className={styles.playerInfo}>
                                 <span className={styles.playerName}>

@@ -722,9 +722,10 @@ io.on("connection", (socket) => {
     }
   });
 
+
   socket.on("voteMayor", ({ code, voter, candidate }) => {
     try {
-      console.log(`🗳️ Voto para intendente recibido: ${voter} -> ${candidate}`);
+      console.log(` Voto para intendente recibido: ${voter} -> ${candidate}`);
 
       const room = rooms.find(r => r.code === code && r.active);
       if (!room) {
@@ -753,14 +754,14 @@ io.on("connection", (socket) => {
 
       // Verificar si el usuario ya votó
       if (room.mayorVotes[voter]) {
-        console.log(`❌ ${voter} intentó votar nuevamente`);
+        console.log(` ${voter} intentó votar nuevamente`);
         socket.emit("alreadyVoted", { voter, previousVote: room.mayorVotes[voter] });
         return;
       }
 
       // Registrar el voto
       room.mayorVotes[voter] = candidate;
-      console.log(`✅ Voto registrado: ${voter} votó por ${candidate}`);
+      console.log(` Voto registrado: ${voter} votó por ${candidate}`);
 
       // Confirmar el voto individualmente
       socket.emit("mayorVoteRegistered", {
@@ -774,7 +775,7 @@ io.on("connection", (socket) => {
         voteCount[candidate] = (voteCount[candidate] || 0) + 1;
       });
 
-      console.log("📊 Conteo actual de votos para intendente:", voteCount);
+      console.log("Conteo actual de votos para intendente:", voteCount);
 
       // Actualizar contadores de votos en los jugadores
       room.players.forEach(player => {
@@ -798,7 +799,7 @@ io.on("connection", (socket) => {
 
       // Verificar si todos han votado
       if (Object.keys(room.mayorVotes).length === room.players.length) {
-        console.log("🎯 Todos han votado, eligiendo intendente...");
+        console.log(" Todos han votado, eligiendo intendente...");
 
         // Encontrar al candidato con más votos
         let maxVotes = 0;
@@ -815,47 +816,317 @@ io.on("connection", (socket) => {
           }
         });
 
-        // Manejar empate: el anfitrión decide
+        // NUEVO SISTEMA DE DESEMPATE COMPLEJO
         if (tieCandidates.length > 1) {
-          console.log(`🤝 Empate entre: ${tieCandidates.join(', ')}`);
-          console.log(`👑 El anfitrión ${room.host} decide el desempate`);
-          // Por simplicidad, elegimos al primero de la lista
-          electedMayor = tieCandidates[0];
-          console.log(`✅ Desempate: ${electedMayor} es el intendente`);
+          console.log(` EMPATE DETECTADO entre: ${tieCandidates.join(', ')}`);
+
+          // Verificar que el anfitrión esté conectado
+          const hostPlayer = room.players.find(p => p.username === room.host && p.isAlive);
+          if (hostPlayer && hostPlayer.socketId) {
+            console.log(` Solicitando desempate al anfitrión: ${room.host}`);
+
+            // Emitir evento al anfitrión para que decida
+            io.to(hostPlayer.socketId).emit("mayorTieBreak", {
+              tieCandidates: tieCandidates,
+              votes: voteCount,
+              roomCode: code
+            });
+
+            console.log(" Esperando decisión del anfitrión...");
+            return; // Salir sin elegir intendente todavía
+          } else {
+            console.log(" Anfitrión no disponible para desempate, usando método alternativo");
+            // Si el anfitrión no está disponible, elegir al primero alfabéticamente
+            electedMayor = tieCandidates.sort()[0];
+            console.log(` Desempate automático: ${electedMayor} es el intendente`);
+          }
         }
 
         if (electedMayor) {
-          room.mayor = electedMayor;
-
-          // Marcar al jugador como intendente
-          room.players.forEach(player => {
-            player.isMayor = player.username === electedMayor;
-          });
-
-          console.log(`🎉 INTENDENTE ELECTO: ${electedMayor} con ${maxVotes} votos`);
-
-          // Notificar a todos
-          io.to(code).emit("mayorElected", {
-            mayor: electedMayor,
-            votes: maxVotes,
-            totalVoters: room.players.length
-          });
-
-          // Crear instancia de Intendente
-          const mayorPlayer = room.players.find(p => p.username === electedMayor);
-          if (mayorPlayer) {
-            console.log(`🎊 ${electedMayor} (${mayorPlayer.role}) es ahora el Intendente`);
-            console.log("💡 Habilidades disponibles: Plan Platita y romper empates");
-          }
+          finalizeMayorElection(room, electedMayor, maxVotes);
         }
       }
 
     } catch (error) {
-      console.error("❌ Error en voteMayor:", error);
+      console.error(" Error en voteMayor:", error);
       socket.emit("roomError", "Error al procesar el voto");
     }
   });
+
+
+  socket.on("mayorTieBreakDecision", ({ code, chosenCandidate, tieCandidates }) => {
+    try {
+      console.log(` Decisión de desempate recibida: ${chosenCandidate}`);
+
+      const room = rooms.find(r => r.code === code && r.active);
+      if (!room) {
+        socket.emit("roomError", "La sala no existe");
+        return;
+      }
+
+
+      if (socket.id !== room.hostSocketId) {
+        socket.emit("roomError", "Solo el anfitrión puede decidir el desempate");
+        return;
+      }
+
+
+      if (!tieCandidates.includes(chosenCandidate)) {
+        socket.emit("roomError", "Candidato inválido para el desempate");
+        return;
+      }
+
+      console.log(` Anfitrión ${room.host} eligió a ${chosenCandidate} como intendente`);
+
+      const voteCount = {};
+      Object.values(room.mayorVotes).forEach(candidate => {
+        voteCount[candidate] = (voteCount[candidate] || 0) + 1;
+      });
+      const votes = voteCount[chosenCandidate] || tieCandidates.length;
+
+      finalizeMayorElection(room, chosenCandidate, votes);
+
+    } catch (error) {
+      console.error("Error en mayorTieBreakDecision:", error);
+      socket.emit("roomError", "Error al procesar la decisión de desempate");
+    }
+  });
+
+  // Votación para linchamiento durante el día
+  socket.on("voteLynch", ({ code, voter, candidate }) => {
+    try {
+      console.log(` Voto para linchamiento recibido: ${voter} -> ${candidate}`);
+
+      const room = rooms.find(r => r.code === code && r.active);
+      if (!room) {
+        socket.emit("roomError", "La sala no existe");
+        return;
+      }
+
+      // Verificar que el votante esté en la sala y esté vivo
+      const voterPlayer = room.players.find(p => p.username === voter && p.isAlive);
+      if (!voterPlayer) {
+        socket.emit("roomError", "Jugador no encontrado o no está vivo");
+        return;
+      }
+
+      // Verificar que el candidato esté en la sala y esté vivo
+      const candidatePlayer = room.players.find(p => p.username === candidate && p.isAlive);
+      if (!candidatePlayer) {
+        socket.emit("roomError", "Candidato no encontrado o no está vivo");
+        return;
+      }
+
+      // Inicializar contador de votos de linchamiento si no existe
+      if (!room.lynchVotes) {
+        room.lynchVotes = {};
+      }
+
+      // Verificar si el usuario ya votó
+      if (room.lynchVotes[voter]) {
+        console.log(` ${voter} intentó votar nuevamente en linchamiento`);
+        socket.emit("alreadyVotedLynch", { voter, previousVote: room.lynchVotes[voter] });
+        return;
+      }
+
+      // Registrar el voto
+      room.lynchVotes[voter] = candidate;
+      console.log(` Voto de linchamiento registrado: ${voter} votó por ${candidate}`);
+
+      // Confirmar el voto individualmente
+      socket.emit("lynchVoteRegistered", {
+        voter: voter,
+        candidate: candidate
+      });
+
+      // Contar votos
+      const voteCount = {};
+      Object.values(room.lynchVotes).forEach(candidate => {
+        voteCount[candidate] = (voteCount[candidate] || 0) + 1;
+      });
+
+      console.log("Conteo actual de votos para linchamiento:", voteCount);
+
+      // Actualizar contadores de votos en los jugadores
+      room.players.forEach(player => {
+        player.lynchVotes = voteCount[player.username] || 0;
+      });
+
+      // Notificar a todos los jugadores sobre la actualización de votos
+      io.to(code).emit("lynchVoteUpdate", {
+        votes: voteCount,
+        totalVotes: Object.keys(room.lynchVotes).length,
+        totalAlivePlayers: room.players.filter(p => p.isAlive).length,
+        recentVote: { voter, candidate }
+      });
+
+      // Mostrar en consola del servidor cada voto individual
+      console.log("--- VOTOS INDIVIDUALES REGISTRADOS (LINCHAMIENTO) ---");
+      Object.entries(room.lynchVotes).forEach(([voter, candidate]) => {
+        console.log(`   ${voter} -> ${candidate}`);
+      });
+      console.log("--------------------------------------");
+
+      // Verificar si todos los vivos han votado
+      const alivePlayers = room.players.filter(p => p.isAlive);
+      if (Object.keys(room.lynchVotes).length === alivePlayers.length) {
+        console.log(" Todos los jugadores vivos han votado, procediendo al linchamiento...");
+
+        // Encontrar al candidato con más votos
+        let maxVotes = 0;
+        let lynchedPlayer = null;
+        let tieCandidates = [];
+
+        Object.entries(voteCount).forEach(([candidate, votes]) => {
+          if (votes > maxVotes) {
+            maxVotes = votes;
+            lynchedPlayer = candidate;
+            tieCandidates = [candidate];
+          } else if (votes === maxVotes) {
+            tieCandidates.push(candidate);
+          }
+        });
+
+        // Si hay empate, el intendente decide
+        if (tieCandidates.length > 1) {
+          console.log(` EMPATE DETECTADO en linchamiento entre: ${tieCandidates.join(', ')}`);
+
+          // Verificar que el intendente esté vivo
+          const mayorPlayer = room.players.find(p => p.isMayor && p.isAlive);
+          if (mayorPlayer && mayorPlayer.socketId) {
+            console.log(` Solicitando desempate al intendente: ${mayorPlayer.username}`);
+
+            // Emitir evento al intendente para que decida
+            io.to(mayorPlayer.socketId).emit("lynchTieBreak", {
+              tieCandidates: tieCandidates,
+              votes: voteCount,
+              roomCode: code
+            });
+
+            console.log(" Esperando decisión del intendente...");
+            return; // Salir sin linchar todavía
+          } else {
+            console.log(" Intendente no disponible para desempate, no se lincha a nadie");
+            // Si no hay intendente, no se lincha a nadie
+            io.to(code).emit("lynchResult", {
+              lynched: null,
+              votes: voteCount,
+              message: "Empate y no hay intendente para desempatar, no se lincha a nadie."
+            });
+            // Limpiar votos para la siguiente ronda
+            room.lynchVotes = {};
+            return;
+          }
+        }
+
+        if (lynchedPlayer) {
+          finalizeLynchVote(room, lynchedPlayer, maxVotes);
+        }
+      }
+
+    } catch (error) {
+      console.error(" Error en voteLynch:", error);
+      socket.emit("roomError", "Error al procesar el voto de linchamiento");
+    }
+  });
+
+  // Decisión de desempate del intendente para linchamiento
+  socket.on("lynchTieBreakDecision", ({ code, chosenCandidate, tieCandidates }) => {
+    try {
+      console.log(` Decisión de desempate de linchamiento recibida: ${chosenCandidate}`);
+
+      const room = rooms.find(r => r.code === code && r.active);
+      if (!room) {
+        socket.emit("roomError", "La sala no existe");
+        return;
+      }
+
+      // Verificar que el que decide es el intendente
+      const mayorPlayer = room.players.find(p => p.isMayor && p.isAlive);
+      if (!mayorPlayer || socket.id !== mayorPlayer.socketId) {
+        socket.emit("roomError", "Solo el intendente puede decidir el desempate");
+        return;
+      }
+
+      // Verificar que el candidato elegido esté en la lista de empate
+      if (!tieCandidates.includes(chosenCandidate)) {
+        socket.emit("roomError", "Candidato inválido para el desempate");
+        return;
+      }
+
+      console.log(` Intendente ${mayorPlayer.username} eligió linchar a ${chosenCandidate}`);
+
+      const voteCount = {};
+      Object.values(room.lynchVotes).forEach(candidate => {
+        voteCount[candidate] = (voteCount[candidate] || 0) + 1;
+      });
+      const votes = voteCount[chosenCandidate] || tieCandidates.length;
+
+      finalizeLynchVote(room, chosenCandidate, votes);
+
+    } catch (error) {
+      console.error("Error en lynchTieBreakDecision:", error);
+      socket.emit("roomError", "Error al procesar la decisión de desempate");
+    }
+  });
+
+  // Función para finalizar la votación de linchamiento
+  function finalizeLynchVote(room, lynchedPlayer, votes) {
+    // Marcar al jugador como no vivo
+    const player = room.players.find(p => p.username === lynchedPlayer);
+    if (player) {
+      player.isAlive = false;
+    }
+
+    console.log(` JUGADOR LINCHADO: ${lynchedPlayer} con ${votes} votos`);
+
+    // Emitir el resultado a todos
+    io.to(room.code).emit("lynchResult", {
+      lynched: lynchedPlayer,
+      votes: votes,
+      totalVoters: room.players.filter(p => p.isAlive).length,
+      wasTieBreak: room.wasTieBreak || false
+    });
+
+    // Limpiar votos para la siguiente ronda
+    room.lynchVotes = {};
+
+    // Verificar si hay un ganador
+    const winner = checkWinner(room);
+    if (winner) {
+      room.winner = winner;
+      io.to(room.code).emit("gameOver", winner);
+    }
+  }
+
+  function finalizeMayorElection(room, electedMayor, votes) {
+    room.mayor = electedMayor;
+
+
+    room.players.forEach(player => {
+      player.isMayor = player.username === electedMayor;
+    });
+
+    console.log(` INTENDENTE ELECTO: ${electedMayor} con ${votes} votos`);
+
+    io.to(room.code).emit("mayorElected", {
+      mayor: electedMayor,
+      votes: votes,
+      totalVoters: room.players.length,
+      wasTieBreak: room.wasTieBreak || false
+    });
+
+    const mayorPlayer = room.players.find(p => p.username === electedMayor);
+    if (mayorPlayer) {
+      console.log(` ${electedMayor} (${mayorPlayer.role}) es ahora el Intendente`);
+      console.log(" Habilidades disponibles: Plan Platita y romper empates");
+    }
+
+    delete room.wasTieBreak;
+  }
 });
+
+
 
 // Limpiar salas sin anfitrión
 setInterval(async () => {
@@ -872,7 +1143,11 @@ setInterval(async () => {
   } catch (error) {
     console.error(" Error en limpieza automática:", error);
   }
-}, 5 * 60 * 1000);
+}
+
+  , 5 * 60 * 1000);
+
+
 
 server.listen(port, function () {
   console.log(` Server running at http://localhost:${port}`);
