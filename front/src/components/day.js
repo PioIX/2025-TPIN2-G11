@@ -12,12 +12,7 @@ export default function Day({
     role,
     voteMayor,
     mayor,
-    hasVotedForMayor,
-    voteLynch,
-    hasVotedForLynch,
-    lynchedPlayer,
-    isOpenLynch,
-    setIsOpenLynch
+    hasVotedForMayor
 }) {
     const [isOpenMayor, setIsOpenMayor] = useState(false);
     const [isOpen, setIsOpen] = useState(true);
@@ -25,79 +20,53 @@ export default function Day({
     useEffect(() => {
         if (mayor) {
             setIsOpenMayor(false);
-            console.log(" Modal de votación cerrado - Intendente electo:", mayor);
+            console.log("✅ Modal de votación cerrado - Intendente electo:", mayor);
         }
     }, [mayor]);
 
     function onClose() {
         setIsOpen(false);
         setIsOpenMayor(true);
-        console.log("🔄 Abriendo modal de votación");
+        console.log(isOpenMayor)
     }
 
     useEffect(() => {
-        console.log('Estado de modales:', { isOpen, isOpenMayor, isOpenLynch });
-    }, [isOpen, isOpenMayor, isOpenLynch]);
+        console.log('Después:', { isOpen, isOpenMayor });
+    }, [isOpen, isOpenMayor]);
 
     function onCloseMayor() {
         setIsOpen(false);
         setIsOpenMayor(false);
-        console.log(" Votación cancelada");
     }
 
-    function onCloseLynch() {
-        setIsOpenLynch(false);
-        console.log(" Votación de linchamiento cancelada");
-    }
 
     return (
         <>
-            {isOpen && (
+            {isOpen == true ?
                 <Modal
                     isOpen={isOpen}
                     onClose={onClose}
                     type={"startGame"}
                     role={role}
-                />
-            )}
+                ></Modal>
+                : <></>}
 
-            {isOpenMayor && (
-                <Modal
-                    isOpenMayor={isOpenMayor}
-                    onCloseMayor={onCloseMayor}
-                    type={"mayor"}
-                    players={players}
-                    voteMayor={voteMayor}
-                    hasVotedForMayor={hasVotedForMayor}
-                    mayor={mayor}
-                />
-            )}
-
-            {isOpenLynch && (
-                <Modal
-                    isOpenLynch={isOpenLynch}
-                    onCloseLynch={onCloseLynch}
-                    type={"lynch"}
-                    players={players.filter(player => player.isAlive)} 
-                    voteLynch={voteLynch}
-                    hasVotedForLynch={hasVotedForLynch}
-                    lynchedPlayer={lynchedPlayer}
-                />
-            )}
+            {isOpenMayor == true ? <Modal
+                isOpenMayor={isOpenMayor}
+                onCloseMayor={onCloseMayor}
+                type={"mayor"}
+                players={players}
+                voteMayor={voteMayor}
+                hasVotedForMayor={hasVotedForMayor}
+                mayor={mayor}
+            ></Modal> : <></>}
 
             {mayor && (
                 <div className={styles.mayorInfo}>
-                    <h2>👑 Intendente Electo: {mayor}</h2>
+                    <h2> Intendente Electo: {mayor}</h2>
                     {mayor === username && (
                         <p>¡Eres el intendente! Tienes el poder del Plan Platita.</p>
                     )}
-                </div>
-            )}
-
-            {lynchedPlayer && (
-                <div className={styles.lynchInfo}>
-                    <h2>💀 Jugador Linchado: {lynchedPlayer}</h2>
-                    <p>El pueblo ha decidido su destino...</p>
                 </div>
             )}
 
@@ -109,42 +78,28 @@ export default function Day({
                             className={`${styles.playerCard} 
                                 ${player.username === username ? styles.currentPlayer : ""}
                                 ${player.isHost ? styles.hostPlayer : ""}
-                                ${player.isMayor ? styles.mayorPlayer : ""}
-                                ${!player.isAlive ? styles.deadPlayer : ""}`}
+                                ${player.isMayor ? styles.mayorPlayer : ""}`}
                         >
                             <div className={styles.playerAvatar}>
-                                {!player.isAlive ? "💀" :
-                                 player.isMayor ? "👑" :
-                                 player.username === username ? "👤" :
-                                 player.isHost ? "👑" : "🎯"}
+                                {player.username === username ? "👤" :
+                                    player.isHost ? "👑" : "🎯"}
+                                    
                             </div>
                             <div className={styles.playerInfo}>
                                 <span className={styles.playerName}>
                                     {player.username}
                                     {player.username === username && " (Tú)"}
-                                    {player.isMayor && " 👑"}
-                                    {!player.isAlive && " 💀"}
                                 </span>
                                 {player.isHost && (
                                     <span className={styles.hostBadge}>Anfitrión</span>
                                 )}
-                                {player.mayorVotes > 0 && !player.isMayor && (
-                                    <span className={styles.voteBadge}>Votos: {player.mayorVotes}</span>
-                                )}
-                                {player.lynchVotes > 0 && player.isAlive && (
-                                    <span className={styles.lynchVoteBadge}>Linchamiento: {player.lynchVotes}</span>
-                                )}
-                                {player.isMayor && (
-                                    <span className={styles.mayorBadge}>Intendente</span>
-                                )}
-                                {!player.isAlive && (
-                                    <span className={styles.deadBadge}>Muerto</span>
-                                )}
                             </div>
+                            {index === 0 && <div className={styles.crown}>👑</div>}
                         </div>
                     ))}
                 </div>
             </section>
+
         </>
     );
 }
