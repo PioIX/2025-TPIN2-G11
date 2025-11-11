@@ -53,10 +53,10 @@ Es el protector del campo y los pueblerinos. Para consagrarse a él y que te pro
 
 
 ## Partidas:
-Las partidas comienzan con la votación de un ***intendente***, luego, las mismas constarían de tres partes fundamentales que se repetirían en este orden hasta que alguno de los roles logre su objetivo y gane la partida:
-La **primera parte de la noche**, donde los ***lobizones*** deciden de forma democrática a quién matar.
-La **segunda parte de la noche** donde se despiertan los roles del ***Chamán*** (el cual sabrá quien fue asesinado y decidirá si usar o no la poción de vida y/o de muerte), ***Tarotista*** (la cual elegirá a alguien y podrá saber si es o no un ***Lobizón***) y ***El pombero*** (quien solo despertará si alguien se consagró a él el día anterior y decidirá si protegerlo o no y, en caso de que más de una persona se le haya consagrado, elegirá a quien de todos proteger).
-Y finalmente, **el día**. Durante esta parte se debatirá por el chat y se votará democráticamente a quien linchar. Antes de que comience la votación el ***intendente*** podrá usar el ***“Plan Platita”***.
+Las partidas comienzan con la votación de un *intendente*, luego, las mismas constarían de tres partes fundamentales que se repetirían en este orden hasta que alguno de los roles logre su objetivo y gane la partida:
+La **primera parte de la noche**, donde los *lobizones* deciden de forma democrática a quién matar.
+La **segunda parte de la noche** donde se despiertan los roles del *Chamán* (el cual sabrá quien fue asesinado y decidirá si usar o no la poción de vida y/o de muerte), *Tarotista* (la cual elegirá a alguien y podrá saber si es o no un *Lobizón*) y *El pombero* (quien solo despertará si alguien se consagró a él el día anterior y decidirá si protegerlo o no y, en caso de que más de una persona se le haya consagrado, elegirá a quien de todos proteger).
+Y finalmente, **el día**. Durante esta parte se debatirá por el chat y se votará democráticamente a quien linchar. Antes de que comience la votación el *intendente* podrá usar el *“Plan Platita”*.
 
 
 

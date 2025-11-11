@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import styles from "./modal.module.css";
 import Button from "./button";
 
@@ -32,16 +32,26 @@ export default function Modal({
   onSubmitLogin,
   onToggleRegister
 }) {
-  if (!isOpen) return null;
+  const mouseDownTarget = useRef(null);
 
-  const handleOverlayClick = (e) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
+  const handleOverlayMouseDown = (e) => {
+    mouseDownTarget.current = e.target;
   };
 
+  const handleOverlayClick = (e) => {
+    if (mouseDownTarget.current === e.currentTarget && e.target === e.currentTarget) {
+      onClose();
+    }
+    mouseDownTarget.current = null;
+  };
+
+  if (!isOpen) return null;
+
   return (
-    <div className={styles.overlay} onClick={handleOverlayClick}>
+    <div
+      className={styles.overlay}
+      onMouseDown={handleOverlayMouseDown}
+      onClick={handleOverlayClick}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <Button className={styles.close} onClick={onClose} title="✕" />
 
