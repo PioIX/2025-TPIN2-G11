@@ -10,7 +10,7 @@ export default class Medium extends Character {
     }
 
     
-    contactDeath(muertos) {
+    contactDeath(deads) {
 
         console.log(`MEDIUM contacta a los muertos: ${deads.length} espíritus`)
         this.deathsContacted = deads
@@ -35,7 +35,7 @@ export default class Medium extends Character {
         }
     }
 
-    obtainJointDeathVotes(muertos) {
+    obtainJointDeathVotes(deads) {
         if (deads.length === 0) return null
 
         const votes = {}

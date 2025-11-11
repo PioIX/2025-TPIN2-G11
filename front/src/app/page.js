@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import Button from "../components/button";
 import Modal from "../components/modal";
+import RandomRole from "@/components/randomRole.js";
 
 
 export default function Home() {
@@ -18,6 +19,11 @@ export default function Home() {
   const [password, setPassword] = useState("");
   const [registered, setRegistered] = useState(true);
   const [playersAmount, setPlayersAmount] = useState(6);
+
+  const players = ["Jugador1", "Jugador2", "sss", "sadasd", "dasdsds", "juan", "23", "", "ew", "pep", "papomica", "eduard", "eduardou", "aygian", "gil", "elefant"]; // Tu array de jugadores
+const assignedRoles = RandomRole({ array: players });
+
+console.log(assignedRoles);
 
   async function SignUp() {
     if (!username || !password) {
