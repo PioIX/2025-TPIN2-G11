@@ -1080,7 +1080,6 @@ io.on("connection", (socket) => {
 
     console.log(` JUGADOR LINCHADO: ${lynchedPlayer} con ${votes} votos`);
 
-    // Emitir el resultado a todos
     io.to(room.code).emit("lynchResult", {
       lynched: lynchedPlayer,
       votes: votes,
@@ -1088,10 +1087,279 @@ io.on("connection", (socket) => {
       wasTieBreak: room.wasTieBreak || false
     });
 
-    // Limpiar votos para la siguiente ronda
     room.lynchVotes = {};
 
-    // Verificar si hay un ganador
+    const winner = checkWinner(room);
+    if (winner) {
+      room.winner = winner;
+      io.to(room.code).emit("gameOver", winner);
+    }
+  }
+
+  // Evento para iniciar la noche
+  socket.on("startNight", ({ code }) => {
+    try {
+      console.log(" Iniciando noche en sala:", code);
+
+      const room = rooms.find(r => r.code === code && r.active);
+      if (!room) {
+        socket.emit("roomError", "La sala no existe");
+        return;
+      }
+
+      // Cambiar estado a noche
+      room.state = gameStates.NOCHE_LOBIZONES;
+      room.nightVotes = {}; // Limpiar votos de noche anteriores
+
+      console.log(" Noche iniciada. Notificando a todos los jugadores...");
+
+      // Notificar a todos que comienza la noche
+      io.to(code).emit("nightStarted", {
+        message: "Cae la noche en Castro Barros...",
+        roomCode: code
+      });
+
+      // Abrir el modal de votación solo para lobizones
+      const lobizones = room.players.filter(p => p.role === 'lobizon' && p.isAlive);
+      console.log(` Lobizones que deben votar: ${lobizones.map(l => l.username).join(', ')}`);
+
+      lobizones.forEach(lobizon => {
+        io.to(lobizon.socketId).emit("openNightModal");
+      });
+
+    } catch (error) {
+      console.error(" Error en startNight:", error);
+      socket.emit("roomError", "Error al iniciar la noche");
+    }
+  });
+
+  // Evento para que los lobizones voten a quién atacar
+  socket.on("voteNightKill", ({ code, voter, candidate }) => {
+    try {
+      console.log(` Voto nocturno recibido: ${voter} -> ${candidate}`);
+
+      const room = rooms.find(r => r.code === code && r.active);
+      if (!room) {
+        socket.emit("roomError", "La sala no existe");
+        return;
+      }
+
+      // Verificar que el votante sea un lobizón y esté vivo
+      const voterPlayer = room.players.find(p => p.username === voter && p.isAlive && p.role === 'lobizon');
+      if (!voterPlayer) {
+        socket.emit("roomError", "No eres un lobizón o no estás vivo");
+        return;
+      }
+
+      // Verificar que el candidato esté en la sala y esté vivo y NO sea lobizón
+      const candidatePlayer = room.players.find(p => p.username === candidate && p.isAlive && p.role !== 'lobizon');
+      if (!candidatePlayer) {
+        socket.emit("roomError", "Candidato no encontrado, no está vivo o es lobizón");
+        return;
+      }
+
+      // Inicializar contador de votos nocturnos si no existe
+      if (!room.nightVotes) {
+        room.nightVotes = {};
+      }
+
+      // Verificar si el lobizón ya votó
+      if (room.nightVotes[voter]) {
+        console.log(` ${voter} intentó votar nuevamente en la noche`);
+        socket.emit("alreadyVotedNight", { voter, previousVote: room.nightVotes[voter] });
+        return;
+      }
+
+      // Registrar el voto
+      room.nightVotes[voter] = candidate;
+      console.log(` Voto nocturno registrado: ${voter} votó por ${candidate}`);
+
+      // Confirmar el voto individualmente
+      socket.emit("nightVoteRegistered", {
+        voter: voter,
+        candidate: candidate
+      });
+
+      // Contar votos
+      const voteCount = {};
+      Object.values(room.nightVotes).forEach(candidate => {
+        voteCount[candidate] = (voteCount[candidate] || 0) + 1;
+      });
+
+      console.log("Conteo actual de votos nocturnos:", voteCount);
+
+      // Notificar a todos los lobizones sobre la actualización de votos
+      const aliveLobizones = room.players.filter(p => p.role === 'lobizon' && p.isAlive);
+      aliveLobizones.forEach(lobizon => {
+        io.to(lobizon.socketId).emit("nightVoteUpdate", {
+          votes: voteCount,
+          totalVotes: Object.keys(room.nightVotes).length,
+          totalLobizones: aliveLobizones.length,
+          recentVote: { voter, candidate }
+        });
+      });
+
+      // Verificar si todos los lobizones han votado
+      if (Object.keys(room.nightVotes).length === aliveLobizones.length) {
+        console.log(" Todos los lobizones han votado, procediendo a la elección de víctima...");
+
+        // Encontrar al candidato con más votos
+        let maxVotes = 0;
+        let victim = null;
+        let tieCandidates = [];
+
+        Object.entries(voteCount).forEach(([candidate, votes]) => {
+          if (votes > maxVotes) {
+            maxVotes = votes;
+            victim = candidate;
+            tieCandidates = [candidate];
+          } else if (votes === maxVotes) {
+            tieCandidates.push(candidate);
+          }
+        });
+
+        // Si hay empate, se revota entre los dos más votados
+        if (tieCandidates.length > 1) {
+          console.log(` EMPATE NOCTURNO entre: ${tieCandidates.join(', ')}`);
+
+          // Guardar candidatos para el desempate
+          room.nightTieBreakCandidates = tieCandidates;
+          room.nightTieBreakVotes = {};
+
+          // Emitir evento a los lobizones para que revoten
+          aliveLobizones.forEach(lobizon => {
+            io.to(lobizon.socketId).emit("nightTieBreak", {
+              tieCandidates: tieCandidates,
+              votes: voteCount,
+              roomCode: code
+            });
+          });
+
+          console.log(" Solicitando revotación a los lobizones...");
+          return; // Salir sin elegir víctima todavía
+        }
+
+        if (victim) {
+          finalizeNightVote(room, victim, maxVotes);
+        }
+      }
+
+    } catch (error) {
+      console.error(" Error en voteNightKill:", error);
+      socket.emit("roomError", "Error al procesar el voto nocturno");
+    }
+  });
+
+  // Evento para el desempate nocturno (revotación)
+  socket.on("voteNightTieBreak", ({ code, voter, candidate }) => {
+    try {
+      console.log(` Voto de desempate nocturno recibido: ${voter} -> ${candidate}`);
+
+      const room = rooms.find(r => r.code === code && r.active);
+      if (!room) {
+        socket.emit("roomError", "La sala no existe");
+        return;
+      }
+
+      // Verificar que el votante sea un lobizón y esté vivo
+      const voterPlayer = room.players.find(p => p.username === voter && p.isAlive && p.role === 'lobizon');
+      if (!voterPlayer) {
+        socket.emit("roomError", "No eres un lobizón o no estás vivo");
+        return;
+      }
+
+      // Inicializar contador de votos de desempate si no existe
+      if (!room.nightTieBreakVotes) {
+        room.nightTieBreakVotes = {};
+      }
+
+      // Verificar que el candidato esté en la lista de empate
+      if (!room.nightTieBreakCandidates || !room.nightTieBreakCandidates.includes(candidate)) {
+        socket.emit("roomError", "Candidato inválido para el desempate");
+        return;
+      }
+
+      // Verificar si el lobizón ya votó en el desempate
+      if (room.nightTieBreakVotes[voter]) {
+        socket.emit("alreadyVotedNight", { voter, previousVote: room.nightTieBreakVotes[voter] });
+        return;
+      }
+
+      // Registrar el voto de desempate
+      room.nightTieBreakVotes[voter] = candidate;
+      console.log(` Voto de desempate nocturno registrado: ${voter} votó por ${candidate}`);
+
+      // Contar votos de desempate
+      const tieBreakVoteCount = {};
+      Object.values(room.nightTieBreakVotes).forEach(candidate => {
+        tieBreakVoteCount[candidate] = (tieBreakVoteCount[candidate] || 0) + 1;
+      });
+
+      console.log("Conteo actual de votos de desempate nocturno:", tieBreakVoteCount);
+
+      // Notificar a los lobizones sobre la actualización de votos de desempate
+      const aliveLobizones = room.players.filter(p => p.role === 'lobizon' && p.isAlive);
+      aliveLobizones.forEach(lobizon => {
+        io.to(lobizon.socketId).emit("nightTieBreakUpdate", {
+          votes: tieBreakVoteCount,
+          totalVotes: Object.keys(room.nightTieBreakVotes).length,
+          totalLobizones: aliveLobizones.length
+        });
+      });
+
+      // Verificar si todos los lobizones han votado en el desempate
+      if (Object.keys(room.nightTieBreakVotes).length === aliveLobizones.length) {
+        console.log(" Todos los lobizones han votado en el desempate...");
+
+        // Encontrar al candidato con más votos en el desempate
+        let maxVotes = 0;
+        let victim = null;
+
+        Object.entries(tieBreakVoteCount).forEach(([candidate, votes]) => {
+          if (votes > maxVotes) {
+            maxVotes = votes;
+            victim = candidate;
+          }
+        });
+
+        // Si sigue habiendo empate, elige el primero alfabéticamente
+        if (!victim && room.nightTieBreakCandidates.length > 0) {
+          victim = room.nightTieBreakCandidates.sort()[0];
+          console.log(` Empate persistente, eligiendo: ${victim}`);
+        }
+
+        if (victim) {
+          finalizeNightVote(room, victim, maxVotes);
+        }
+      }
+
+    } catch (error) {
+      console.error("Error en voteNightTieBreak:", error);
+      socket.emit("roomError", "Error al procesar la decisión de desempate nocturno");
+    }
+  });
+
+  // Función para finalizar la votación nocturna
+  function finalizeNightVote(room, victim, votes) {
+    // Marcar al jugador como no vivo
+    const player = room.players.find(p => p.username === victim);
+    if (player) {
+      player.isAlive = false;
+      room.lastVictim = victim;
+    }
+
+    console.log(` VÍCTIMA NOCTURNA: ${victim} con ${votes} votos`);
+
+    io.to(room.code).emit("nightResult", {
+      victim: victim,
+      votes: votes,
+      totalVoters: room.players.filter(p => p.role === 'lobizon' && p.isAlive).length
+    });
+
+    room.nightVotes = {};
+    room.nightTieBreakVotes = {};
+    room.nightTieBreakCandidates = null;
+
     const winner = checkWinner(room);
     if (winner) {
       room.winner = winner;

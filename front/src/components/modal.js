@@ -48,7 +48,12 @@ export default function Modal({
   decideLynchTieBreak,
   lynchedPlayer,
   isOpenLynchModal,
-  closeLynchModal
+  closeLynchModal,
+  voteNightKill,
+  hasVotedNight,
+  nightVictim,
+  nightTieBreakData,
+  voteNightTieBreak
 }) {
   const mouseDownTarget = useRef(null);
 
@@ -362,7 +367,87 @@ export default function Modal({
             </div>
           </div>
         )}
+
+        {type === "nightKill" && (
+          <div className={styles.nightKill}>
+            <h2>🐺 Votación Nocturna</h2>
+            <p>Como lobizón, debes elegir a quién atacar esta noche.</p>
+            <br />
+
+            {nightVictim ? (
+              <div className={styles.nightResult}>
+                <h3>🎯 Víctima Elegida</h3>
+                <p><strong>{nightVictim}</strong> será atacado.</p>
+                <p>Esperando a que amanezca...</p>
+              </div>
+            ) : (
+              <>
+                <p>¿A quién quieres atacar?</p>
+                {hasVotedNight && (
+                  <p className={styles.voteConfirmed}> ✅ Ya votaste. Esperando a los demás lobizones...</p>
+                )}
+                <section className={styles.playersSection}>
+                  <ul>
+                    {players.map((player, index) => (
+                      <li className={styles.playerItem} key={index}>
+                        <Button
+                          onClick={() => voteNightKill(player.username)}
+                          title={`${player.username} ${player.nightVotes ? `(${player.nightVotes} votos)` : ''}`}
+                          disabled={hasVotedNight || nightVictim}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+                <div className={styles.voteStatus}>
+                  <p>Lobizones que ya votaron: {players.filter(p => p.nightVotes > 0).length} de {players.filter(p => p.role === 'lobizon' && p.isAlive).length}</p>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {type === "nightTieBreak" && (
+          <div className={styles.nightTieBreak}>
+            <div className={styles.nightTieBreakHeader}>
+              <h2>🐺 ¡EMPATE NOCTURNO!</h2>
+              <p>Debes revotar entre los jugadores empatados</p>
+            </div>
+
+            <div className={styles.nightTieBreakInfo}>
+              <p>Los siguientes jugadores tienen la misma cantidad de votos:</p>
+              <ul className={styles.nightTieCandidatesList}>
+                {nightTieBreakData.tieCandidates.map((candidate, index) => (
+                  <li key={index} className={styles.nightTieCandidate}>
+                    <strong>{candidate}</strong> - {nightTieBreakData.votes[candidate]} votos
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className={styles.nightTieBreakDecision}>
+              <h3>¿A quién eliges atacar?</h3>
+              <div className={styles.nightTieBreakButtons}>
+                {nightTieBreakData.tieCandidates.map((candidate, index) => (
+                  <Button
+                    key={index}
+                    className={styles.nightTieBreakBtn}
+                    onClick={() => voteNightTieBreak(candidate)}
+                    title={`Atacar a ${candidate}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.nightTieBreakNote}>
+              <p>En caso de nuevo empate, se elegirá al primero alfabéticamente.</p>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
+
+
 }

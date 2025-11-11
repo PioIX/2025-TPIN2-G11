@@ -1,0 +1,193 @@
+.nightOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+    color: white;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: Arial, sans-serif;
+}
+
+.nightContainer {
+    text-align: center;
+    max-width: 1200px;
+    padding: 20px;
+}
+
+.nightHeader {
+    margin-bottom: 30px;
+}
+
+.nightHeader h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    color: #8a2be2;
+    text-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+}
+
+.nightHeader p {
+    font-size: 1.2em;
+    opacity: 0.8;
+}
+
+.playersSection {
+    margin: 30px 0;
+}
+
+.playersGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.nightPlayer {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.nightPlayer:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.currentPlayer {
+    border: 2px solid #4ecdc4 !important;
+    box-shadow: 0 0 15px rgba(78, 205, 196, 0.5);
+}
+
+.deadPlayer {
+    opacity: 0.5;
+    background: rgba(255, 0, 0, 0.1) !important;
+}
+
+.mayorBadge {
+    background: linear-gradient(45deg, #ffd700, #ffed4e);
+    color: #000;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 0.8em;
+    font-weight: bold;
+    margin-left: 5px;
+}
+
+.deadBadge {
+    background-color: #ff6b6b;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 0.8em;
+    margin-left: 5px;
+}
+
+
+.lobizonInfo, .villagerInfo {
+    background: rgba(255, 0, 0, 0.1);
+    border: 1px solid rgba(255, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 15px;
+    margin: 20px 0;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.lobizonInfo {
+    background: rgba(139, 0, 0, 0.2);
+    border: 1px solid rgba(139, 0, 0, 0.4);
+}
+
+.villagerInfo {
+    background: rgba(0, 100, 0, 0.2);
+    border: 1px solid rgba(0, 100, 0, 0.4);
+}
+
+.nightResult {
+    text-align: center;
+    padding: 40px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 20px;
+    border: 2px solid #8a2be2;
+    box-shadow: 0 0 30px rgba(138, 43, 226, 0.3);
+}
+
+.nightResult h1 {
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    color: #8a2be2;
+}
+
+.victimAnnouncement {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(255, 0, 0, 0.2);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 0, 0, 0.4);
+}
+
+.victimAnnouncement h2 {
+    color: #ff6b6b;
+    font-size: 2em;
+    margin-bottom: 10px;
+}
+
+.dayTransition {
+    text-align: center;
+    padding: 40px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    border-radius: 20px;
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+    animation: sunrise 2s ease-in-out;
+}
+
+.dayTransition h1 {
+    font-size: 3em;
+    margin-bottom: 20px;
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.dayTransition p {
+    font-size: 1.5em;
+    opacity: 0.9;
+}
+
+@keyframes sunrise {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@media (max-width: 768px) {
+    .playersGrid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+    }
+    
+    .nightHeader h1 {
+        font-size: 2em;
+    }
+    
+    .nightResult h1 {
+        font-size: 2em;
+    }
+    
+    .victimAnnouncement h2 {
+        font-size: 1.5em;
+    }
+}

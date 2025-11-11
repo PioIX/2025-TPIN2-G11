@@ -6,6 +6,7 @@ import Button from "../../components/button.js";
 import Lobby from "@/components/lobby.js";
 import Day from "@/components/day.js";
 import Modal from "@/components/modal.js";
+import Night from "@/components/night.js";
 
 export default function Game() {
   const [players, setPlayers] = useState([]);
@@ -33,6 +34,12 @@ export default function Game() {
   const [isOpenLynchTieBreak, setIsOpenLynchTieBreak] = useState(false);
   const [lynchedPlayer, setLynchedPlayer] = useState(null);
   const [isOpenLynchModal, setIsOpenLynchModal] = useState(false);
+  const [isNight, setIsNight] = useState(false);
+  const [nightVictim, setNightVictim] = useState(null);
+  const [isOpenNightModal, setIsOpenNightModal] = useState(false);
+  const [hasVotedNight, setHasVotedNight] = useState(false);
+  const [nightTieBreakData, setNightTieBreakData] = useState(null);
+  const [isOpenNightTieBreak, setIsOpenNightTieBreak] = useState(false);
 
   const joinedARoom = useRef(false);
 
@@ -120,8 +127,13 @@ export default function Game() {
             isMayor: player.username === data.mayor
           }))
         );
+
         setIsOpenTieBreak(false);
         setTieBreakData(null);
+        setTimeout(() => {
+          console.log(" Iniciando la primera noche...");
+          socket.emit("startNight", { code: roomCode });
+        }, 2000);
 
         setTimeout(() => {
           alert(`¡${data.mayor} ha sido electo como intendente con ${data.votes} votos!`);
@@ -194,6 +206,65 @@ export default function Game() {
 
       socket.onAny((eventName, ...args) => {
         console.log(" Evento socket recibido:", eventName, args);
+      });
+
+      socket.on("nightStarted", (data) => {
+        console.log(" Comienza la noche:", data);
+        setIsNight(true);
+        setNightVictim(null);
+        setHasVotedNight(false);
+      });
+
+      socket.on("openNightModal", () => {
+        console.log("  Abriendo modal de votación nocturna");
+        setIsOpenNightModal(true);
+      });
+
+      socket.on("nightVoteRegistered", (data) => {
+        console.log(`  ${data.voter} votó por atacar a ${data.candidate}`);
+        setHasVotedNight(true);
+      });
+
+      socket.on("nightVoteUpdate", (data) => {
+        console.log(" Actualización de votos nocturnos:", data);
+        setPlayers(prevPlayers =>
+          prevPlayers.map(player => ({
+            ...player,
+            nightVotes: data.votes[player.username] || 0
+          }))
+        );
+      });
+
+      socket.on("nightTieBreak", (data) => {
+        console.log(" 🐺 EMPATE NOCTURNO - Se requiere revotación:", data);
+        setNightTieBreakData(data);
+        setIsOpenNightTieBreak(true);
+        setIsOpenNightModal(false);
+      });
+
+      socket.on("nightTieBreakUpdate", (data) => {
+        console.log(" Actualización de votos de desempate nocturno:", data);
+      });
+
+      socket.on("nightResult", (data) => {
+        console.log(" 🔪 Resultado de la noche:", data);
+        setNightVictim(data.victim);
+        setIsOpenNightModal(false);
+        setIsOpenNightTieBreak(false);
+        setNightTieBreakData(null);
+        setHasVotedNight(false);
+
+        setPlayers(prevPlayers =>
+          prevPlayers.map(player => ({
+            ...player,
+            isAlive: player.username === data.victim ? false : player.isAlive
+          }))
+        );
+      });
+
+      socket.on("alreadyVotedNight", (data) => {
+        console.log(" Ya habías votado en la noche:", data);
+        alert("Ya has votado en la noche");
       });
     };
     setupSocketListeners();
@@ -311,11 +382,42 @@ export default function Game() {
     setIsOpenLynchModal(false);
   };
 
+  const voteNightKill = (candidateUsername) => {
+    if (socket && roomCode && !hasVotedNight) {
+      console.log(` 🐺 ${username} votando por atacar a ${candidateUsername}`);
+      socket.emit("voteNightKill", {
+        code: roomCode,
+        voter: username,
+        candidate: candidateUsername
+      });
+      setHasVotedNight(true);
+    }
+  };
+
+
+  const voteNightTieBreak = (candidateUsername) => {
+    if (socket && roomCode && nightTieBreakData) {
+      console.log(` 🐺 ${username} votando en desempate nocturno por ${candidateUsername}`);
+      socket.emit("voteNightTieBreak", {
+        code: roomCode,
+        voter: username,
+        candidate: candidateUsername
+      });
+      setIsOpenNightTieBreak(false);
+      setNightTieBreakData(null);
+    }
+  };
+
+  const startDay = () => {
+    console.log(" 🌅 Iniciando día después de la noche");
+    setTimeout(() => {
+      setIsOpenLynchModal(true);
+    }, 1000);
+  };
+
   return (
     <>
-
-      {lobby === true ? <>
-
+      {lobby === true ? (
         <Lobby
           players={players}
           username={username}
@@ -327,31 +429,50 @@ export default function Game() {
           closeRoom={closeRoom}
           leaveRoom={leaveRoom}
           socketGame={startGame}
-        ></Lobby>
-
-      </> : <>
-        <Day
-          role={role}
-          players={players}
-          username={username}
-          setUsername={setUsername}
-          voteMayor={voteMayor}
-          hasVotedForMayor={hasVotedForMayor}
-          mayor={mayor}
-          tieBreakData={tieBreakData}
-          isOpenTieBreak={isOpenTieBreak}
-          decideTieBreak={decideTieBreak}
-          voteLynch={voteLynch}
-          hasVotedForLynch={hasVotedForLynch}
-          lynchTieBreakData={lynchTieBreakData}
-          isOpenLynchTieBreak={isOpenLynchTieBreak}
-          decideLynchTieBreak={decideLynchTieBreak}
-          lynchedPlayer={lynchedPlayer}
-          isOpenLynchModal={isOpenLynchModal}
-          closeLynchModal={closeLynchModal}
         />
-        
-      </>}
+      ) : (
+        <>
+          {isNight ? (
+            <Night
+              players={players}
+              username={username}
+              role={role}
+              isNight={isNight}
+              setIsNight={setIsNight}
+              nightVictim={nightVictim}
+              isOpenNightModal={isOpenNightModal}
+              setIsOpenNightModal={setIsOpenNightModal}
+              voteNightKill={voteNightKill}
+              hasVotedNight={hasVotedNight}
+              nightTieBreakData={nightTieBreakData}
+              isOpenNightTieBreak={isOpenNightTieBreak}
+              voteNightTieBreak={voteNightTieBreak}
+              startDay={startDay}
+            />
+          ) : (
+            <Day
+              role={role}
+              players={players}
+              username={username}
+              setUsername={setUsername}
+              voteMayor={voteMayor}
+              hasVotedForMayor={hasVotedForMayor}
+              mayor={mayor}
+              tieBreakData={tieBreakData}
+              isOpenTieBreak={isOpenTieBreak}
+              decideTieBreak={decideTieBreak}
+              voteLynch={voteLynch}
+              hasVotedForLynch={hasVotedForLynch}
+              lynchTieBreakData={lynchTieBreakData}
+              isOpenLynchTieBreak={isOpenLynchTieBreak}
+              decideLynchTieBreak={decideLynchTieBreak}
+              lynchedPlayer={lynchedPlayer}
+              isOpenLynchModal={isOpenLynchModal}
+              closeLynchModal={closeLynchModal}
+            />
+          )}
+        </>
+      )}
     </>
   );
 }
