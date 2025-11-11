@@ -101,3 +101,48 @@
   color: #666;
   font-style: italic;
 }
+
+.mayorInfo {
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    padding: 15px;
+    border-radius: 10px;
+    margin: 20px;
+    text-align: center;
+    border: 3px solid #b8860b;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+.mayorPlayer {
+    border: 3px solid #ffd700 !important;
+    background: linear-gradient(135deg, #fff9c4, #ffeb3b) !important;
+    transform: scale(1.05);
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
+}
+
+.voteBadge {
+    background: #4CAF50;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    margin-left: 8px;
+}
+
+.mayorBadge {
+    background: #ff9800;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    margin-left: 8px;
+    font-weight: bold;
+}
+
+.hostBadge {
+    background: #9c27b0;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    margin-left: 8px;
+}

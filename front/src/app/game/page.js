@@ -16,6 +16,8 @@ export default function Game() {
   const [lobby, setLobby] = useState(true);
   const [game, setGame] = useState(false);
   const [role, setRole] = useState("");
+  const [mayor, setMayor] = useState(null); 
+  const [hasVotedForMayor, setHasVotedForMayor] = useState(false); 
   const socketObj = useSocket();
   const socket = socketObj?.socket;
   const router = useRouter();
@@ -67,19 +69,67 @@ export default function Game() {
       });
 
       socket.on("gameStarted", (data) => {
-        console.log("Juego iniciado recibido AAAAAAAAAAAA:", data);
+        console.log("Juego iniciado recibido:", data);
         setGameStarted(true);
         localStorage.setItem('roomCode', roomCode);
         localStorage.setItem('isHost', isHost.toString());
         setLobby(false);
         setGame(true);
+        
+        if (data.players) {
+          const currentPlayer = data.players.find(p => p.username === userToUse);
+          if (currentPlayer) {
+            setRole(currentPlayer.role);
+          }
+        }
+      });
+
+      socket.on("mayorVoteRegistered", (data) => {
+        console.log(` ${data.voter} votó por ${data.candidate} como intendente`);
+        setHasVotedForMayor(true);
+      });
+
+      socket.on("mayorVoteUpdate", (data) => {
+        console.log("📊 Actualización de votos para intendente:", data);
+        setPlayers(prevPlayers => 
+          prevPlayers.map(player => ({
+            ...player,
+            mayorVotes: data.votes[player.username] || 0
+          }))
+        );
+
+        Object.entries(data.votes).forEach(([candidate, votes]) => {
+          if (votes > 0) {
+            console.log(`🗳️ ${candidate} tiene ${votes} voto(s)`);
+          }
+        });
+      });
+
+      socket.on("mayorElected", (data) => {
+        console.log("🎉 Intendente electo:", data);
+        setMayor(data.mayor);
+        setPlayers(prevPlayers => 
+          prevPlayers.map(player => ({
+            ...player,
+            isMayor: player.username === data.mayor
+          }))
+        );
+
+        setTimeout(() => {
+          alert(`¡${data.mayor} ha sido electo como intendente con ${data.votes} votos!`);
+        }, 500);
+      });
+
+
+      socket.on("alreadyVoted", (data) => {
+        console.log("❌ Ya habías votado:", data);
+        alert("Ya has votado por el intendente");
       });
 
       socket.onAny((eventName, ...args) => {
         console.log(" Evento socket recibido:", eventName, args);
       });
     };
-
     setupSocketListeners();
 
     const timeoutId = setTimeout(() => {
@@ -90,14 +140,14 @@ export default function Game() {
         console.log(" Anfitrión creando sala...");
         socket.emit("crearSala", {
           code: roomCode,
-          anfitrion: userToUse, // Usar userToUse en lugar de savedUsername
+          anfitrion: userToUse, 
           maxPlayers: parseInt(playersAmount)
         });
       } else {
         console.log(" Jugador uniéndose a sala...");
         socket.emit("joinRoom", {
           code: roomCode,
-          username: userToUse // Usar userToUse en lugar de savedUsername
+          username: userToUse 
         });
       }
       joinedARoom.current = true;
@@ -141,9 +191,17 @@ export default function Game() {
     });
   }, [lobby, game, gameStarted, players]);
 
-  function voteMayor(){
-    
-  }
+  const voteMayor = (candidateUsername) => {
+    if (socket && roomCode && !hasVotedForMayor) {
+      console.log(`🗳️ ${username} votando por ${candidateUsername} como intendente`);
+      socket.emit("voteMayor", {
+        code: roomCode,
+        voter: username,
+        candidate: candidateUsername
+      });
+      setHasVotedForMayor(true);
+    }
+  };
 
   return (
     <>
@@ -170,7 +228,9 @@ export default function Game() {
           username={username}
           setUsername={setUsername}
           voteMayor={voteMayor}
-        ></Day>
+          hasVotedForMayor={hasVotedForMayor}
+          mayor={mayor}
+        />
 
       </>}
     </>

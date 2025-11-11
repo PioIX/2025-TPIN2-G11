@@ -35,7 +35,9 @@ export default function Modal({
   players,
   isOpenMayor,
   onCloseMayor,
-  voteMayor
+  voteMayor,
+  mayor,
+  hasVotedForMayor 
 }) {
   const mouseDownTarget = useRef(null);
 
@@ -46,7 +48,7 @@ export default function Modal({
   const handleOverlayClick = (e) => {
     if (mouseDownTarget.current === e.currentTarget && e.target === e.currentTarget) {
       onClose();
-  
+
     }
     mouseDownTarget.current = null;
   };
@@ -64,7 +66,7 @@ export default function Modal({
       onClick={handleOverlayClick}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <Button className={styles.close} onClick={onClose} title="✕" />
-        
+
 
         {/* Modal para unirse a sala */}
         {type === "join" && (
@@ -193,32 +195,45 @@ export default function Modal({
             <Button className={styles.close} onClick={onCloseMayor} title="✕" />
             <>
               <h2>Lo primero que tenemos que hacer es votar un <strong>intendente</strong></h2>
-              <p>quien sea intendente desempatarà en los linchamientos y tendra una grn habilidad especial...<strong>el "Plan Platita"</strong></p>
+              <p>quien sea intendente desempatará en los linchamientos y tendra una gran habilidad especial...<strong>el "Plan Platita"</strong></p>
               <br />
               <br />
-              <p>a quien votas para intendente?</p>
-              <section className={styles.playersSection}>
-                <ul>
 
-                  {players.map((player, index) => (
-
-                    <form>
-  
-                        <Button
-                        onClick={voteMayor} 
-                        title={player.username}
-                        ></Button>
-
-                    </form>
-
-                  ))}
-
-                </ul>
-              </section>
+              {mayor ? (
+                <div className={styles.electionResult}>
+                  <h3>🎉 ¡Intendente Electo!</h3>
+                  <p><strong>{mayor}</strong> ha sido elegido como intendente.</p>
+                  <p>El modal se cerrará automáticamente...</p>
+                </div>
+              ) : (
+                <>
+                  <p>¿A quién votas para intendente?</p>
+                  {hasVotedForMayor && (
+                    <p className={styles.voteConfirmed}> Ya votaste. Esperando a los demás jugadores...</p>
+                  )}
+                  <section className={styles.playersSection}>
+                    <ul>
+                      {players.map((player, index) => (
+                        <li className={styles.playerItem} key={index}>
+                          <Button
+                            onClick={() => voteMayor(player.username)}
+                            title={`${player.username} ${player.mayorVotes ? `(${player.mayorVotes} votos)` : ''}`}
+                            disabled={hasVotedForMayor || mayor} 
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                  <div className={styles.voteStatus}>
+                    <p>Jugadores que ya votaron: {players.filter(p => p.mayorVotes > 0).length} de {players.length}</p>
+                  </div>
+                </>
+              )}
             </>
           </div>
         )}
 
+        
       </div>
     </div>
   );

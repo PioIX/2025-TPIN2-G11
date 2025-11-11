@@ -721,6 +721,140 @@ io.on("connection", (socket) => {
       }
     }
   });
+
+  socket.on("voteMayor", ({ code, voter, candidate }) => {
+    try {
+      console.log(`🗳️ Voto para intendente recibido: ${voter} -> ${candidate}`);
+
+      const room = rooms.find(r => r.code === code && r.active);
+      if (!room) {
+        socket.emit("roomError", "La sala no existe");
+        return;
+      }
+
+      // Verificar que el votante esté en la sala
+      const voterPlayer = room.players.find(p => p.username === voter);
+      if (!voterPlayer) {
+        socket.emit("roomError", "Jugador no encontrado");
+        return;
+      }
+
+      // Verificar que el candidato esté en la sala
+      const candidatePlayer = room.players.find(p => p.username === candidate);
+      if (!candidatePlayer) {
+        socket.emit("roomError", "Candidato no encontrado");
+        return;
+      }
+
+      // Inicializar contador de votos si no existe
+      if (!room.mayorVotes) {
+        room.mayorVotes = {};
+      }
+
+      // Verificar si el usuario ya votó
+      if (room.mayorVotes[voter]) {
+        console.log(`❌ ${voter} intentó votar nuevamente`);
+        socket.emit("alreadyVoted", { voter, previousVote: room.mayorVotes[voter] });
+        return;
+      }
+
+      // Registrar el voto
+      room.mayorVotes[voter] = candidate;
+      console.log(`✅ Voto registrado: ${voter} votó por ${candidate}`);
+
+      // Confirmar el voto individualmente
+      socket.emit("mayorVoteRegistered", {
+        voter: voter,
+        candidate: candidate
+      });
+
+      // Contar votos
+      const voteCount = {};
+      Object.values(room.mayorVotes).forEach(candidate => {
+        voteCount[candidate] = (voteCount[candidate] || 0) + 1;
+      });
+
+      console.log("📊 Conteo actual de votos para intendente:", voteCount);
+
+      // Actualizar contadores de votos en los jugadores
+      room.players.forEach(player => {
+        player.mayorVotes = voteCount[player.username] || 0;
+      });
+
+      // Notificar a todos los jugadores sobre la actualización de votos
+      io.to(code).emit("mayorVoteUpdate", {
+        votes: voteCount,
+        totalVotes: Object.keys(room.mayorVotes).length,
+        totalPlayers: room.players.length,
+        recentVote: { voter, candidate }
+      });
+
+      // Mostrar en consola del servidor cada voto individual
+      console.log("--- VOTOS INDIVIDUALES REGISTRADOS ---");
+      Object.entries(room.mayorVotes).forEach(([voter, candidate]) => {
+        console.log(`   ${voter} -> ${candidate}`);
+      });
+      console.log("--------------------------------------");
+
+      // Verificar si todos han votado
+      if (Object.keys(room.mayorVotes).length === room.players.length) {
+        console.log("🎯 Todos han votado, eligiendo intendente...");
+
+        // Encontrar al candidato con más votos
+        let maxVotes = 0;
+        let electedMayor = null;
+        let tieCandidates = [];
+
+        Object.entries(voteCount).forEach(([candidate, votes]) => {
+          if (votes > maxVotes) {
+            maxVotes = votes;
+            electedMayor = candidate;
+            tieCandidates = [candidate];
+          } else if (votes === maxVotes) {
+            tieCandidates.push(candidate);
+          }
+        });
+
+        // Manejar empate: el anfitrión decide
+        if (tieCandidates.length > 1) {
+          console.log(`🤝 Empate entre: ${tieCandidates.join(', ')}`);
+          console.log(`👑 El anfitrión ${room.host} decide el desempate`);
+          // Por simplicidad, elegimos al primero de la lista
+          electedMayor = tieCandidates[0];
+          console.log(`✅ Desempate: ${electedMayor} es el intendente`);
+        }
+
+        if (electedMayor) {
+          room.mayor = electedMayor;
+
+          // Marcar al jugador como intendente
+          room.players.forEach(player => {
+            player.isMayor = player.username === electedMayor;
+          });
+
+          console.log(`🎉 INTENDENTE ELECTO: ${electedMayor} con ${maxVotes} votos`);
+
+          // Notificar a todos
+          io.to(code).emit("mayorElected", {
+            mayor: electedMayor,
+            votes: maxVotes,
+            totalVoters: room.players.length
+          });
+
+          // Crear instancia de Intendente
+          const mayorPlayer = room.players.find(p => p.username === electedMayor);
+          if (mayorPlayer) {
+            console.log(`🎊 ${electedMayor} (${mayorPlayer.role}) es ahora el Intendente`);
+            console.log("💡 Habilidades disponibles: Plan Platita y romper empates");
+          }
+        }
+      }
+
+    } catch (error) {
+      console.error("❌ Error en voteMayor:", error);
+      socket.emit("roomError", "Error al procesar el voto");
+    }
+  });
 });
 
 // Limpiar salas sin anfitrión
