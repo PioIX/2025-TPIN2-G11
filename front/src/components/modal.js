@@ -37,7 +37,12 @@ export default function Modal({
   onCloseMayor,
   voteMayor,
   mayor,
-  hasVotedForMayor 
+  hasVotedForMayor,
+  isOpenLynch,
+  onCloseLynch,
+  voteLynch,
+  hasVotedForLynch,
+  lynchedPlayer
 }) {
   const mouseDownTarget = useRef(null);
 
@@ -233,6 +238,48 @@ export default function Modal({
           </div>
         )}
 
+                {type === "lynch" && (
+          <div className={styles.lynch}>
+            <Button className={styles.close} onClick={onCloseLynch} title="✕" />
+            <>
+              <h2>Votación para <strong>linchamiento</strong></h2>
+              <p>El pueblo debe decidir a quién linchar. ¡Cuidado, podrían estar matando a un inocente!</p>
+              <br />
+              <br />
+
+              {lynchedPlayer ? (
+                <div className={styles.lynchResult}>
+                  <h3> ¡Jugador Linchado!</h3>
+                  <p><strong>{lynchedPlayer}</strong> ha sido linchado por el pueblo.</p>
+                  <p>El modal se cerrará automáticamente...</p>
+                </div>
+              ) : (
+                <>
+                  <p>¿A quién votas para linchar?</p>
+                  {hasVotedForLynch && (
+                    <p className={styles.voteConfirmed}> Ya votaste. Esperando a los demás jugadores...</p>
+                  )}
+                  <section className={styles.playersSection}>
+                    <ul>
+                      {players.map((player, index) => (
+                        <li className={styles.playerItem} key={index}>
+                          <Button
+                            onClick={() => voteLynch(player.username)}
+                            title={`${player.username} ${player.lynchVotes ? `(${player.lynchVotes} votos)` : ''}`}
+                            disabled={hasVotedForLynch || lynchedPlayer || !player.isAlive}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                  <div className={styles.voteStatus}>
+                    <p>Jugadores que ya votaron: {players.filter(p => p.lynchVotes > 0).length} de {players.length}</p>
+                  </div>
+                </>
+              )}
+            </>
+          </div>
+        )}
         
       </div>
     </div>

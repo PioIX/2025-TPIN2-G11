@@ -22,7 +22,9 @@ export default function Game() {
   const socket = socketObj?.socket;
   const router = useRouter();
   const searchParams = useSearchParams();
-
+  const [lynchedPlayer, setLynchedPlayer] = useState(null);
+  const [hasVotedForLynch, setHasVotedForLynch] = useState(false);
+  const [isOpenLynch, setIsOpenLynch] = useState(false);
   const roomCode = searchParams.get("code");
   const isHost = searchParams.get("host") === "true";
   const playersAmount = searchParams.get("playersAmount") || 6;
@@ -120,10 +122,52 @@ export default function Game() {
         }, 500);
       });
 
-
       socket.on("alreadyVoted", (data) => {
         console.log("❌ Ya habías votado:", data);
         alert("Ya has votado por el intendente");
+      });
+
+            socket.on("lynchVoteRegistered", (data) => {
+        console.log(`🔪 ${data.voter} votó para linchar a ${data.candidate}`);
+        setHasVotedForLynch(true);
+      });
+
+      socket.on("lynchVoteUpdate", (data) => {
+        console.log("📊 Actualización de votos para linchamiento:", data);
+        setPlayers(prevPlayers => 
+          prevPlayers.map(player => ({
+            ...player,
+            lynchVotes: data.votes[player.username] || 0
+          }))
+        );
+
+        Object.entries(data.votes).forEach(([candidate, votes]) => {
+          if (votes > 0) {
+            console.log(`🔪 ${candidate} tiene ${votes} voto(s) para linchamiento`);
+          }
+        });
+      });
+
+      socket.on("playerLynched", (data) => {
+        console.log("💀 Jugador linchado:", data);
+        setLynchedPlayer(data.lynchedPlayer);
+        setPlayers(prevPlayers => 
+          prevPlayers.map(player => ({
+            ...player,
+            isAlive: player.username !== data.lynchedPlayer,
+            wasLynched: player.username === data.lynchedPlayer
+          }))
+        );
+
+        setTimeout(() => {
+          alert(`¡${data.lynchedPlayer} ha sido linchado por el pueblo!`);
+          setIsOpenLynch(false);
+        }, 500);
+      });
+
+      socket.on("alreadyVotedLynch", (data) => {
+        console.log("❌ Ya habías votado para linchar:", data);
+        alert("Ya has votado para linchar");
       });
 
       socket.onAny((eventName, ...args) => {
@@ -203,6 +247,19 @@ export default function Game() {
     }
   };
 
+  const voteLynch = (candidateUsername) => {
+    if (socket && roomCode && !hasVotedForLynch) {
+      console.log(`🔪 ${username} votando para linchar a ${candidateUsername}`);
+      socket.emit("voteLynch", {
+        code: roomCode,
+        voter: username,
+        candidate: candidateUsername
+      });
+      setHasVotedForLynch(true);
+    }
+  };
+
+  
   return (
     <>
 
@@ -230,6 +287,11 @@ export default function Game() {
           voteMayor={voteMayor}
           hasVotedForMayor={hasVotedForMayor}
           mayor={mayor}
+          voteLynch={voteLynch}
+          hasVotedForLynch={hasVotedForLynch}
+          lynchedPlayer={lynchedPlayer}
+          isOpenLynch={isOpenLynch}
+          setIsOpenLynch={setIsOpenLynch}
         />
 
       </>}

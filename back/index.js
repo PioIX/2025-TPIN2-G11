@@ -855,7 +855,173 @@ io.on("connection", (socket) => {
       socket.emit("roomError", "Error al procesar el voto");
     }
   });
+
+  socket.on("voteLynch", ({ code, voter, candidate }) => {
+    try {
+        console.log(`🔪 Voto para linchamiento recibido: ${voter} -> ${candidate}`);
+
+        const room = rooms.find(r => r.code === code && r.active);
+        if (!room) {
+            socket.emit("roomError", "La sala no existe");
+            return;
+        }
+
+        // Verificar que el votante esté en la sala
+        const voterPlayer = room.players.find(p => p.username === voter);
+        if (!voterPlayer) {
+            socket.emit("roomError", "Jugador no encontrado");
+            return;
+        }
+
+        // Verificar que el votante esté vivo
+        if (!voterPlayer.isAlive) {
+            socket.emit("roomError", "No puedes votar si estás muerto");
+            return;
+        }
+
+        // Verificar que el candidato esté en la sala
+        const candidatePlayer = room.players.find(p => p.username === candidate);
+        if (!candidatePlayer) {
+            socket.emit("roomError", "Candidato no encontrado");
+            return;
+        }
+
+        // Verificar que el candidato esté vivo
+        if (!candidatePlayer.isAlive) {
+            socket.emit("roomError", "No puedes votar por alguien que ya está muerto");
+            return;
+        }
+
+        // Inicializar contador de votos si no existe
+        if (!room.lynchVotes) {
+            room.lynchVotes = {};
+        }
+
+        // Verificar si el usuario ya votó
+        if (room.lynchVotes[voter]) {
+            console.log(`❌ ${voter} intentó votar nuevamente para linchar`);
+            socket.emit("alreadyVotedLynch", { 
+                voter: voter, 
+                previousVote: room.lynchVotes[voter] 
+            });
+            return;
+        }
+
+        // Registrar el voto
+        room.lynchVotes[voter] = candidate;
+        console.log(`✅ Voto de linchamiento registrado: ${voter} -> ${candidate}`);
+
+        // Confirmar el voto individualmente
+        socket.emit("lynchVoteRegistered", {
+            voter: voter,
+            candidate: candidate
+        });
+
+        // Contar votos
+        const voteCount = {};
+        Object.values(room.lynchVotes).forEach(votedCandidate => {
+            voteCount[votedCandidate] = (voteCount[votedCandidate] || 0) + 1;
+        });
+
+        console.log("📊 Conteo actual de votos para linchamiento:", voteCount);
+
+        // Actualizar contadores de votos en los jugadores
+        room.players.forEach(player => {
+            player.lynchVotes = voteCount[player.username] || 0;
+        });
+
+        // Notificar a todos los jugadores sobre la actualización de votos
+        io.to(code).emit("lynchVoteUpdate", {
+            votes: voteCount,
+            totalVotes: Object.keys(room.lynchVotes).length,
+            totalPlayers: room.players.filter(p => p.isAlive).length,
+            recentVote: { voter, candidate }
+        });
+
+        // Mostrar en consola del servidor cada voto individual
+        console.log("--- VOTOS DE LINCHAMIENTO REGISTRADOS ---");
+        Object.entries(room.lynchVotes).forEach(([voterName, candidateName]) => {
+            console.log(`   ${voterName} -> ${candidateName}`);
+        });
+        console.log("--------------------------------------");
+
+        // Verificar si todos los vivos han votado
+        const alivePlayers = room.players.filter(p => p.isAlive);
+        const votersCount = Object.keys(room.lynchVotes).length;
+        
+        console.log(`Jugadores vivos: ${alivePlayers.length}, Votantes: ${votersCount}`);
+
+        if (votersCount === alivePlayers.length) {
+            console.log("🎯 Todos los jugadores vivos han votado, determinando linchamiento...");
+            
+            // Encontrar al candidato con más votos
+            let maxVotes = 0;
+            let electedLynch = null;
+            let tieCandidates = [];
+            
+            Object.entries(voteCount).forEach(([candidateName, votes]) => {
+                if (votes > maxVotes) {
+                    maxVotes = votes;
+                    electedLynch = candidateName;
+                    tieCandidates = [candidateName];
+                } else if (votes === maxVotes) {
+                    tieCandidates.push(candidateName);
+                }
+            });
+
+            // Manejar empate: el intendente decide
+            if (tieCandidates.length > 1) {
+                console.log(`🤝 Empate en linchamiento entre: ${tieCandidates.join(', ')}`);
+                if (room.mayor) {
+                    console.log(`👑 El intendente ${room.mayor} decide el desempate`);
+                    // Por simplicidad, elegimos al primero de la lista
+                    electedLynch = tieCandidates[0];
+                    console.log(`✅ Desempate: ${electedLynch} será linchado`);
+                } else {
+                    // Si no hay intendente, no hay linchamiento
+                    console.log("❌ Empate sin intendente, no hay linchamiento");
+                    electedLynch = null;
+                }
+            }
+
+            if (electedLynch) {
+                // Marcar al jugador como muerto
+                const playerToLynch = room.players.find(p => p.username === electedLynch);
+                if (playerToLynch) {
+                    playerToLynch.isAlive = false;
+                    playerToLynch.wasLynched = true;
+                    console.log(`💀 JUGADOR LINCHADO: ${electedLynch} con ${maxVotes} votos`);
+
+                    // Notificar a todos
+                    io.to(code).emit("playerLynched", {
+                        lynchedPlayer: electedLynch,
+                        votes: maxVotes,
+                        totalVoters: alivePlayers.length
+                    });
+
+                    // Verificar si hay un ganador después del linchamiento
+                    const winner = checkWinner(room);
+                    if (winner) {
+                        console.log(`🏆 ${winner.winner} ganan: ${winner.message}`);
+                        io.to(code).emit("gameEnded", winner);
+                    }
+                }
+            } else {
+                console.log("❌ No se pudo determinar un jugador para linchar");
+            }
+
+            // Limpiar votos para la próxima ronda
+            room.lynchVotes = {};
+        }
+
+    } catch (error) {
+        console.error("❌ Error en voteLynch:", error);
+        socket.emit("roomError", "Error al procesar el voto de linchamiento: " + error.message);
+    }
 });
+});
+
+
 
 // Limpiar salas sin anfitrión
 setInterval(async () => {
