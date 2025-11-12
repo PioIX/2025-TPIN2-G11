@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import Button from "../components/button";
 import Modal from "../components/modal";
-import RandomRole from "@/components/randomRole.js";
+import BackgroundVideo from "../components/video";
+import Image from "next/image";
 
 
 export default function Home() {
@@ -235,13 +236,28 @@ console.log(assignedRoles);
 
   return (
     <>
-      <div className={styles.page}>
-        <Button
+      <BackgroundVideo title="VIDEO DE FONDO" className={styles.backgroundVideo}/>
+
+      <Image
+          src="/top-frame.png"
+          alt="top frame"
+          width={650}
+          height={470}
+          className={styles.topFrame}
+      />
+      
+      <Image
+          src="/logo.png"
+          alt="logo"
+          width={480}
+          height={450}
+          className={styles.logo}
+      />
+      <Button
           title="Configuraciones"
           onClick={openSettings}
           className={styles.btnSettings}
-        />
-      </div>
+      />
 
       <main className={styles.hero}></main>
 
@@ -250,6 +266,14 @@ console.log(assignedRoles);
         <Button title="UNIRME A SALA" onClick={openModal} />
         <Button title="VER RANKING" onClick={seeRanking} />
       </div>
+
+      <Image
+          src="/bottom-frame.png"
+          alt="Bottom frame"
+          width={500}
+          height={500}
+          className={styles.bottomFrame}
+      />
 
       <Modal
         isOpen={open}
