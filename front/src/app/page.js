@@ -21,11 +21,6 @@ export default function Home() {
   const [registered, setRegistered] = useState(true);
   const [playersAmount, setPlayersAmount] = useState(6);
 
-  const players = ["Jugador1", "Jugador2", "sss", "sadasd", "dasdsds", "juan", "23", "", "ew", "pep", "papomica", "eduard", "eduardou", "aygian", "gil", "elefant"]; // Tu array de jugadores
-const assignedRoles = RandomRole({ array: players });
-
-console.log(assignedRoles);
-
   async function SignUp() {
     if (!username || !password) {
       alert("Por favor complete todos los campos");
@@ -109,6 +104,9 @@ console.log(assignedRoles);
     if (!roomCode || !playersAmount) {
       alert("Completá todos los campos para crear la sala");
       return;
+    } else if (playersAmount > 16 || playersAmount < 6) {
+      alert("Solo se aceptan desde 6 hasta 16 jugadores");
+      return;
     }
 
     try {
@@ -139,7 +137,7 @@ console.log(assignedRoles);
 
       if (result.success) {
         console.log("Sala creada en BD, redirigiendo...");
-        router.push(`/lobby?code=${roomCode}&host=true&PlayersAmount=${playersAmount}`);
+        router.push(`/game?code=${roomCode}&host=true&PlayersAmount=${playersAmount}`);
         setOpen(false);
       } else {
         alert(`Error: ${result.message || result.error || "Error desconocido"}`);
@@ -178,10 +176,10 @@ console.log(assignedRoles);
     try {
       const response = await fetch(`http://localhost:4000/verifyRoom/${joinCode}`);
       const result = await response.json();
-
+      console.log(result)
       if (result.success && result.exists) {
         console.log(" Sala verificada en BD, redirigiendo...");
-        router.push(`/lobby?code=${joinCode}&host=false&username=${encodeURIComponent(user)}`);
+        router.push(`/game?code=${joinCode}&host=false&username=${encodeURIComponent(user)}&PlayersAmount=${playersAmount}`);
         setOpen(false);
       } else {
         alert(result.message || "No existe una sala con ese código");
@@ -233,28 +231,26 @@ console.log(assignedRoles);
 
   return (
     <>
-      <BackgroundVideo title="VIDEO DE FONDO" className={styles.backgroundVideo}/>
+      <BackgroundVideo title="VIDEO DE FONDO" className={styles.backgroundVideo} />
 
       <Image
-          src="/top-frame.png"
-          alt="top frame"
-          width={650}
-          height={470}
-          className={styles.topFrame}
+        src="/top-frame.png"
+        alt="top frame"
+        width={650}
+        height={470}
+        className={styles.topFrame}
       />
-      
+
       <Image
-          src="/logo.png"
-          alt="logo"
-          width={480}
-          height={450}
-          className={styles.logo}
+        src="/logo.png"
+        alt="logo"
+        width={480}
+        height={450}
+        className={styles.logo}
       />
-      <Button
-          title="Configuraciones"
-          onClick={openSettings}
-          className={styles.btnSettings}
-      />
+      <button className={styles.btnSettings} onClick={openSettings}>
+        Configuraciones
+      </button>
 
       <main className={styles.hero}></main>
 
@@ -265,11 +261,11 @@ console.log(assignedRoles);
       </div>
 
       <Image
-          src="/bottom-frame.png"
-          alt="Bottom frame"
-          width={500}
-          height={500}
-          className={styles.bottomFrame}
+        src="/bottom-frame.png"
+        alt="Bottom frame"
+        width={500}
+        height={500}
+        className={styles.bottomFrame}
       />
 
       <Modal
