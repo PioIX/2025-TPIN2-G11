@@ -27,6 +27,8 @@ export default function Day({
 }) {
     const [isOpenMayor, setIsOpenMayor] = useState(false);
     const [isOpen, setIsOpen] = useState(true);
+    const [hasShownWelcome, setHasShownWelcome] = useState(false);
+    const isInitialMount = useRef(true);
 
     useEffect(() => {
         console.log('Estado de modales:', {
@@ -36,6 +38,17 @@ export default function Day({
             tieBreakCandidates: tieBreakData?.tieCandidates
         });
     }, [isOpen, isOpenMayor, isOpenTieBreak, tieBreakData]);
+
+    useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            if (role && !hasShownWelcome && !mayor) {
+                console.log("Mostrando modal de bienvenida inicial");
+                setIsOpen(true);
+                setHasShownWelcome(true);
+            }
+        }
+    }, [role, hasShownWelcome, mayor]);
 
     function onClose() {
         setIsOpen(false);
@@ -52,6 +65,9 @@ export default function Day({
         setIsOpenMayor(false);
     }
 
+    if (mayor && isOpen) {
+        setIsOpen(false);
+    }
 
     return (
         <>
@@ -98,7 +114,7 @@ export default function Day({
                     isOpen={isOpenLynchModal}
                     onClose={closeLynchModal}
                     type={"lynch"}
-                    players={players.filter(player => player.isAlive)}
+                    players={players} 
                     voteLynch={voteLynch}
                     hasVotedForLynch={hasVotedForLynch}
                     lynchedPlayer={lynchedPlayer}

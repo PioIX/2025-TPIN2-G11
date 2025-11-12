@@ -90,7 +90,8 @@
 }
 
 
-.lobizonInfo, .villagerInfo {
+.lobizonInfo,
+.villagerInfo {
     background: rgba(255, 0, 0, 0.1);
     border: 1px solid rgba(255, 0, 0, 0.3);
     border-radius: 10px;
@@ -141,25 +142,131 @@
 }
 
 .dayTransition {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #ff7e5f, #feb47b);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 2rem;
+    z-index: 1000;
+    animation: fadeInOut 4s ease-in-out;
+}
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    20% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    80% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+.nightResult {
     text-align: center;
-    padding: 40px;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    border-radius: 20px;
-    border: 2px solid #ffd700;
-    box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
-    animation: sunrise 2s ease-in-out;
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 15px;
+    margin: 2rem;
+    animation: pulse 2s infinite;
 }
 
-.dayTransition h1 {
-    font-size: 3em;
-    margin-bottom: 20px;
+.waitingModal {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-style: italic;
+    color: #ffeb3b;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.roleInfo {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 10px;
+    margin: 15px 0;
+    text-align: center;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.roleInfo h3 {
+    margin: 0 0 10px 0;
     color: #ffd700;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    font-size: 1.2rem;
 }
 
-.dayTransition p {
-    font-size: 1.5em;
-    opacity: 0.9;
+.roleInfo p {
+    margin: 5px 0;
+    color: white;
+}
+
+.roleBadge {
+    background: #4a90e2;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 0.8em;
+    margin-top: 5px;
+    display: inline-block;
+}
+
+.actionInfo {
+    background: rgba(139, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 10px;
+    margin: 20px 0;
+    text-align: center;
+    border: 2px solid rgba(255, 0, 0, 0.3);
+    color: white;
+}
+
+.deadInfo {
+    background: rgba(128, 128, 128, 0.3);
+    padding: 15px;
+    border-radius: 10px;
+    margin: 20px 0;
+    text-align: center;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: #ccc;
+}
+
+.playersSection h3 {
+    color: white;
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
 }
 
 @keyframes sunrise {
@@ -167,6 +274,7 @@
         opacity: 0;
         transform: scale(0.8);
     }
+
     100% {
         opacity: 1;
         transform: scale(1);
@@ -178,15 +286,15 @@
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 15px;
     }
-    
+
     .nightHeader h1 {
         font-size: 2em;
     }
-    
+
     .nightResult h1 {
         font-size: 2em;
     }
-    
+
     .victimAnnouncement h2 {
         font-size: 1.5em;
     }

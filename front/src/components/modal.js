@@ -294,7 +294,6 @@ export default function Modal({
               <h2>🔨 Votación de Linchamiento</h2>
               <p>¡El pueblo debe decidir a quién linchar! Analicen las pistas y voten democráticamente.</p>
               <br />
-              <br />
 
               {lynchedPlayer ? (
                 <div className={styles.lynchResult}>
@@ -308,21 +307,31 @@ export default function Modal({
                   {hasVotedForLynch && (
                     <p className={styles.voteConfirmed}> ✅ Ya votaste. Esperando a los demás jugadores...</p>
                   )}
+
                   <section className={styles.playersSection}>
+                    <h4>Jugadores Vivos ({players.filter(p => p.isAlive).length}):</h4>
                     <ul>
-                      {players.map((player, index) => (
-                        <li className={styles.playerItem} key={index}>
-                          <Button
-                            onClick={() => voteLynch(player.username)}
-                            title={`${player.username} ${player.lynchVotes ? `(${player.lynchVotes} votos)` : ''}`}
-                            disabled={hasVotedForLynch || lynchedPlayer}
-                          />
-                        </li>
-                      ))}
+                      {players
+                        .filter(player => player.isAlive) 
+                        .map((player, index) => (
+                          <li className={styles.playerItem} key={index}>
+                            <Button
+                              onClick={() => voteLynch(player.username)}
+                              title={`${player.username} ${player.lynchVotes ? `(${player.lynchVotes} votos)` : ''}`}
+                              disabled={hasVotedForLynch || lynchedPlayer}
+                            />
+                          </li>
+                        ))
+                      }
                     </ul>
                   </section>
+
                   <div className={styles.voteStatus}>
-                    <p>Jugadores vivos que ya votaron: {players.filter(p => p.lynchVotes > 0).length} de {players.length}</p>
+                    <p>Jugadores vivos que ya votaron: {
+                      players.filter(p => p.isAlive && p.lynchVotes > 0).length
+                    } de {
+                        players.filter(p => p.isAlive).length
+                      }</p>
                   </div>
                 </>
               )}
@@ -370,13 +379,13 @@ export default function Modal({
 
         {type === "nightKill" && (
           <div className={styles.nightKill}>
-            <h2>🐺 Votación Nocturna</h2>
+            <h2>Votación Nocturna</h2>
             <p>Como lobizón, debes elegir a quién atacar esta noche.</p>
             <br />
 
             {nightVictim ? (
               <div className={styles.nightResult}>
-                <h3>🎯 Víctima Elegida</h3>
+                <h3>Víctima Elegida</h3>
                 <p><strong>{nightVictim}</strong> será atacado.</p>
                 <p>Esperando a que amanezca...</p>
               </div>
@@ -384,7 +393,7 @@ export default function Modal({
               <>
                 <p>¿A quién quieres atacar?</p>
                 {hasVotedNight && (
-                  <p className={styles.voteConfirmed}> ✅ Ya votaste. Esperando a los demás lobizones...</p>
+                  <p className={styles.voteConfirmed}>Ya votaste. Esperando a los demás lobizones...</p>
                 )}
                 <section className={styles.playersSection}>
                   <ul>
@@ -393,14 +402,18 @@ export default function Modal({
                         <Button
                           onClick={() => voteNightKill(player.username)}
                           title={`${player.username} ${player.nightVotes ? `(${player.nightVotes} votos)` : ''}`}
-                          disabled={hasVotedNight || nightVictim}
+                          disabled={hasVotedNight || nightVictim || !player.isAlive}
                         />
                       </li>
                     ))}
                   </ul>
                 </section>
                 <div className={styles.voteStatus}>
-                  <p>Lobizones que ya votaron: {players.filter(p => p.nightVotes > 0).length} de {players.filter(p => p.role === 'lobizon' && p.isAlive).length}</p>
+                  <p>Lobizones que ya votaron: {
+                    players.filter(p => p.nightVotes > 0 && (p.role === 'lobizon' || p.role === 'lobizón') && p.isAlive).length
+                  } de {
+                      players.filter(p => (p.role === 'lobizon' || p.role === 'lobizón') && p.isAlive).length
+                    }</p>
                 </div>
               </>
             )}
@@ -410,7 +423,7 @@ export default function Modal({
         {type === "nightTieBreak" && (
           <div className={styles.nightTieBreak}>
             <div className={styles.nightTieBreakHeader}>
-              <h2>🐺 ¡EMPATE NOCTURNO!</h2>
+              <h2>¡EMPATE NOCTURNO!</h2>
               <p>Debes revotar entre los jugadores empatados</p>
             </div>
 
