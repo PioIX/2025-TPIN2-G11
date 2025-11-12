@@ -40,8 +40,7 @@ io.use((socket, next) => {
   sessionMiddleware(socket.request, {}, next);
 });
 
-// Definir estados del juego
-const estadosJuego = {
+const gameStates = {
   INICIO: "inicio",
   NOCHE_LOBIZONES: "noche_lobizones",
   NOCHE_ESPECIALES: "noche_especiales",
@@ -51,7 +50,63 @@ const estadosJuego = {
 };
 
 // Array para almacenar salas en memoria
-const salas = [];
+const rooms = [];
+
+// Helper functions
+function assignRoles(room) {
+  const availableRoles = [
+    'lobizon', 'lobizon', 'lobizon',
+    'conurbanense', 'conurbanense', 'conurbanense',
+    'palermitano', 'palermitano', 'palermitano'
+  ].slice(0, room.players.length);
+
+  availableRoles.sort(() => Math.random() - 0.5);
+
+  const updatedPlayers = room.players.map((player, index) => ({
+    ...player,
+    role: availableRoles[index],
+    isAlive: true,
+    votesReceived: 0,
+    wasProtected: false
+  }));
+
+  console.log("Roles asignados:", updatedPlayers.map(j => ({ username: j.username, role: j.role })));
+  return {
+    ...room,
+    players: updatedPlayers,
+    assignedRoles: true
+  };
+}
+
+function checkWinner(room) {
+  const lobizonesAlive = room.players.filter(j =>
+    j.role === 'lobizon' && j.isAlive
+  );
+  const aliveVillagers = room.players.filter(j =>
+    j.role !== 'lobizon' && j.isAlive
+  );
+
+  if (lobizonesAlive.length === 0) {
+    return {
+      winner: 'aldeanos',
+      message: '¡Los aldeanos han ganado!'
+    };
+  } else if (lobizonesAlive.length >= aliveVillagers.length) {
+    return {
+      winner: 'lobizones',
+      message: '¡Los lobizones han ganado!'
+    };
+  }
+  return null;
+}
+
+function countVotes(votes) {
+  const count = {};
+  Object.values(votes).forEach(socketId => {
+    count[socketId] = (count[socketId] || 0) + 1;
+  });
+  return count;
+}
 
 app.get('/', function (req, res) {
   res.status(200).send({
@@ -84,7 +139,9 @@ app.get("/verifyUser", async (req, res) => {
       } else {
         return res.send({
           message: "Usuario o contraseña incorrectos"
-        });}}
+        });
+      }
+    }
   } catch (error) {
     res.send(error);
   }
@@ -130,18 +187,18 @@ app.get("/debug-tabla", async (req, res) => {
 // Crear sala en la BD
 app.post("/crearSalaBD", async (req, res) => {
   try {
-    const { codigo, anfitrion, maxJugadores } = req.body;
+    const { code, host, maxPlayers } = req.body;
 
     console.log(" Creando sala en BD - Datos recibidos:", {
-      codigo,
-      anfitrion,
-      maxJugadores
+      code,
+      host,
+      maxPlayers
     });
 
     // Obtener el ID del usuario desde la base de datos
     const usuario = await realizarQuery(
       `SELECT id FROM Users WHERE username = ?`,
-      [anfitrion]
+      [host]
     );
 
     if (usuario.length === 0) {
@@ -156,7 +213,7 @@ app.post("/crearSalaBD", async (req, res) => {
     // Verificar si ya existe una sala ACTIVA con ese código
     const salaExistente = await realizarQuery(
       `SELECT code FROM Games WHERE code = ? AND status = true`,
-      [codigo]
+      [code]
     );
 
     if (salaExistente.length > 0) {
@@ -170,7 +227,7 @@ app.post("/crearSalaBD", async (req, res) => {
     const result = await realizarQuery(
       `INSERT INTO Games (code, village_won, status) 
        VALUES (?, ?, true)`,
-      [codigo, userId]
+      [code, userId]
     );
 
     console.log(" Sala creada exitosamente en BD, ID:", result.insertId);
@@ -192,14 +249,14 @@ app.post("/crearSalaBD", async (req, res) => {
 });
 
 // Verificar si una sala existe
-app.get("/verificarSala/:codigo", async (req, res) => {
+app.get("/verifyRoom/:code", async (req, res) => {
   try {
-    const { codigo } = req.params;
+    const { code } = req.params;
 
     const sala = await realizarQuery(
       `SELECT id, code, village_won, status FROM Games 
        WHERE code = ? AND status = true`,
-      [codigo]
+      [code]
     );
 
     if (sala.length === 0) {
@@ -217,7 +274,7 @@ app.get("/verificarSala/:codigo", async (req, res) => {
     });
 
   } catch (error) {
-    console.error(" Error en /verificarSala:", error);
+    console.error(" Error en /verifyRoom:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -225,14 +282,14 @@ app.get("/verificarSala/:codigo", async (req, res) => {
 // Cerrar sala
 app.post("/cerrarSala", async (req, res) => {
   try {
-    const { codigo } = req.body;
+    const { code } = req.body;
 
     await realizarQuery(
       `UPDATE Games SET status = false WHERE code = ?`,
-      [codigo]
+      [code]
     );
 
-    console.log("Sala cerrada en BD:", codigo);
+    console.log("Sala cerrada en BD:", code);
     res.json({ success: true, message: "Sala cerrada exitosamente" });
 
   } catch (error) {
@@ -305,507 +362,505 @@ app.get("/logout", (req, res) => {
 io.on("connection", (socket) => {
   console.log(" Nuevo usuario conectado:", socket.id);
 
-  // Crear sala
-  socket.on("crearSala", async ({ codigo, anfitrion, maxJugadores }) => {
+  // Crear sala - Mantener compatibilidad con frontend
+  socket.on("crearSala", async ({ code, host, maxPlayers }) => {
     try {
-      console.log(" Socket: Intentando crear sala:", { codigo, anfitrion, maxJugadores });
+      console.log(" Socket: Intentando crear sala:", { code, host, maxPlayers });
 
       // Verificar si ya existe en memoria
-      const salaExistente = salas.find(s => s.codigo === codigo && s.activa);
+      const existingRoom = rooms.find(r => r.code === code && r.active);
 
-      if (salaExistente) {
-        socket.emit("errorSala", "El código ya está en uso en este momento");
+      if (existingRoom) {
+        socket.emit("roomError", "El código ya está en uso en este momento");
         return;
       }
 
       // Buscar la sala en BD para verificar que fue creada por HTTP
-      const salaBD = await realizarQuery(
+      const roomDB = await realizarQuery(
         `SELECT id, code, village_won FROM Games WHERE code = ? AND status = true`,
-        [codigo]
+        [code]
       );
 
-      if (salaBD.length === 0) {
-        socket.emit("errorSala", "Primero debes crear la sala desde el formulario");
+      if (roomDB.length === 0) {
+        socket.emit("roomError", "Primero debes crear la sala desde el formulario");
         return;
       }
 
       // Obtener el username del anfitrión desde la BD
-      const usuarioAnfitrion = await realizarQuery(
+      const hostUser = await realizarQuery(
         `SELECT username FROM Users WHERE id = ?`,
-        [salaBD[0].village_won]
+        [roomDB[0].village_won]
       );
 
-      const anfitrionUsername = usuarioAnfitrion.length > 0 ? usuarioAnfitrion[0].username : anfitrion;
+      const hostUsername = hostUser.length > 0 ? hostUser[0].username : host;
 
-      // Crear sala en memoria
-      const nuevaSala = {
-        codigo: codigo,
-        anfitrion: anfitrionUsername,
-        anfitrionSocketId: socket.id,
-        maxJugadores: parseInt(maxJugadores) || 6,
-        jugadores: [{
+      const newRoom = {
+        code: code,
+        host: hostUsername,
+        hostSocketId: socket.id,
+        maxPlayers: parseInt(maxPlayers) || 6,
+        players: [{
           id: socket.id,
-          username: anfitrionUsername,
+          username: hostUsername,
           socketId: socket.id,
-          esAnfitrion: true,
-          rol: null,
-          estaVivo: true,
-          votosRecibidos: 0,
-          fueProtegido: false
+          isHost: true, 
+          role: null,
+          isAlive: true,
+          votesReceived: 0, 
+          wasProtected: false
         }],
-        estado: estadosJuego.INICIO,
-        ronda: 1,
-        rolesAsignados: false,
-        votosLobizones: {},
-        votosLinchamiento: {},
-        intendente: null,
-        ultimaVictima: null,
-        ganador: null,
-        activa: true,
-        creadaEnBD: true
+        state: gameStates.INICIO,
+        round: 1,
+        assignedRoles: false,
+        lobizonesVotes: {}, 
+        lynchVotes: {}, 
+        mayor: null, 
+        lastVictim: null, 
+        winner: null, 
+        active: true,
+        createdInDB: true 
       };
 
-      salas.push(nuevaSala);
-      socket.join(codigo);
+      rooms.push(newRoom); 
+      socket.join(code);
 
-      socket.salaActual = codigo;
-      socket.esAnfitrion = true;
-      socket.username = anfitrionUsername;
+      socket.currentRoom = code; 
+      socket.isHost = true; 
+      socket.username = hostUsername;
 
-      console.log("Sala activada en memoria para:", anfitrionUsername);
-      console.log("Jugadores en sala:", nuevaSala.jugadores);
+      console.log("Sala activada en memoria para:", hostUsername);
+      console.log("Jugadores en sala:", newRoom.players);
 
       // Enviar la lista de jugadores a TODOS en la sala
-      io.to(codigo).emit("usersInRoom", nuevaSala.jugadores);
+      io.to(code).emit("usersInRoom", newRoom.players);
 
     } catch (error) {
       console.error(" Error creando sala en socket:", error);
-      socket.emit("errorSala", "Error interno del servidor");
+      socket.emit("roomError", "Error interno del servidor"); 
     }
   });
 
   // Unirse a sala
-  socket.on("joinRoom", async ({ codigo, username }) => {
+  socket.on("joinRoom", async ({ code, username }) => { 
     try {
-      console.log(" Socket: Intentando unirse a sala:", { codigo, username });
+      console.log(" Socket: Intentando unirse a sala:", { code, username });
 
       // Verificar en BD si la sala existe y está activa
-      const salaBD = await realizarQuery(
+      const roomDB = await realizarQuery( 
         `SELECT id, code, village_won FROM Games WHERE code = ? AND status = true`,
-        [codigo]
+        [code] 
       );
 
-      if (salaBD.length === 0) {
-        socket.emit("errorSala", "No existe una sala activa con ese código");
+      if (roomDB.length === 0) {
+        socket.emit("roomError", "No existe una sala activa con ese código");
         return;
       }
 
       // Buscar en memoria
-      let sala = salas.find(s => s.codigo === codigo && s.activa);
+      let room = rooms.find(r => r.code === code && r.active); // Cambiado de "sala" a "room"
 
-      if (!sala) {
+      if (!room) {
         // Si no está en memoria pero sí en BD, crear en memoria
-        const usuarioAnfitrion = await realizarQuery(
+        const hostUser = await realizarQuery( 
           `SELECT username FROM Users WHERE id = ?`,
-          [salaBD[0].village_won]
+          [roomDB[0].village_won]
         );
 
-        const anfitrionUsername = usuarioAnfitrion.length > 0 ? usuarioAnfitrion[0].username : "Anfitrión";
+        const hostUsername = hostUser.length > 0 ? hostUser[0].username : "Anfitrión";
 
-        sala = {
-          codigo: codigo,
-          anfitrion: anfitrionUsername,
-          anfitrionSocketId: null,
-          maxJugadores: 6,
-          jugadores: [],
-          estado: estadosJuego.INICIO,
-          ronda: 1,
-          rolesAsignados: false,
-          votosLobizones: {},
-          votosLinchamiento: {},
-          intendente: null,
-          ultimaVictima: null,
-          ganador: null,
-          activa: true,
-          creadaEnBD: true
+        room = {
+          code: code,
+          host: hostUsername, 
+          hostSocketId: null, 
+          maxPlayers: 6,
+          players: [], 
+          state: gameStates.INICIO, 
+          round: 1, 
+          assignedRoles: false, 
+          lobizonesVotes: {}, 
+          lynchVotes: {}, 
+          mayor: null, 
+          lastVictim: null,
+          winner: null, 
+          active: true, 
+          createdInDB: true 
         };
-        salas.push(sala);
+        rooms.push(room); 
       }
 
       // Verificar si el jugador ya está en la sala
-      if (sala.jugadores.find(j => j.username === username)) {
-      socket.emit("errorSala", "Ya estás en esta sala");
+      if (room.players.find(p => p.username === username)) {
+        socket.emit("roomError", "Ya estás en esta sala"); 
         return;
       }
 
-      if (sala.jugadores.length >= sala.maxJugadores) {
-        socket.emit("errorSala", "La sala está llena");
+      if (room.players.length >= room.maxPlayers) {
+        socket.emit("roomError", "La sala está llena");
         return;
       }
 
       // Unir al jugador
-      const nuevoJugador = {
+      const newPlayer = { 
         id: socket.id,
         username: username,
         socketId: socket.id,
-        esAnfitrion: (username === sala.anfitrion && !sala.anfitrionSocketId),
-        rol: null,
-        estaVivo: true,
-        votosRecibidos: 0,
-        fueProtegido: false
+        isHost: (username === room.host && !room.hostSocketId), 
+        role: null,
+        isAlive: true, 
+        votesReceived: 0,
+        wasProtected: false 
       };
 
-      sala.jugadores.push(nuevoJugador);
+      room.players.push(newPlayer);
 
       // Si es el anfitrión reconectándose, actualizar su socket ID
-      if (username === sala.anfitrion && !sala.anfitrionSocketId) {
-        sala.anfitrionSocketId = socket.id;
-        nuevoJugador.esAnfitrion = true;
+      if (username === room.host && !room.hostSocketId) {
+        room.hostSocketId = socket.id;
+        newPlayer.isHost = true;
         console.log("Anfitrión reconectado:", username);
       }
 
-      socket.join(codigo);
-      socket.salaActual = codigo;
-      socket.esAnfitrion = nuevoJugador.esAnfitrion;
+      socket.join(code);
+      socket.currentRoom = code; 
+      socket.isHost = newPlayer.isHost; 
       socket.username = username;
 
       console.log("Usuario unido exitosamente:", username);
-      io.to(codigo).emit("usersInRoom", sala.jugadores);
+      io.to(code).emit("usersInRoom", room.players);
 
     } catch (error) {
       console.error(" Error uniéndose a sala:", error);
-      socket.emit("errorSala", "Error interno del servidor");
+      socket.emit("roomError", "Error interno del servidor"); 
     }
   });
 
   // Iniciar juego
-  socket.on("iniciarJuego", ({ codigo }) => {
+  socket.on("startGame", ({ code }) => {
     try {
-      console.log("Intentando iniciar juego en sala:", codigo);
+      console.log("Intentando iniciar juego en sala:", code);
 
-      const sala = salas.find(s => s.codigo === codigo && s.activa);
-      if (!sala) {
-        socket.emit("errorSala", "La sala no existe");
+      const room = rooms.find(r => r.code === code && r.active);
+      if (!room) {
+        socket.emit("roomError", "La sala no existe"); 
         return;
       }
 
       // Verificar que el que inicia es el anfitrión
-      if (socket.id !== sala.anfitrionSocketId) {
-        socket.emit("errorSala", "Solo el anfitrión puede iniciar el juego");
+      if (socket.id !== room.hostSocketId) {
+        socket.emit("roomError", "Solo el anfitrión puede iniciar el juego");
         return;
       }
 
       // Verificar cantidad mínima de jugadores
-      if (sala.jugadores.length < 2) {
-        socket.emit("errorSala", "Se necesitan al menos 2 jugadores para iniciar");
+      if (room.players.length < 2) {
+        socket.emit("roomError", "Se necesitan al menos 2 jugadores para iniciar");
         return;
       }
 
       // Asignar roles
-      const salaConRoles = asignarRoles(sala);
-      salaConRoles.rolesAsignados = true;
-      salaConRoles.estado = estadosJuego.INICIO;
+      const roomWithRoles = assignRoles(room); 
+      roomWithRoles.assignedRoles = true; 
+      roomWithRoles.state = gameStates.INICIO; 
 
-      console.log("Juego iniciado en sala:", codigo);
-      console.log("Roles asignados:", salaConRoles.jugadores.map(j => ({ username: j.username, rol: j.rol })));
+      console.log("Juego iniciado en sala:", code);
+      console.log("Roles asignados:", roomWithRoles.players.map(p => ({ username: p.username, role: p.role })));
 
       // Emitir a TODOS los jugadores de la sala
-      io.to(codigo).emit("juegoIniciado", salaConRoles);
-      io.to(codigo).emit("salaActualizada", salaConRoles);
+      io.to(code).emit("gameStarted", roomWithRoles); 
+      io.to(code).emit("updatedRoom", roomWithRoles); 
 
     } catch (error) {
       console.error("Error iniciando juego:", error);
-      socket.emit("errorSala", "Error al iniciar el juego");
+      socket.emit("roomError", "Error al iniciar el juego");
     }
   });
 
-  // Unirse a GameRoom
-  socket.on("unirseGameRoom", ({ codigo }) => {
+  // Unirse a GameRoom 
+  socket.on("joinGameRoom", ({ code }) => { 
     try {
-      console.log("Jugador uniéndose a GameRoom:", socket.username, codigo);
+      console.log("Jugador uniéndose a GameRoom:", socket.username, code);
 
-      const sala = salas.find(s => s.codigo === codigo && s.activa);
-      if (!sala) {
-        socket.emit("errorSala", "La sala no existe o el juego terminó");
+      const room = rooms.find(r => r.code === code && r.active);
+      if (!room) {
+        socket.emit("roomError", "La sala no existe o el juego terminó");
         return;
       }
 
       // Unir al socket a la sala
-      socket.join(codigo);
-      socket.salaActual = codigo;
+      socket.join(code);
+      socket.currentRoom = code; 
 
       // Enviar el estado actual de la sala
-      socket.emit("salaActualizada", sala);
+      socket.emit("updatedRoom", room);
 
     } catch (error) {
-      console.error("Error en unirseGameRoom:", error);
-      socket.emit("errorSala", "Error al unirse a la sala de juego");
+      console.error("Error en joinGameRoom:", error);
+      socket.emit("roomError", "Error al unirse a la sala de juego");
     }
   });
 
   // Votar intendente
-  socket.on("votarIntendente", ({ codigo, candidatoSocketId }) => {
+  socket.on("voteMayor", ({ code, candidateSocketId }) => { 
     try {
-      const sala = salas.find(s => s.codigo === codigo && s.activa);
-      if (!sala) return;
+      const room = rooms.find(r => r.code === code && r.active);
+      if (!room) return;
 
-      const candidato = sala.jugadores.find(j => j.socketId === candidatoSocketId);
-      if (!candidato || !candidato.estaVivo) return;
+      const candidate = room.players.find(p => p.socketId === candidateSocketId); 
+      if (!candidate || !candidate.isAlive) return; 
 
       // Asignar intendente
-      sala.intendente = candidato.username;
-      sala.estado = estadosJuego.NOCHE_LOBIZONES;
+      room.mayor = candidate.username; 
+      room.state = gameStates.NOCHE_LOBIZONES; 
 
-      console.log(`${candidato.username} elegido como intendente`);
+      console.log(`${candidate.username} elegido como intendente`);
 
       // Notificar a todos
-      io.to(codigo).emit("intendenteElegido", {
-        intendente: candidato.username,
-        nuevoEstado: sala.estado
+      io.to(code).emit("changingState", { 
+        state: room.state, 
+        mayor: room.mayor 
       });
-      io.to(codigo).emit("salaActualizada", sala);
+      io.to(code).emit("updatedRoom", room); 
 
     } catch (error) {
-      console.error("Error en votarIntendente:", error);
-      socket.emit("errorSala", "Error al votar intendente");
+      console.error("Error en voteMayor:", error);
+      socket.emit("roomError", "Error al votar intendente"); 
     }
   });
 
-  // Votar víctima (lobizones)
-  socket.on("votarVictima", ({ codigo, victimaSocketId }) => {
+  // Votar víctima (lobizones) 
+  socket.on("voteVictim", ({ code, victimSocketId }) => { 
     try {
-      const sala = salas.find(s => s.codigo === codigo && s.activa);
-      if (!sala) return;
+      const room = rooms.find(r => r.code === code && r.active); 
+      if (!room) return;
 
-      const jugador = sala.jugadores.find(j => j.socketId === socket.id);
-      if (!jugador || jugador.rol !== 'lobizon' || !jugador.estaVivo) return;
+      const player = room.players.find(p => p.socketId === socket.id); 
+      if (!player || player.role !== 'lobizon' || !player.isAlive) return; 
 
-      const victima = sala.jugadores.find(j => j.socketId === victimaSocketId);
-      if (!victima || !victima.estaVivo || victima.rol === 'lobizon') return;
+      const victim = room.players.find(p => p.socketId === victimSocketId); 
+      if (!victim || !victim.isAlive || victim.role === 'lobizon') return; 
 
       // Registrar voto
-      sala.votosLobizones[socket.id] = victimaSocketId;
+      room.lobizonesVotes[socket.id] = victimSocketId;
 
-      console.log(`${jugador.username} votó por ${victima.username}`);
+      console.log(`${player.username} votó por ${victim.username}`);
 
       // Verificar si todos los lobizones han votado
-      const lobizonesVivos = sala.jugadores.filter(j =>
-        j.rol === 'lobizon' && j.estaVivo
+      const lobizonesAlive = room.players.filter(p =>
+        p.role === 'lobizon' && p.isAlive 
       );
-      const lobizonesQueVotaron = Object.keys(sala.votosLobizones);
+      const lobizonesWhoVoted = Object.keys(room.lobizonesVotes); 
 
-      if (lobizonesQueVotaron.length === lobizonesVivos.length) {
+      if (lobizonesWhoVoted.length === lobizonesAlive.length) {
         // Contar votos
-        const conteoVotos = contarVotos(sala.votosLobizones);
-        let maxVotos = 0;
-        let victimaElegidaSocketId = null;
+        const voteCount = countVotes(room.lobizonesVotes); 
+        let maxVotes = 0;
+        let chosenVictimSocketId = null;
 
-        Object.entries(conteoVotos).forEach(([socketId, votos]) => {
-          if (votos > maxVotos) {
-            maxVotos = votos;
-            victimaElegidaSocketId = socketId;
+        Object.entries(voteCount).forEach(([socketId, votes]) => {
+          if (votes > maxVotes) {
+            maxVotes = votes;
+            chosenVictimSocketId = socketId;
           }
         });
 
-        if (victimaElegidaSocketId) {
-          const victimaElegida = sala.jugadores.find(j => j.socketId === victimaElegidaSocketId);
-          if (victimaElegida && !victimaElegida.fueProtegido) {
-            victimaElegida.estaVivo = false;
-            sala.ultimaVictima = victimaElegida.username;
-            console.log(` ${victimaElegida.username} fue atacado por los lobizones`);
+        if (chosenVictimSocketId) {
+          const chosenVictim = room.players.find(p => p.socketId === chosenVictimSocketId); 
+          if (chosenVictim && !chosenVictim.wasProtected) { 
+            chosenVictim.isAlive = false; 
+            room.lastVictim = chosenVictim.username; 
+            console.log(` ${chosenVictim.username} fue atacado por los lobizones`);
 
             // Verificar si hay ganador
-            const resultadoGanador = verificarGanador(sala);
-            if (resultadoGanador) {
-              sala.ganador = resultadoGanador.ganador;
-              sala.estado = estadosJuego.FINALIZADO;
+            const winnerResult = checkWinner(room); 
+            if (winnerResult) {
+              room.winner = winnerResult.winner; 
+              room.state = gameStates.FINALIZADO; 
 
-              io.to(codigo).emit("juegoTerminado", {
-                ganador: resultadoGanador.ganador,
-                mensaje: resultadoGanador.mensaje
+              io.to(code).emit("gameFinished", { 
+                winner: winnerResult.winner,
+                message: winnerResult.message
               });
             } else {
-              sala.estado = estadosJuego.DIA_DEBATE;
+              room.state = gameStates.DIA_DEBATE;
             }
 
             // Limpiar votos para la siguiente ronda
-            sala.votosLobizones = {};
+            room.lobizonesVotes = {}; 
           }
         }
 
         // Notificar a todos
-        io.to(codigo).emit("salaActualizada", sala);
-        io.to(codigo).emit("estadoCambiado", { estado: sala.estado });
+        io.to(code).emit("updatedRoom", room);
+        io.to(code).emit("changingState", { state: room.state }); 
       }
 
     } catch (error) {
-      console.error("Error en votarVictima:", error);
-      socket.emit("errorSala", "Error al votar víctima");
+      console.error("Error en voteVictim:", error);
+      socket.emit("roomError", "Error al votar víctima"); 
     }
   });
 
   // Votar linchamiento (día)
-  socket.on("votarLinchamiento", ({ codigo, acusadoSocketId }) => {
+  socket.on("voteLynch", ({ code, accusedSocketId }) => { 
     try {
-      const sala = salas.find(s => s.codigo === codigo && s.activa);
-      if (!sala) return;
+      const room = rooms.find(r => r.code === code && r.active); 
+      if (!room) return;
 
-      const jugador = sala.jugadores.find(j => j.socketId === socket.id);
-      if (!jugador || !jugador.estaVivo) return;
+      const player = room.players.find(p => p.socketId === socket.id);
+      if (!player || !player.isAlive) return; 
 
-      const acusado = sala.jugadores.find(j => j.socketId === acusadoSocketId);
-      if (!acusado || !acusado.estaVivo) return;
+      const accused = room.players.find(p => p.socketId === accusedSocketId); 
+      if (!accused || !accused.isAlive) return; 
 
       // Registrar voto
-      sala.votosLinchamiento[socket.id] = acusadoSocketId;
+      room.lynchVotes[socket.id] = accusedSocketId; 
 
-      console.log(`${jugador.username} votó por linchar a ${acusado.username}`);
+      console.log(`${player.username} votó por linchar a ${accused.username}`);
 
       // Verificar si todos los vivos han votado
-      const jugadoresVivos = sala.jugadores.filter(j => j.estaVivo);
-      const jugadoresQueVotaron = Object.keys(sala.votosLinchamiento);
+      const alivePlayers = room.players.filter(p => p.isAlive); 
+      const playersWhoVoted = Object.keys(room.lynchVotes); 
 
-      if (jugadoresQueVotaron.length === jugadoresVivos.length) {
+      if (playersWhoVoted.length === alivePlayers.length) {
         // Contar votos
-        const conteoVotos = contarVotos(sala.votosLinchamiento);
-        let maxVotos = 0;
-        let linchadoSocketId = null;
+        const voteCount = countVotes(room.lynchVotes); 
+        let maxVotes = 0;
+        let lynchedSocketId = null; 
 
-        Object.entries(conteoVotos).forEach(([socketId, votos]) => {
-          if (votos > maxVotos) {
-            maxVotos = votos;
-            linchadoSocketId = socketId;
+        Object.entries(voteCount).forEach(([socketId, votes]) => {
+          if (votes > maxVotes) {
+            maxVotes = votes;
+            lynchedSocketId = socketId;
           }
         });
 
-        if (linchadoSocketId) {
-          const linchado = sala.jugadores.find(j => j.socketId === linchadoSocketId);
-          if (linchado) {
-            linchado.estaVivo = false;
-            console.log(` ${linchado.username} fue linchado por la aldea`);
+        if (lynchedSocketId) {
+          const lynched = room.players.find(p => p.socketId === lynchedSocketId);
+          if (lynched) {
+            lynched.isAlive = false; 
+            console.log(` ${lynched.username} fue linchado por la aldea`);
 
             // Verificar si hay ganador
-            const resultadoGanador = verificarGanador(sala);
-            if (resultadoGanador) {
-              sala.ganador = resultadoGanador.ganador;
-              sala.estado = estadosJuego.FINALIZADO;
+            const winnerResult = checkWinner(room); 
+            if (winnerResult) {
+              room.winner = winnerResult.winner; 
+              room.state = gameStates.FINALIZADO; 
 
-              io.to(codigo).emit("juegoTerminado", {
-                ganador: resultadoGanador.ganador,
-                mensaje: resultadoGanador.mensaje
+              io.to(code).emit("gameFinished", { 
+                winner: winnerResult.winner,
+                message: winnerResult.message
               });
             } else {
-              sala.estado = estadosJuego.NOCHE_LOBIZONES;
+              room.state = gameStates.NOCHE_LOBIZONES;
             }
 
             // Limpiar votos para la siguiente ronda
-            sala.votosLinchamiento = {};
+            room.lynchVotes = {}; 
           }
         }
 
         // Notificar a todos
-        io.to(codigo).emit("salaActualizada", sala);
-        io.to(codigo).emit("estadoCambiado", { estado: sala.estado });
+        io.to(code).emit("updatedRoom", room); 
+        io.to(code).emit("changingState", { state: room.state }); 
       }
 
     } catch (error) {
-      console.error("Error en votarLinchamiento:", error);
-      socket.emit("errorSala", "Error al votar linchamiento");
+      console.error("Error en voteLynch:", error);
+      socket.emit("roomError", "Error al votar linchamiento");
     }
   });
 
   // Avanzar a siguiente fase
-  socket.on("avanzarFase", ({ codigo }) => {
+  socket.on("nextPhase", ({ code }) => { 
     try {
-      const sala = salas.find(s => s.codigo === codigo && s.activa);
-      if (!sala) return;
+      const room = rooms.find(r => r.code === code && r.active); 
+      if (!room) return;
 
       // Solo el anfitrión puede avanzar fases
-      if (socket.id !== sala.anfitrionSocketId) return;
+      if (socket.id !== room.hostSocketId) return;
 
-      switch (sala.estado) {
-        case estadosJuego.DIA_DEBATE:
-          sala.estado = estadosJuego.DIA_VOTACION;
+      switch (room.state) { 
+        case gameStates.DIA_DEBATE:
+          room.state = gameStates.DIA_VOTACION;
           break;
-        case estadosJuego.DIA_VOTACION:
-          // Aquí se procesarían los votos de linchamiento
-          sala.estado = estadosJuego.NOCHE_LOBIZONES;
+        case gameStates.DIA_VOTACION:
+          room.state = gameStates.NOCHE_LOBIZONES;
           break;
-        case estadosJuego.NOCHE_LOBIZONES:
-          sala.estado = estadosJuego.NOCHE_ESPECIALES;
+        case gameStates.NOCHE_LOBIZONES:
+          room.state = gameStates.NOCHE_ESPECIALES;
           break;
-        case estadosJuego.NOCHE_ESPECIALES:
-          sala.estado = estadosJuego.DIA_DEBATE;
-          sala.ronda++;
+        case gameStates.NOCHE_ESPECIALES:
+          room.state = gameStates.DIA_DEBATE;
+          room.round++;
           break;
       }
 
-      console.log(`🔄 Avanzando a fase: ${sala.estado}`);
-      io.to(codigo).emit("estadoCambiado", { estado: sala.estado });
-      io.to(codigo).emit("salaActualizada", sala);
+      console.log(`🔄 Avanzando a fase: ${room.state}`);
+      io.to(code).emit("changingState", { state: room.state }); 
+      io.to(code).emit("updatedRoom", room); 
 
     } catch (error) {
-      console.error("Error en avanzarFase:", error);
-      socket.emit("errorSala", "Error al avanzar fase");
+      console.error("Error en nextPhase:", error);
+      socket.emit("roomError", "Error al avanzar fase"); 
     }
   });
 
   // Cerrar sala
-  socket.on("cerrarSala", async ({ codigo }) => {
+  socket.on("closeRoom", async ({ code }) => { 
     try {
-      console.log(" Cerrando sala:", codigo);
+      console.log(" Cerrando sala:", code);
 
       // Marcar como inactiva en BD
-      await realizarQuery(`UPDATE Games SET status = false WHERE code = ?`, [codigo]);
+      await realizarQuery(`UPDATE Games SET status = false WHERE code = ?`, [code]);
 
       // Eliminar de memoria
-      const index = salas.findIndex(s => s.codigo === codigo);
+      const index = rooms.findIndex(r => r.code === code); 
       if (index !== -1) {
-        salas.splice(index, 1);
+        rooms.splice(index, 1); 
       }
 
       // Notificar a todos los jugadores
-      io.to(codigo).emit("salaCerrada", "El anfitrión cerró la sala");
-      io.in(codigo).socketsLeave(codigo);
+      io.to(code).emit("closedRoom", "El anfitrión cerró la sala"); 
+      io.in(code).socketsLeave(code);
 
-      console.log("Sala cerrada completamente:", codigo);
+      console.log("Sala cerrada completamente:", code);
 
     } catch (error) {
       console.error(" Error cerrando sala:", error);
     }
   });
 
-  // Abandonar sala
-  socket.on("abandonarSala", async ({ codigo }) => {
+  // Abandonar sala 
+  socket.on("leaveRoom", async ({ code }) => { 
     try {
-      const sala = salas.find(s => s.codigo === codigo && s.activa);
-      if (!sala) return;
+      const room = rooms.find(r => r.code === code && r.active); 
+      if (!room) return;
 
       // Remover jugador de la sala en memoria
-      sala.jugadores = sala.jugadores.filter(j => j.socketId !== socket.id);
+      room.players = room.players.filter(p => p.socketId !== socket.id); 
 
       // Si el anfitrión abandona, cerrar la sala
-      if (socket.esAnfitrion && socket.username === sala.anfitrion) {
+      if (socket.isHost && socket.username === room.host) { 
         console.log("Anfitrión abandonó la sala, cerrando...");
 
         // Marcar como inactiva en BD
-        await realizarQuery(`UPDATE Games SET status = false WHERE code = ?`, [codigo]);
+        await realizarQuery(`UPDATE Games SET status = false WHERE code = ?`, [code]);
 
         // Notificar a otros jugadores
-        io.to(codigo).emit("salaCerrada", "El anfitrión abandonó la sala");
-        io.in(codigo).socketsLeave(codigo);
+        io.to(code).emit("closedRoom", "El anfitrión abandonó la sala");
+        io.in(code).socketsLeave(code);
 
         // Eliminar de memoria
-        const index = salas.findIndex(s => s.codigo === codigo);
+        const index = rooms.findIndex(r => r.code === code); 
         if (index !== -1) {
-          salas.splice(index, 1);
+          rooms.splice(index, 1); 
         }
       } else {
         // Solo actualizar lista de jugadores
-        io.to(codigo).emit("usersInRoom", sala.jugadores);
+        io.to(code).emit("usersInRoom", room.players);
       }
 
-      socket.leave(codigo);
+      socket.leave(code);
       console.log("Usuario abandonó sala:", socket.username);
 
     } catch (error) {
@@ -817,45 +872,45 @@ io.on("connection", (socket) => {
   socket.on("disconnect", async () => {
     console.log("Usuario desconectado:", socket.id, socket.username);
 
-    if (socket.salaActual && socket.esAnfitrion) {
+    if (socket.currentRoom && socket.isHost) { 
       try {
-        const sala = salas.find(s => s.codigo === socket.salaActual && s.activa);
-        if (sala) {
-          console.log("Anfitrión desconectado, cerrando sala:", socket.salaActual);
+        const room = rooms.find(r => r.code === socket.currentRoom && r.active); 
+        if (room) {
+          console.log("Anfitrión desconectado, cerrando sala:", socket.currentRoom);
 
-          await realizarQuery(`UPDATE Games SET status = false WHERE code = ?`, [socket.salaActual]);
+          await realizarQuery(`UPDATE Games SET status = false WHERE code = ?`, [socket.currentRoom]);
 
-          io.to(socket.salaActual).emit("salaCerrada", "El anfitrión se desconectó");
-          io.in(socket.salaActual).socketsLeave(socket.salaActual);
+          io.to(socket.currentRoom).emit("closedRoom", "El anfitrión se desconectó"); 
+          io.in(socket.currentRoom).socketsLeave(socket.currentRoom);
 
-          const index = salas.findIndex(s => s.codigo === socket.salaActual);
+          const index = rooms.findIndex(r => r.code === socket.currentRoom); 
           if (index !== -1) {
-            salas.splice(index, 1);
+            rooms.splice(index, 1);
           }
         }
       } catch (error) {
         console.error(" Error cerrando sala en desconexión:", error);
       }
-    } else if (socket.salaActual) {
-      const sala = salas.find(s => s.codigo === socket.salaActual && s.activa);
-      if (sala) {
-        sala.jugadores = sala.jugadores.filter(j => j.socketId !== socket.id);
-        io.to(socket.salaActual).emit("usersInRoom", sala.jugadores);
+    } else if (socket.currentRoom) {
+      const room = rooms.find(r => r.code === socket.currentRoom && r.active); 
+      if (room) {
+        room.players = room.players.filter(p => p.socketId !== socket.id); 
+        io.to(socket.currentRoom).emit("usersInRoom", room.players);
       }
     }
   });
 });
 
-// sacar salas sin anfitrion
+// Limpiar salas sin anfitrión
 setInterval(async () => {
   try {
-    const salasActivasBD = await realizarQuery(`SELECT code FROM Games WHERE status = true`);
+    const activeRoomsDB = await realizarQuery(`SELECT code FROM Games WHERE status = true`); 
 
-    for (const salaBD of salasActivasBD) {
-      const salaEnMemoria = salas.find(s => s.codigo === salaBD.code && s.activa);
-      if (!salaEnMemoria) {
-        await realizarQuery(`UPDATE Games SET status = false WHERE code = ?`, [salaBD.code]);
-        console.log("Sala huérfana limpiada:", salaBD.code);
+    for (const roomDB of activeRoomsDB) {
+      const roomInMemory = rooms.find(r => r.code === roomDB.code && r.active); 
+      if (!roomInMemory) {
+        await realizarQuery(`UPDATE Games SET status = false WHERE code = ?`, [roomDB.code]);
+        console.log("Sala huérfana limpiada:", roomDB.code);
       }
     }
   } catch (error) {
