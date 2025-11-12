@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import Button from "../components/button";
 import Modal from "../components/modal";
+import RandomRole from "@/components/randomRole.js";
 
 
 export default function Home() {
@@ -18,6 +19,11 @@ export default function Home() {
   const [password, setPassword] = useState("");
   const [registered, setRegistered] = useState(true);
   const [playersAmount, setPlayersAmount] = useState(6);
+
+  const players = ["Jugador1", "Jugador2", "sss", "sadasd", "dasdsds", "juan", "23", "", "ew", "pep", "papomica", "eduard", "eduardou", "aygian", "gil", "elefant"]; // Tu array de jugadores
+const assignedRoles = RandomRole({ array: players });
+
+console.log(assignedRoles);
 
   async function SignUp() {
     if (!username || !password) {
@@ -102,6 +108,9 @@ export default function Home() {
     if (!roomCode || !playersAmount) {
       alert("Completá todos los campos para crear la sala");
       return;
+    } else if (playersAmount > 16 || playersAmount < 6){
+      alert("Solo se aceptan desde 6 hasta 16 jugadores");
+      return;
     }
 
     try {
@@ -132,7 +141,7 @@ export default function Home() {
 
       if (result.success) {
         console.log("Sala creada en BD, redirigiendo...");
-        router.push(`/lobby?code=${roomCode}&host=true&PlayersAmount=${playersAmount}`);
+        router.push(`/game?code=${roomCode}&host=true&PlayersAmount=${playersAmount}`);
         setOpen(false);
       } else {
         alert(`Error: ${result.message || result.error || "Error desconocido"}`);
@@ -171,10 +180,10 @@ export default function Home() {
     try {
       const response = await fetch(`http://localhost:4000/verifyRoom/${joinCode}`);
       const result = await response.json();
-
+      console.log(result)
       if (result.success && result.exists) {
         console.log(" Sala verificada en BD, redirigiendo...");
-        router.push(`/lobby?code=${joinCode}&host=false&username=${encodeURIComponent(user)}`);
+        router.push(`/game?code=${joinCode}&host=false&username=${encodeURIComponent(user)}&PlayersAmount=${playersAmount}`);
         setOpen(false);
       } else {
         alert(result.message || "No existe una sala con ese código");

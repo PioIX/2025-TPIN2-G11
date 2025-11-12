@@ -35,7 +35,7 @@ export default class Character {
     }
 
     consecrate(pombero) {
-        if (this.name=="pombero") {
+        if (this.name=="Pombero") {
             return false
         }
 
