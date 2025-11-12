@@ -19,7 +19,7 @@ export default function Lobby({
 }) {
 
   const isHost = useSearchParams().get("host") === "true";
-  const playersAmount = useSearchParams().get("playersAmount") || 6;
+  const playersAmount = useSearchParams().get("PlayersAmount") || 6;
   
 
   const copyCode = () => {

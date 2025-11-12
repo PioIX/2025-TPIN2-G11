@@ -57,7 +57,7 @@ function assignRandomRoles(players) {
     const shuffledArray = [...players];
     let currentIndex = shuffledArray.length;
 
-    // Algoritmo Fisher-Yates para mezclar
+    // Algoritmo Fisher-Yates
     while (currentIndex !== 0) {
         const randomIndex = Math.floor(Math.random() * currentIndex);
         currentIndex--;
@@ -98,7 +98,7 @@ function assignRandomRoles(players) {
                 usedRandomRoles.push(role);
                 randomPool.splice(randomIndex, 1);
             }
-        }
+          }
 
         return {
             ...player,
@@ -121,9 +121,9 @@ function assignRandomRoles(players) {
 function assignRoles(room) {
     const updatedPlayers = assignRandomRoles(room.players);
     
-    console.log("Roles asignados:", updatedPlayers.map(j => ({ 
-        username: j.username, 
-        role: j.role 
+    console.log("Roles asignados:", updatedPlayers.map(p => ({ 
+        username: p.username, 
+        role: p.role 
     })));
     
     return {
@@ -134,11 +134,11 @@ function assignRoles(room) {
 }
 
 function checkWinner(room) {
-  const lobizonesAlive = room.players.filter(j =>
-    j.role === 'lobizon' && j.isAlive
+  const lobizonesAlive = room.players.filter(p =>
+    p.role === 'lobizon' && p.isAlive
   );
-  const aliveVillagers = room.players.filter(j =>
-    j.role !== 'lobizon' && j.isAlive
+  const aliveVillagers = room.players.filter(p =>
+    p.role !== 'lobizon' && p.isAlive
   );
 
   if (lobizonesAlive.length === 0) {
@@ -278,11 +278,29 @@ app.post("/crearSalaBD", async (req, res) => {
       });
     }
 
-    // Insertar nueva sala SIN max_players
+
+//     CREATE TABLE Games (
+// 	id INT PRIMARY KEY AUTO_INCREMENT NOT NULL UNIQUE,
+// 	code VARCHAR(100) NOT NULL,
+// 	village_won BOOLEAN NOT NULL,
+//     status BOOLEAN NOT NULL,
+//     players_amount INT NOT NULL
+// );
+
+// CREATE TABLE UsersXGames (
+// id INT PRIMARY KEY AUTO_INCREMENT NOT NULL UNIQUE,
+// id_user INT UNIQUE NOT NULL,
+// FOREIGN KEY (id_user) REFERENCES Users(id),
+// id_game INT UNIQUE NOT NULL,
+// FOREIGN KEY (id_game) REFERENCES Games(id),
+// was_villager BOOLEAN NOT NULL
+// );
+
+    // Insertar nueva sala
     const result = await realizarQuery(
-      `INSERT INTO Games (code, village_won, status) 
-       VALUES (?, ?, true)`,
-      [code, userId]
+      `INSERT INTO Games (code, village_won, status, players_amount) 
+       VALUES (?, ?, true, ?)`,
+      [code, userId, maxPlayers]
     );
 
     console.log(" Sala creada exitosamente en BD, ID:", result.insertId);

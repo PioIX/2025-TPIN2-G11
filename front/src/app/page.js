@@ -108,6 +108,9 @@ console.log(assignedRoles);
     if (!roomCode || !playersAmount) {
       alert("Completá todos los campos para crear la sala");
       return;
+    } else if (playersAmount > 16 || playersAmount < 6){
+      alert("Solo se aceptan desde 6 hasta 16 jugadores");
+      return;
     }
 
     try {
@@ -177,10 +180,10 @@ console.log(assignedRoles);
     try {
       const response = await fetch(`http://localhost:4000/verifyRoom/${joinCode}`);
       const result = await response.json();
-
+      console.log(result)
       if (result.success && result.exists) {
         console.log(" Sala verificada en BD, redirigiendo...");
-        router.push(`/game?code=${joinCode}&host=false&username=${encodeURIComponent(user)}`);
+        router.push(`/game?code=${joinCode}&host=false&username=${encodeURIComponent(user)}&PlayersAmount=${playersAmount}`);
         setOpen(false);
       } else {
         alert(result.message || "No existe una sala con ese código");

@@ -27,7 +27,7 @@ export default function Game() {
   const [isOpenTieBreak, setIsOpenTieBreak] = useState(false);
   const roomCode = searchParams.get("code");
   const isHost = searchParams.get("host") === "true";
-  const playersAmount = searchParams.get("playersAmount") || 6;
+  const playersAmount = searchParams.get("PlayersAmount") || 6;
   const usernameFromParams = searchParams.get("username");
   const [hasVotedForLynch, setHasVotedForLynch] = useState(false);
   const [lynchTieBreakData, setLynchTieBreakData] = useState(null);
