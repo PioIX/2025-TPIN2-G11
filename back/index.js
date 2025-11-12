@@ -53,29 +53,84 @@ const gameStates = {
 const rooms = [];
 
 // Helper functions
+function assignRandomRoles(players) {
+    const shuffledArray = [...players];
+    let currentIndex = shuffledArray.length;
+
+    // Algoritmo Fisher-Yates para mezclar
+    while (currentIndex !== 0) {
+        const randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [shuffledArray[currentIndex], shuffledArray[randomIndex]] = [
+            shuffledArray[randomIndex],
+            shuffledArray[currentIndex],
+        ];
+    }
+
+    const roles = [
+        "Palermitano", "Conurbanense", "Conurbanense", "Medium",
+        "Tarotista", "Lobizón", "Palermitano", "Lobizón",
+        "Viuda negra", "Random1", "Conurbanense", "Lobizón",
+        "Palermitano", "Random2", "Conurbanense", "Palermitano"
+    ];
+
+    const randomPool = ["Pombero", "Jubilado", "Chamán"];
+    
+    // Si hay más de 13 jugadores, agregar Colectivero
+    if (players.length > 13) {
+        randomPool.push("Colectivero");
+    }
+
+    const usedRandomRoles = [];
+
+    // Asignar roles a los jugadores mezclados
+    const playersWithRoles = shuffledArray.map((player, i) => {
+        let role = roles[i];
+
+        if (role === "Random1" || role === "Random2") {
+            if (randomPool.length === 0) {
+                // Si no hay roles en el pool, asignar uno por defecto
+                role = "Palermitano";
+            } else {
+                // Seleccionar rol aleatorio del pool
+                const randomIndex = Math.floor(Math.random() * randomPool.length);
+                role = randomPool[randomIndex];
+                usedRandomRoles.push(role);
+                randomPool.splice(randomIndex, 1);
+            }
+        }
+
+        return {
+            ...player,
+            role: role.toLowerCase(), // Convertir a minúsculas para consistencia
+            isAlive: true,
+            votesReceived: 0,
+            wasProtected: false
+        };
+    });
+
+    console.log("Roles asignados con sistema random:", playersWithRoles.map(p => ({
+        username: p.username,
+        role: p.role
+    })));
+
+    return playersWithRoles;
+}
+
+// Función assignRoles modificada
 function assignRoles(room) {
-  const availableRoles = [
-    'lobizon', 'lobizon', 'lobizon',
-    'conurbanense', 'conurbanense', 'conurbanense',
-    'palermitano', 'palermitano', 'palermitano'
-  ].slice(0, room.players.length);
-
-  availableRoles.sort(() => Math.random() - 0.5);
-
-  const updatedPlayers = room.players.map((player, index) => ({
-    ...player,
-    role: availableRoles[index],
-    isAlive: true,
-    votesReceived: 0,
-    wasProtected: false
-  }));
-
-  console.log("Roles asignados:", updatedPlayers.map(j => ({ username: j.username, role: j.role })));
-  return {
-    ...room,
-    players: updatedPlayers,
-    assignedRoles: true
-  };
+    const updatedPlayers = assignRandomRoles(room.players);
+    
+    console.log("Roles asignados:", updatedPlayers.map(j => ({ 
+        username: j.username, 
+        role: j.role 
+    })));
+    
+    return {
+        ...room,
+        players: updatedPlayers,
+        assignedRoles: true
+    };
 }
 
 function checkWinner(room) {
