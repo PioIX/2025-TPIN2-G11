@@ -149,17 +149,9 @@ export default function Modal({
         {/* Modal para configuraciones */}
         {type === "settings" && (
           <div className={styles.settings}>
-            <ul className={styles.settingsList}>
-              <li>
                 <Button title="INICIAR SESIÓN" onClick={onOpenLogin} />
-              </li>
-              <li>
                 <Button className={styles.btn} onClick={onSubmitModifyAccount} title="Modificar cuenta" />
-              </li>
-              <li>
                 <Button className={styles.btn} onClick={onSubmitCloseSession} title="Cerrar sesión" />
-              </li>
-            </ul>
           </div>
         )}
 
