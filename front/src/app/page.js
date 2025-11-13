@@ -234,7 +234,7 @@ export default function Home() {
       <BackgroundVideo title="VIDEO DE FONDO" className={styles.backgroundVideo} />
 
       <Image
-        src="/top-frame.png"
+        src="/top-frame.svg"
         alt="top frame"
         width={650}
         height={470}
@@ -261,7 +261,7 @@ export default function Home() {
       </div>
 
       <Image
-        src="/bottom-frame.png"
+        src="/bottom-frame.svg"
         alt="Bottom frame"
         width={500}
         height={500}
