@@ -120,7 +120,7 @@ export default function Modal({
 
         {/* Modal para crear sala */}
         {type === "createRoom" && (
-          <>
+          <div className={styles.createRoom}>
             <h2>Crear nueva sala</h2>
             <label>Código personalizado:</label>
             <input
@@ -143,7 +143,7 @@ export default function Modal({
               onClick={onSubmitCreate}
               title="Crear sala"
             />
-          </>
+          </div>
         )}
 
         {/* Modal para configuraciones */}

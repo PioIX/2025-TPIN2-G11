@@ -1,7 +1,8 @@
+/* ========== VARIABLES Y FONDOS CON IDENTIDAD ARGENTINA ========== */
 .container {
   min-height: 100vh;
-  background: url('/background-stars.jpg') center/cover no-repeat fixed;
-  padding: 40px;
+  background: url('/background.jpg') center/cover no-repeat fixed;
+  padding: 60px;
   font-family: 'Arial', sans-serif;
   position: relative;
   overflow-x: hidden;
@@ -28,13 +29,13 @@
   background-image: url('/wood.webp');
   background-size: 300px;
   background-repeat: repeat;
-  padding: 25px 40px;
+  padding: 30px 50px;
   border-radius: 18px;
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.4),
     inset 0 2px 0 rgba(255, 255, 255, 0.2),
     1px -1px 25px 6px rgba(255, 238, 193, 0.2);
-  margin-bottom: 40px;
+  margin-bottom: 50px;
   position: relative;
   z-index: 10;
   border: 4px solid rgba(255, 248, 235, 0.4);
@@ -85,8 +86,8 @@
 .main {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 40px;
-  margin-bottom: 40px;
+  gap: 50px;
+  margin-bottom: 50px;
   position: relative;
   z-index: 10;
   max-width: 1600px;
@@ -100,7 +101,7 @@
   background-size: 400px;
   background-repeat: repeat;
   filter: saturate(140%);
-  padding: 35px;
+  padding: 45px;
   border-radius: 20px;
   box-shadow: 
     0 10px 40px rgba(0, 0, 0, 0.5),
@@ -127,14 +128,14 @@
 .playersGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 25px;
-  margin-top: 25px;
+  gap: 30px;
+  margin-top: 30px;
 }
 
 /* ========== PLAYER CARDS CON ESTÉTICA FILETEADO PORTEÑO ========== */
 .playerCard {
   background: linear-gradient(135deg, #f5f5dc 0%, #e8dcc8 100%);
-  padding: 25px 20px;
+  padding: 30px 25px;
   border-radius: 15px;
   text-align: center;
   position: relative;
@@ -310,7 +311,7 @@
   background-size: 350px;
   background-repeat: repeat;
   filter: saturate(140%);
-  padding: 30px;
+  padding: 40px;
   border-radius: 20px;
   box-shadow: 
     0 10px 40px rgba(0, 0, 0, 0.5),
@@ -541,21 +542,21 @@
 /* Tablets y laptops pequeñas (hasta 1024px) */
 @media (max-width: 1024px) {
   .container {
-    padding: 30px;
+    padding: 40px;
   }
   
   .main {
     grid-template-columns: 1fr;
-    gap: 30px;
+    gap: 40px;
   }
   
   .playersGrid {
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 20px;
+    gap: 25px;
   }
   
   .header {
-    padding: 20px 30px;
+    padding: 25px 35px;
   }
   
   .roomInfo h1 {
