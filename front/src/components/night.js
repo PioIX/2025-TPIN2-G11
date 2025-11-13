@@ -36,48 +36,57 @@ export default function Night({
         setAlivePlayers(alive);
     }, [players]);
 
-    const isLobizon = role === 'lobizón' || role === 'lobizon';
+
+    const isLobizon = role === 'Lobizón';
     const canVote = isLobizon && players.find(p => p.username === username)?.isAlive;
 
+    console.log("Night - Estado del jugador:", {
+        username,
+        role,
+        isLobizon,
+        canVote,
+        isAlive: players.find(p => p.username === username)?.isAlive
+    });
+
     useEffect(() => {
-    if (nightVictim && isNight) {
-        console.log("Noche completada - Iniciando transición a día...");
+        if (nightVictim && isNight) {
+            console.log("Noche completada - Iniciando transición a día...");
 
-        if (transitionTimeoutRef.current) {
-            clearTimeout(transitionTimeoutRef.current);
-        }
+            if (transitionTimeoutRef.current) {
+                clearTimeout(transitionTimeoutRef.current);
+            }
 
-        setIsOpenNightModal(false);
-        setIsOpenNightTieBreak(false);
-
-        transitionTimeoutRef.current = setTimeout(() => {
-            console.log(" Mostrando resultado de la noche...");
+            setIsOpenNightModal(false);
+            setIsOpenNightTieBreak(false);
 
             transitionTimeoutRef.current = setTimeout(() => {
-                console.log("Mostrando transición a día...");
-                setShowDayTransition(true);
+                console.log(" Mostrando resultado de la noche...");
 
                 transitionTimeoutRef.current = setTimeout(() => {
-                    console.log("Llamando a startDay...");
-                    setShowDayTransition(false);
+                    console.log("Mostrando transición a día...");
+                    setShowDayTransition(true);
 
-                    if (startDay && typeof startDay === 'function') {
-                        startDay(); 
-                    } else {
-                        console.error(" startDay no es una función válida");
-                        setIsNight(false);
-                    }
-                }, 2000);
-            }, 3000);
-        }, 500);
-    }
+                    transitionTimeoutRef.current = setTimeout(() => {
+                        console.log("Llamando a startDay...");
+                        setShowDayTransition(false);
 
-    return () => {
-        if (transitionTimeoutRef.current) {
-            clearTimeout(transitionTimeoutRef.current);
+                        if (startDay && typeof startDay === 'function') {
+                            startDay(); 
+                        } else {
+                            console.error(" startDay no es una función válida");
+                            setIsNight(false);
+                        }
+                    }, 2000);
+                }, 3000);
+            }, 500);
         }
-    };
-}, [nightVictim, isNight, startDay, setIsNight, setIsOpenNightModal, setIsOpenNightTieBreak]);;
+
+        return () => {
+            if (transitionTimeoutRef.current) {
+                clearTimeout(transitionTimeoutRef.current);
+            }
+        };
+    }, [nightVictim, isNight, startDay, setIsNight, setIsOpenNightModal, setIsOpenNightTieBreak]);
 
     useEffect(() => {
         if (!isNight) {
@@ -95,11 +104,10 @@ export default function Night({
     const getAttackablePlayers = () => {
         return alivePlayers.filter(player => {
             const isOtherPlayer = player.username !== username;
-            const isNotLobizon = player.role !== 'lobizón' && player.role !== 'lobizon';
+            const isNotLobizon = player.role !== 'Lobizón';
             return isOtherPlayer && isNotLobizon && player.isAlive;
         });
     };
-
 
     if (!isNight) {
         console.log("Night component - isNight es false, no renderizar");
@@ -114,7 +122,8 @@ export default function Night({
         username,
         alivePlayersCount: alivePlayers.length,
         nightVictim,
-        showDayTransition
+        showDayTransition,
+        attackablePlayers: getAttackablePlayers().length
     });
 
     return (

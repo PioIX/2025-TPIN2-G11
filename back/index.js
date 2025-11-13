@@ -52,12 +52,10 @@ const gameStates = {
 // Array para almacenar salas en memoria
 const rooms = [];
 
-// Helper functions
 function assignRandomRoles(players) {
   const shuffledArray = [...players];
   let currentIndex = shuffledArray.length;
 
-  // Algoritmo Fisher-Yates
   while (currentIndex !== 0) {
     const randomIndex = Math.floor(Math.random() * currentIndex);
     currentIndex--;
@@ -69,30 +67,26 @@ function assignRandomRoles(players) {
 
   const roles = [
     "Palermitano", "Conurbanense", "Conurbanense", "Medium",
-    "Tarotista", "Lobizón", "Palermitano", "Lobizón",
-    "Viuda negra", "Random1", "Conurbanense", "Lobizón",
+    "Tarotista", "Lobizón", "Palermitano", "Lobizón", // Cambiado a "Lobizón" con acento
+    "Viuda negra", "Random1", "Conurbanense", "Lobizón", // Cambiado a "Lobizón" con acento
     "Palermitano", "Random2", "Conurbanense", "Palermitano"
   ];
 
   const randomPool = ["Pombero", "Jubilado", "Chamán"];
 
-  // Si hay más de 13 jugadores, agregar Colectivero
   if (players.length > 13) {
     randomPool.push("Colectivero");
   }
 
   const usedRandomRoles = [];
 
-  // Asignar roles a los jugadores mezclados
   const playersWithRoles = shuffledArray.map((player, i) => {
     let role = roles[i];
 
     if (role === "Random1" || role === "Random2") {
       if (randomPool.length === 0) {
-        // Si no hay roles en el pool, asignar uno por defecto
         role = "Palermitano";
       } else {
-        // Seleccionar rol aleatorio del pool
         const randomIndex = Math.floor(Math.random() * randomPool.length);
         role = randomPool[randomIndex];
         usedRandomRoles.push(role);
@@ -102,14 +96,14 @@ function assignRandomRoles(players) {
 
     return {
       ...player,
-      role: role.toLowerCase(), // Convertir a minúsculas para consistencia
+      role: role,
       isAlive: true,
       votesReceived: 0,
       wasProtected: false
     };
   });
 
-  console.log("Roles asignados con sistema random:", playersWithRoles.map(p => ({
+  console.log("Roles asignados:", playersWithRoles.map(p => ({
     username: p.username,
     role: p.role
   })));
@@ -117,7 +111,6 @@ function assignRandomRoles(players) {
   return playersWithRoles;
 }
 
-// Función assignRoles modificada
 function assignRoles(room) {
   const updatedPlayers = assignRandomRoles(room.players);
 
@@ -133,13 +126,6 @@ function assignRoles(room) {
   };
 }
 
-function countVotes(votes) {
-  const count = {};
-  Object.values(votes).forEach(socketId => {
-    count[socketId] = (count[socketId] || 0) + 1;
-  });
-  return count;
-}
 
 app.get('/', function (req, res) {
   res.status(200).send({
@@ -1148,26 +1134,28 @@ io.on("connection", (socket) => {
         socket.emit("roomError", "La sala no existe");
         return;
       }
-
-      // Cambiar estado a noche
+      
       room.state = gameStates.NOCHE_LOBIZONES;
-      room.nightVotes = {}; // Limpiar votos de noche anteriores
+      room.nightVotes = {}; 
 
       console.log(" Noche iniciada. Notificando a todos los jugadores...");
 
-      // Notificar a todos que comienza la noche
       io.to(code).emit("nightStarted", {
         message: "Cae la noche en Castro Barros...",
         roomCode: code
       });
 
-      // Abrir el modal de votación solo para lobizones
-      const lobizones = room.players.filter(p => p.role === 'lobizón' && p.isAlive);
+      const lobizones = room.players.filter(p => p.role === 'Lobizón' && p.isAlive);
       console.log(` Lobizones que deben votar: ${lobizones.map(l => l.username).join(', ')}`);
 
       lobizones.forEach(lobizon => {
+        console.log(` Enviando openNightModal a: ${lobizon.username} (socket: ${lobizon.socketId})`);
         io.to(lobizon.socketId).emit("openNightModal");
       });
+
+      if (lobizones.length === 0) {
+        console.log(" ADVERTENCIA: No hay lobizones vivos para votar");
+      }
 
     } catch (error) {
       console.error(" Error en startNight:", error);
@@ -1186,17 +1174,17 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // Verificar que el votante sea un lobizón y esté vivo
-      const voterPlayer = room.players.find(p => p.username === voter && p.isAlive && p.role === 'lobizón');
+      // Verificar que el votante sea un Lobizón y esté vivo
+      const voterPlayer = room.players.find(p => p.username === voter && p.isAlive && p.role === 'Lobizón');
       if (!voterPlayer) {
-        socket.emit("roomError", "No eres un lobizón o no estás vivo");
+        socket.emit("roomError", "No eres un Lobizón o no estás vivo");
         return;
       }
 
-      // Verificar que el candidato esté en la sala y esté vivo y NO sea lobizón
-      const candidatePlayer = room.players.find(p => p.username === candidate && p.isAlive && p.role !== 'lobizón');
+      // Verificar que el candidato esté en la sala y esté vivo y NO sea Lobizón
+      const candidatePlayer = room.players.find(p => p.username === candidate && p.isAlive && p.role !== 'Lobizón');
       if (!candidatePlayer) {
-        socket.emit("roomError", "Candidato no encontrado, no está vivo o es lobizón");
+        socket.emit("roomError", "Candidato no encontrado, no está vivo o es Lobizón");
         return;
       }
 
@@ -1205,7 +1193,7 @@ io.on("connection", (socket) => {
         room.nightVotes = {};
       }
 
-      // Verificar si el lobizón ya votó
+      // Verificar si el Lobizón ya votó
       if (room.nightVotes[voter]) {
         console.log(` ${voter} intentó votar nuevamente en la noche`);
         socket.emit("alreadyVotedNight", { voter, previousVote: room.nightVotes[voter] });
@@ -1231,7 +1219,7 @@ io.on("connection", (socket) => {
       console.log("Conteo actual de votos nocturnos:", voteCount);
 
       // Notificar a todos los lobizones sobre la actualización de votos
-      const aliveLobizones = room.players.filter(p => p.role === 'lobizón' && p.isAlive);
+      const aliveLobizones = room.players.filter(p => p.role === 'Lobizón' && p.isAlive);
       aliveLobizones.forEach(lobizon => {
         io.to(lobizon.socketId).emit("nightVoteUpdate", {
           votes: voteCount,
@@ -1303,10 +1291,10 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // Verificar que el votante sea un lobizón y esté vivo
-      const voterPlayer = room.players.find(p => p.username === voter && p.isAlive && p.role === 'lobizón');
+      // Verificar que el votante sea un Lobizón y esté vivo
+      const voterPlayer = room.players.find(p => p.username === voter && p.isAlive && p.role === 'Lobizón');
       if (!voterPlayer) {
-        socket.emit("roomError", "No eres un lobizón o no estás vivo");
+        socket.emit("roomError", "No eres un Lobizón o no estás vivo");
         return;
       }
 
@@ -1321,7 +1309,7 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // Verificar si el lobizón ya votó en el desempate
+      // Verificar si el Lobizón ya votó en el desempate
       if (room.nightTieBreakVotes[voter]) {
         socket.emit("alreadyVotedNight", { voter, previousVote: room.nightTieBreakVotes[voter] });
         return;
@@ -1340,7 +1328,7 @@ io.on("connection", (socket) => {
       console.log("Conteo actual de votos de desempate nocturno:", tieBreakVoteCount);
 
       // Notificar a los lobizones sobre la actualización de votos de desempate
-      const aliveLobizones = room.players.filter(p => p.role === 'lobizón' && p.isAlive);
+      const aliveLobizones = room.players.filter(p => p.role === 'Lobizón' && p.isAlive);
       aliveLobizones.forEach(lobizon => {
         io.to(lobizon.socketId).emit("nightTieBreakUpdate", {
           votes: tieBreakVoteCount,
@@ -1394,7 +1382,7 @@ io.on("connection", (socket) => {
     io.to(room.code).emit("nightResult", {
       victim: victim,
       votes: votes,
-      totalVoters: room.players.filter(p => p.role === 'lobizón' && p.isAlive).length
+      totalVoters: room.players.filter(p => p.role === 'Lobizón' && p.isAlive).length
     });
 
     room.nightVotes = {};

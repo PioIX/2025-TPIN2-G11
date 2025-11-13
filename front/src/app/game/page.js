@@ -41,7 +41,7 @@ export default function Game() {
   const [hasVotedNight, setHasVotedNight] = useState(false);
   const [nightTieBreakData, setNightTieBreakData] = useState(null);
   const [isOpenNightTieBreak, setIsOpenNightTieBreak] = useState(false);
-  const [gameWinner, setGameWinner] = useState(null);
+  const [winner, setWinner] = useState([]);
 
   function checkWinner() {
     if (!players || players.length === 0) {
@@ -50,16 +50,13 @@ export default function Game() {
     }
 
     const alivePlayers = players.filter(p => p.isAlive);
-    console.log(alivePlayers)
+    console.log("Jugadores vivos:", alivePlayers.map(p => ({ username: p.username, role: p.role, isAlive: p.isAlive })));
 
-    const aliveLobizones = alivePlayers.filter(p =>
-      p.role === 'lobizón' || p.role === 'lobizon'
-    );
-    const aliveVillagers = alivePlayers.filter(p =>
-      p.role !== 'lobizón' && p.role !== 'lobizon'
-    );
+    const aliveLobizones = alivePlayers.filter(p => p.role === 'Lobizón');
+    console.log("lobizones vivos:", aliveLobizones.map(p => p.username));
 
-    console.log(`AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA villagers: ${p.role} `)
+    const aliveVillagers = alivePlayers.filter(p => p.role !== 'Lobizón');
+    console.log("aldeanos vivos:", aliveVillagers.map(p => p.username));
 
     console.log("  Verificando ganador:", {
       totalJugadores: players.length,
@@ -96,13 +93,13 @@ export default function Game() {
 
     if (alivePlayers.length === 1) {
       const lastPlayer = alivePlayers[0];
-      const isLobizon = lastPlayer.role === 'lobizón' || lastPlayer.role === 'lobizon';
+      const isLobizon = lastPlayer.role === 'Lobizón';
       console.log(`¡Solo queda 1 jugador! ${lastPlayer.username} (${isLobizon ? 'Lobizón' : 'Aldeano'})`);
 
       return {
         winner: isLobizon ? "Lobizones" : "Aldeanos",
         message: isLobizon
-          ? `¡${lastPlayer.username} como lobizón ha devorado a la aldea!`
+          ? `¡${lastPlayer.username} como Lobizón ha devorado a la aldea!`
           : `¡${lastPlayer.username} ha sobrevivido como aldeano!`,
         details: {
           jugadorFinal: lastPlayer.username,
@@ -116,7 +113,6 @@ export default function Game() {
   }
 
   const joinedARoom = useRef(false);
-
 
 
   useEffect(() => {
@@ -144,7 +140,19 @@ export default function Game() {
     const setupSocketListeners = () => {
       socket.on("usersInRoom", (playersList) => {
         console.log("Jugadores en sala recibidos:", playersList);
-        setPlayers(playersList);
+        if (gameStarted && players.length > 0) {
+          const playersWithRoles = playersList.map(newPlayer => {
+            const existingPlayer = players.find(p => p.username === newPlayer.username);
+            return {
+              ...newPlayer,
+              role: existingPlayer ? existingPlayer.role : newPlayer.role
+            };
+          });
+          setPlayers(playersWithRoles);
+        } else {
+          setPlayers(playersList);
+        }
+
         setCreatedRoom(true);
       });
 
@@ -168,6 +176,17 @@ export default function Game() {
         }
       });
 
+      socket.on("openNightModal", () => {
+        console.log(" Abriendo modal de votación nocturna desde backend");
+        console.log(" Estado del jugador:", {
+          username,
+          role,
+          isLobizon: role === 'Lobizón',
+          isAlive: players.find(p => p.username === username)?.isAlive
+        });
+        setIsOpenNightModal(true);
+      });
+
       socket.on("gameStarted", (data) => {
         console.log("Juego iniciado recibido:", data);
         setGameStarted(true);
@@ -177,6 +196,13 @@ export default function Game() {
         setGame(true);
 
         if (data.players) {
+          setPlayers(data.players);
+
+          console.log("roles recibidos:", data.players.map(p => ({
+            username: p.username,
+            role: p.role
+          })));
+
           const currentPlayer = data.players.find(p => p.username === userToUse);
           if (currentPlayer) {
             setRole(currentPlayer.role);
@@ -206,7 +232,8 @@ export default function Game() {
         setPlayers(prevPlayers =>
           prevPlayers.map(player => ({
             ...player,
-            isMayor: player.username === data.mayor
+            isMayor: player.username === data.mayor,
+            mayorVotes: 0
           }))
         );
 
@@ -308,11 +335,6 @@ export default function Game() {
         setIsNight(true);
         setNightVictim(null);
         setHasVotedNight(false);
-      });
-
-      socket.on("openNightModal", () => {
-        console.log(" Abriendo modal de votación nocturna desde backend");
-        setIsOpenNightModal(true);
       });
 
       socket.on("nightVoteRegistered", (data) => {
@@ -522,15 +544,14 @@ export default function Game() {
   };
 
   function startDay() {
-
     console.log("startDay ejecutándose - Verificando estado del juego...");
 
-    const winner = checkWinner(players, role);
+    const winner = checkWinner();
 
-    if (winner!=null) {
-      return (
-        <FindeJuego/>
-      );
+    if (winner) {
+      console.log("¡Hay un ganador!", winner);
+      setWinner(winner);
+      return;
     } else {
       console.log("El juego continúa - Cambiando a día");
       setIsNight(false);
