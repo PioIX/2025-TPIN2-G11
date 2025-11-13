@@ -206,6 +206,7 @@ export default function Game() {
         }
       });
 
+      // En el useEffect de sockets, modificar el evento "lynchResult"
       socket.on("lynchResult", (data) => {
         console.log(" 🔨 Resultado del linchamiento:", data);
         setLynchedPlayer(data.lynched);
@@ -213,7 +214,6 @@ export default function Game() {
         setLynchTieBreakData(null);
         setHasVotedForLynch(false);
 
-        
         setPlayers(prevPlayers =>
           prevPlayers.map(player => ({
             ...player,
@@ -223,13 +223,27 @@ export default function Game() {
 
         if (data.lynched) {
           alert(`¡${data.lynched} ha sido linchado!`);
-         
+
+          // NUEVO: Esperar y luego iniciar la noche automáticamente
           setTimeout(() => {
             setIsOpenLynchModal(false);
+            setLynchedPlayer(null);
+
+            console.log(" Linchamiento completado - Iniciando noche...");
+            if (socket && roomCode) {
+              socket.emit("startNight", { code: roomCode });
+            }
           }, 3000);
         } else {
           alert("No se linchó a nadie.");
-          setIsOpenLynchModal(false);
+
+          setTimeout(() => {
+            setIsOpenLynchModal(false);
+            console.log("Sin linchamiento - Iniciando noche...");
+            if (socket && roomCode) {
+              socket.emit("startNight", { code: roomCode });
+            }
+          }, 3000);
         }
       });
 
@@ -291,16 +305,15 @@ export default function Game() {
       });
 
       socket.on("nightResult", (data) => {
-        console.log(" 🔪 Resultado de la noche:", data);
+        console.log(" Resultado de la noche recibido:", data);
+
         setNightVictim(data.victim);
-        setIsOpenNightModal(false);
-        setIsOpenNightTieBreak(false);
-        setNightTieBreakData(null);
+
         setHasVotedNight(false);
+        setNightTieBreakData(null);
 
         setPlayers(prevPlayers => {
           const updatedPlayers = prevPlayers.map(player => {
-
             const updatedPlayer = {
               ...player,
               nightVotes: 0,
@@ -308,7 +321,7 @@ export default function Game() {
             };
 
             if (player.username === data.victim) {
-              console.log(` 🚨 Marcando como muerto a: ${player.username}`);
+              console.log(` Marcando como muerto a: ${player.username}`);
               updatedPlayer.isAlive = false;
             }
 
@@ -323,13 +336,7 @@ export default function Game() {
           return updatedPlayers;
         });
 
-
-        setTimeout(() => {
-          console.log(" 🕐 Abriendo modal de linchamiento después de noche...");
-          setIsOpenLynchModal(true);
-        }, 2000);
       });
-
 
       socket.on("alreadyVotedNight", (data) => {
         console.log(" Ya habías votado en la noche:", data);
@@ -513,19 +520,27 @@ export default function Game() {
   };
 
   const startDay = () => {
-    console.log(" 🌅 Iniciando día después de la noche");
+    console.log(" 🌅 startDay ejecutándose - Cambiando a día");
+
+    setIsNight(false);
+
+    setNightVictim(null);
+    setHasVotedNight(false);
+    setNightTieBreakData(null);
+    setIsOpenNightTieBreak(false);
+    setIsOpenNightModal(false);
+
     setTimeout(() => {
+      console.log(" Abriendo modal de linchamiento desde startDay");
       setIsOpenLynchModal(true);
-    }, 1000);
+    }, 500);
   };
 
-  // Helper functions - ADAPTADAS PARA EL FRONTEND
   const assignRandomRoles = (players) => {
-    // Crear una copia del array de jugadores
+
     const playersArray = [...players];
     let currentIndex = playersArray.length;
 
-    // Algoritmo Fisher-Yates para mezclar jugadores
     while (currentIndex !== 0) {
       const randomIndex = Math.floor(Math.random() * currentIndex);
       currentIndex--;
@@ -638,7 +653,7 @@ export default function Game() {
               setIsOpenNightTieBreak={setIsOpenNightTieBreak}
               voteNightTieBreak={voteNightTieBreak}
               startDay={startDay}
-              
+
             />
           ) : (
             <Day
@@ -659,6 +674,7 @@ export default function Game() {
               decideLynchTieBreak={decideLynchTieBreak}
               lynchedPlayer={lynchedPlayer}
               isOpenLynchModal={isOpenLynchModal}
+              setIsOpenLynchModal={setIsOpenLynchModal}
               closeLynchModal={closeLynchModal}
             />
           )}

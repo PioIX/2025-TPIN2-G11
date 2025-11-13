@@ -1,6 +1,6 @@
 "use client";
 import { useSocket } from "../hooks/useSocket.js";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styles from "../components/night.module.css";
 import Modal from "./modal.js";
 
@@ -23,7 +23,7 @@ export default function Night({
 }) {
     const [showDayTransition, setShowDayTransition] = useState(false);
     const [alivePlayers, setAlivePlayers] = useState([]);
-    const [transitionStarted, setTransitionStarted] = useState(false);
+    const transitionTimeoutRef = useRef(null);
 
     useEffect(() => {
         console.log("  Actualizando jugadores vivos en Night:",
@@ -40,63 +40,57 @@ export default function Night({
     const canVote = isLobizon && players.find(p => p.username === username)?.isAlive;
 
     useEffect(() => {
-        console.log(" Debug Night - condiciones:", {
-            isNight,
-            isLobizon,
-            canVote,
-            nightVictim,
-            isOpenNightModal,
-            role,
-            username,
-            transitionStarted
-        });
-
-        if (isNight && isLobizon && canVote && !nightVictim && !isOpenNightModal && !transitionStarted) {
-            console.log("✅ Condiciones cumplidas - abriendo modal de nightKill");
-
-            const timer = setTimeout(() => {
-                console.log("🚀 Abriendo modal de votación nocturna para:", username);
-                setIsOpenNightModal(true);
-            }, 1500);
-
-            return () => clearTimeout(timer);
-        }
-    }, [isNight, isLobizon, canVote, nightVictim, isOpenNightModal, username, setIsOpenNightModal, transitionStarted]);
-
-    // Efecto PRINCIPAL para manejar la transición automática
-    useEffect(() => {
-        if (nightVictim && isNight && !transitionStarted) {
-            console.log("🌅 Iniciando transición automática de noche a día...");
-            setTransitionStarted(true);
+        if (nightVictim && isNight) {
+            console.log("Noche completada - Iniciando transición a día...");
             
-            // Cerrar cualquier modal abierto
+            if (transitionTimeoutRef.current) {
+                clearTimeout(transitionTimeoutRef.current);
+            }
+
             setIsOpenNightModal(false);
             setIsOpenNightTieBreak(false);
 
-            // Esperar 3 segundos para mostrar el resultado
-            const resultTimer = setTimeout(() => {
-                console.log("🔄 Mostrando transición...");
-                setShowDayTransition(true);
-
-                // Después de la transición, cambiar a día
-                const transitionTimer = setTimeout(() => {
-                    console.log("🏙️ Cambiando a día...");
-                    setIsNight(false);
-                    setShowDayTransition(false);
-                    setTransitionStarted(false);
+            transitionTimeoutRef.current = setTimeout(() => {
+                console.log(" Mostrando resultado de la noche...");
+                
+                transitionTimeoutRef.current = setTimeout(() => {
+                    console.log("Mostrando transición a día...");
+                    setShowDayTransition(true);
                     
-                    if (startDay) {
-                        console.log("🚀 Llamando a startDay...");
-                        startDay();
-                    }
-                }, 3000); // Duración de la transición visual
-
-                return () => clearTimeout(transitionTimer);
-            }, 3000); // Tiempo para mostrar el resultado
-
-            return () => clearTimeout(resultTimer);
+                    transitionTimeoutRef.current = setTimeout(() => {
+                        console.log("Llamando a startDay...");
+                        setShowDayTransition(false);
+ 
+                        if (startDay && typeof startDay === 'function') {
+                            startDay();
+                        } else {
+                            console.error(" startDay no es una función válida");
+                            setIsNight(false);
+                        }
+                    }, 2000); 
+                }, 3000); 
+            }, 500); 
         }
-    }, [nightVictim, isNight, transitionStarted, setIsNight, startDay, setIsOpenNightModal, setIsOpenNightTieBreak]);
+
+        return () => {
+            if (transitionTimeoutRef.current) {
+                clearTimeout(transitionTimeoutRef.current);
+            }
+        };
+    }, [nightVictim, isNight, startDay, setIsNight, setIsOpenNightModal, setIsOpenNightTieBreak]);
+
+    useEffect(() => {
+        if (!isNight) {
+            console.log(" Limpiando estados de Night - Día activo");
+            setShowDayTransition(false);
+            setIsOpenNightModal(false);
+            setIsOpenNightTieBreak(false);
+            
+            if (transitionTimeoutRef.current) {
+                clearTimeout(transitionTimeoutRef.current);
+            }
+        }
+    }, [isNight]);
 
     const getAttackablePlayers = () => {
         return alivePlayers.filter(player => {
@@ -106,8 +100,13 @@ export default function Night({
         });
     };
 
-    // Debug en render
-    console.log("🎯 Night Render - estado actual:", {
+   
+    if (!isNight) {
+        console.log("Night component - isNight es false, no renderizar");
+        return null;
+    }
+
+    console.log("Night Render - estado actual:", {
         isOpenNightModal,
         isLobizon,
         canVote,
@@ -115,11 +114,8 @@ export default function Night({
         username,
         alivePlayersCount: alivePlayers.length,
         nightVictim,
-        transitionStarted,
         showDayTransition
     });
-
-    if (!isNight) return null;
 
     return (
         <>
@@ -128,6 +124,7 @@ export default function Night({
                     <div className={styles.dayTransition}>
                         <h1>Amaneciendo...</h1>
                         <p>La noche ha terminado</p>
+                        <div className={styles.sun}>☀️</div>
                     </div>
                 )}
 
@@ -141,6 +138,7 @@ export default function Night({
                         </div>
                         <div className={styles.transitionInfo}>
                             <p>Preparando el nuevo día...</p>
+                            <div className={styles.loadingSpinner}></div>
                         </div>
                     </div>
                 )}
@@ -216,7 +214,6 @@ export default function Night({
                 )}
             </div>
 
-            {/* Modal para votación nocturna - solo para lobizones vivos */}
             {isOpenNightModal && isLobizon && canVote && (
                 <Modal
                     isOpen={isOpenNightModal}
@@ -229,7 +226,6 @@ export default function Night({
                 />
             )}
 
-            {/* Modal para desempate nocturno - solo para lobizones vivos */}
             {isOpenNightTieBreak && nightTieBreakData && isLobizon && canVote && (
                 <Modal
                     isOpen={isOpenNightTieBreak}

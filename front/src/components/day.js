@@ -23,6 +23,7 @@ export default function Day({
     decideLynchTieBreak,
     lynchedPlayer,
     isOpenLynchModal,
+    setIsOpenLynchModal,
     closeLynchModal
 }) {
     const [isOpenMayor, setIsOpenMayor] = useState(false);
