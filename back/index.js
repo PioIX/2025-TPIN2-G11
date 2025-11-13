@@ -133,30 +133,6 @@ function assignRoles(room) {
     };
 }
 
-function checkWinner(room) {
-  const lobizonesAlive = room.players.filter(p => 
-    (p.role === 'lobizón' || p.role === 'lobizon') && p.isAlive
-  );
-  const aliveVillagers = room.players.filter(p =>
-    p.role !== 'lobizón' && p.role !== 'lobizon' && p.isAlive
-  );
-
-  console.log(` Verificando ganador: ${lobizonesAlive.length} lobizones vivos, ${aliveVillagers.length} aldeanos vivos`);
-
-  if (lobizonesAlive.length === 0) {
-    return {
-      winner: 'aldeanos',
-      message: '¡Los aldeanos han ganado! Todos los lobizones han sido eliminados.'
-    };
-  } else if (lobizonesAlive.length >= aliveVillagers.length) {
-    return {
-      winner: 'lobizones', 
-      message: '¡Los lobizones han ganado! Han superado en número a los aldeanos.'
-    };
-  }
-  return null;
-}
-
 function countVotes(votes) {
   const count = {};
   Object.values(votes).forEach(socketId => {
@@ -1145,9 +1121,8 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Función para finalizar la votación de linchamiento
+
   function finalizeLynchVote(room, lynchedPlayer, votes) {
-    // Marcar al jugador como no vivo
     const player = room.players.find(p => p.username === lynchedPlayer);
     if (player) {
       player.isAlive = false;
@@ -1164,14 +1139,12 @@ io.on("connection", (socket) => {
 
     room.lynchVotes = {};
 
-    const winner = checkWinner(room);
     if (winner) {
       room.winner = winner;
       io.to(room.code).emit("gameOver", winner);
     }
   }
 
-  // Evento para iniciar la noche
   socket.on("startNight", ({ code }) => {
     try {
       console.log(" Iniciando noche en sala:", code);
@@ -1414,9 +1387,8 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Función para finalizar la votación nocturna
+  
   function finalizeNightVote(room, victim, votes) {
-    // Marcar al jugador como no vivo
     const player = room.players.find(p => p.username === victim);
     if (player) {
       player.isAlive = false;
@@ -1435,7 +1407,6 @@ io.on("connection", (socket) => {
     room.nightTieBreakVotes = {};
     room.nightTieBreakCandidates = null;
 
-    const winner = checkWinner(room);
     if (winner) {
       room.winner = winner;
       io.to(room.code).emit("gameOver", winner);

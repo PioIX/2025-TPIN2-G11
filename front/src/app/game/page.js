@@ -7,6 +7,7 @@ import Lobby from "@/components/lobby.js";
 import Day from "@/components/day.js";
 import Modal from "@/components/modal.js";
 import Night from "@/components/night.js";
+import FindeJuego from "@/components/finDeJuego.js";
 
 export default function Game() {
   const [players, setPlayers] = useState([]);
@@ -78,7 +79,6 @@ export default function Game() {
         console.error(" Error de sala recibido:", message);
         setErrorMessage(message);
 
-        // SOLO redirigir para errores realmente críticos
         const criticalErrors = [
           "La sala no existe",
           "cerró la sala",
@@ -95,18 +95,14 @@ export default function Game() {
           alert("Error: " + message);
           setTimeout(() => router.push("/"), 3000);
         } else {
-          // Para errores de juego normales, solo mostrar alerta
           console.log(" Error no crítico - mostrando alerta:", message);
           alert("Error: " + message);
-          // NO redirigir
         }
       });
 
-      // AGREGAR manejo específico para errores de votación
       socket.on("voteError", (message) => {
         console.log(" Error de votación:", message);
         alert("Votación: " + message);
-        // Nunca redirigir por errores de votación
       });
 
       socket.on("gameStarted", (data) => {
@@ -519,22 +515,39 @@ export default function Game() {
     }
   };
 
-  const startDay = () => {
-    console.log(" 🌅 startDay ejecutándose - Cambiando a día");
+  function startDay() {
+    let amountLobizones = 0;
+    let amountVillagers = 0;
 
-    setIsNight(false);
+    updatedPlayers.forEach(p => {
+      if (p.isAlive) {
+        if (p.role === 'lobizon') {
+          amountLobizones += 1;
+        } else {
+          amountVillagers += 1;
+        }
+      }
+    });
 
-    setNightVictim(null);
-    setHasVotedNight(false);
-    setNightTieBreakData(null);
-    setIsOpenNightTieBreak(false);
-    setIsOpenNightModal(false);
+    console.log("startDay ejecutándose - Cambiando a día");
+    console.log(`Lobizones vivos: ${amountLobizones}, No lobizones vivos: ${amountVillagers}`);
 
-    setTimeout(() => {
-      console.log(" Abriendo modal de linchamiento desde startDay");
-      setIsOpenLynchModal(true);
-    }, 500);
-  };
+    if (amountLobizones >= amountVillagers) {
+      <FindeJuego />;
+    } else {
+      setIsNight(false);
+      setNightVictim(null);
+      setHasVotedNight(false);
+      setNightTieBreakData(null);
+      setIsOpenNightTieBreak(false);
+      setIsOpenNightModal(false);
+
+      setTimeout(() => {
+        console.log("Abriendo modal de linchamiento desde startDay");
+        setIsOpenLynchModal(true);
+      }, 500);
+    }
+  }
 
   const assignRandomRoles = (players) => {
 
@@ -550,39 +563,36 @@ export default function Game() {
       ];
     }
 
-    // Definir los roles base según la cantidad de jugadores
     const getRolesForPlayerCount = (count) => {
       const baseRoles = {
         6: ["Palermitano", "Conurbanense", "Conurbanense", "Medium", "Tarotista", "Lobizón"],
         7: ["Palermitano", "Conurbanense", "Conurbanense", "Medium", "Tarotista", "Lobizón", "Lobizón"],
         8: ["Palermitano", "Conurbanense", "Conurbanense", "Medium", "Tarotista", "Lobizón", "Lobizón", "Viuda negra"],
-        // Puedes agregar más configuraciones para diferentes cantidades de jugadores
+
       };
 
-      return baseRoles[count] || baseRoles[6]; // Default a 6 jugadores
+      return baseRoles[count] || baseRoles[6];
     };
 
     const roles = getRolesForPlayerCount(players.length);
     const randomPool = ["Pombero", "Jubilado", "Chamán"];
 
-    // Si hay más de 13 jugadores, agregar Colectivero al pool random
+
     if (players.length > 13) {
       randomPool.push("Colectivero");
     }
 
     const usedRandomRoles = [];
 
-    // Asignar roles a los jugadores mezclados
-    const playersWithRoles = playersArray.map((player, i) => {
-      let role = roles[i] || "Palermitano"; // Rol por defecto si no hay suficiente
 
-      // Manejar roles random
+    const playersWithRoles = playersArray.map((player, i) => {
+      let role = roles[i] || "Palermitano";
+
+
       if (role === "Random1" || role === "Random2") {
         if (randomPool.length === 0) {
-          // Si no hay roles en el pool, asignar uno por defecto
           role = "Palermitano";
         } else {
-          // Seleccionar rol aleatorio del pool
           const randomIndex = Math.floor(Math.random() * randomPool.length);
           role = randomPool[randomIndex];
           usedRandomRoles.push(role);
@@ -592,7 +602,7 @@ export default function Game() {
 
       return {
         ...player,
-        role: role.toLowerCase(), // Convertir a minúsculas para consistencia
+        role: role.toLowerCase(),
         isAlive: true,
         votesReceived: 0,
         wasProtected: false
@@ -607,7 +617,6 @@ export default function Game() {
     return playersWithRoles;
   };
 
-  // Función assignRoles modificada para frontend
   const assignRoles = (players) => {
     const updatedPlayers = assignRandomRoles(players);
 
