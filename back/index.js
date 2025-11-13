@@ -40,6 +40,12 @@ io.use((socket, next) => {
   sessionMiddleware(socket.request, {}, next);
 });
 
+app.get('/', function (req, res) {
+  res.status(200).send({
+    message: 'GET Home route working fine!'
+  });
+});
+
 const gameStates = {
   INICIO: "inicio",
   NOCHE_LOBIZONES: "noche_lobizones",
@@ -133,20 +139,6 @@ function assignRoles(room) {
     };
 }
 
-function countVotes(votes) {
-  const count = {};
-  Object.values(votes).forEach(socketId => {
-    count[socketId] = (count[socketId] || 0) + 1;
-  });
-  return count;
-}
-
-app.get('/', function (req, res) {
-  res.status(200).send({
-    message: 'GET Home route working fine!'
-  });
-});
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -196,7 +188,7 @@ app.get("/getSalas", async (req, res) => {
   }
 });
 
-// Endpoint de prueba para verificar la BD
+// Endpoint de prueba para verificar la BDD
 app.get("/test-db", async (req, res) => {
   try {
     const test = await realizarQuery("SELECT 1 as test");
@@ -283,7 +275,7 @@ app.post("/crearSalaBD", async (req, res) => {
       [code, userId, maxPlayers]
     );
 
-    console.log(" Sala creada exitosamente en BD, ID:", result.insertId);
+    console.log(" Sala creada exitosamente en BDD, ID:", result.insertId);
 
     res.json({
       success: true,

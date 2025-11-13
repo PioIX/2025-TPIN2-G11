@@ -521,7 +521,7 @@ export default function Game() {
 
     updatedPlayers.forEach(p => {
       if (p.isAlive) {
-        if (p.role === 'lobizon') {
+        if (p.role === 'lobizón') {
           amountLobizones += 1;
         } else {
           amountVillagers += 1;
