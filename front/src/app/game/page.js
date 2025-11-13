@@ -7,6 +7,7 @@ import Lobby from "@/components/lobby.js";
 import Day from "@/components/day.js";
 import Modal from "@/components/modal.js";
 import Night from "@/components/night.js";
+import FindeJuego from "@/components/finDeJuego.js";
 
 export default function Game() {
   const [players, setPlayers] = useState([]);
@@ -75,10 +76,33 @@ export default function Game() {
       });
 
       socket.on("roomError", (message) => {
-        console.error(" Error de sala:", message);
+        console.error(" Error de sala recibido:", message);
         setErrorMessage(message);
-        alert("Error: " + message);
-        setTimeout(() => router.push("/"), 3000);
+
+        const criticalErrors = [
+          "La sala no existe",
+          "cerró la sala",
+          "anfitrión abandonó",
+          "anfitrión se desconectó",
+          "sala está llena",
+          "No existe una sala activa"
+        ];
+
+        const isCritical = criticalErrors.some(error => message.includes(error));
+
+        if (isCritical) {
+          console.log(" Error crítico - redirigiendo a home");
+          alert("Error: " + message);
+          setTimeout(() => router.push("/"), 3000);
+        } else {
+          console.log(" Error no crítico - mostrando alerta:", message);
+          alert("Error: " + message);
+        }
+      });
+
+      socket.on("voteError", (message) => {
+        console.log(" Error de votación:", message);
+        alert("Votación: " + message);
       });
 
       socket.on("gameStarted", (data) => {
@@ -93,6 +117,9 @@ export default function Game() {
           const currentPlayer = data.players.find(p => p.username === userToUse);
           if (currentPlayer) {
             setRole(currentPlayer.role);
+
+
+            alert(`Tu rol es: ${currentPlayer.role}`);
           }
         }
       });
@@ -175,17 +202,44 @@ export default function Game() {
         }
       });
 
+
       socket.on("lynchResult", (data) => {
-        console.log(" Resultado del linchamiento:", data);
+        console.log(" 🔨 Resultado del linchamiento:", data);
         setLynchedPlayer(data.lynched);
         setIsOpenLynchTieBreak(false);
         setLynchTieBreakData(null);
         setHasVotedForLynch(false);
 
+        setPlayers(prevPlayers =>
+          prevPlayers.map(player => ({
+            ...player,
+            lynchVotes: 0
+          }))
+        );
+
         if (data.lynched) {
           alert(`¡${data.lynched} ha sido linchado!`);
+
+
+          setTimeout(() => {
+            setIsOpenLynchModal(false);
+            setLynchedPlayer(null);
+
+
+            console.log("Linchamiento completado - Iniciando noche...");
+            if (socket && roomCode) {
+              socket.emit("startNight", { code: roomCode });
+            }
+          }, 3000);
         } else {
           alert("No se linchó a nadie.");
+          setTimeout(() => {
+            setIsOpenLynchModal(false);
+            console.log("Sin linchamiento - Iniciando noche...");
+            if (socket && roomCode) {
+              socket.emit("startNight", { code: roomCode });
+            }
+          }, 3000);
         }
       });
 
@@ -216,7 +270,7 @@ export default function Game() {
       });
 
       socket.on("openNightModal", () => {
-        console.log("  Abriendo modal de votación nocturna");
+        console.log(" Abriendo modal de votación nocturna desde backend");
         setIsOpenNightModal(true);
       });
 
@@ -247,19 +301,37 @@ export default function Game() {
       });
 
       socket.on("nightResult", (data) => {
-        console.log(" 🔪 Resultado de la noche:", data);
-        setNightVictim(data.victim);
-        setIsOpenNightModal(false);
-        setIsOpenNightTieBreak(false);
-        setNightTieBreakData(null);
-        setHasVotedNight(false);
+        console.log(" Resultado de la noche recibido:", data);
 
-        setPlayers(prevPlayers =>
-          prevPlayers.map(player => ({
-            ...player,
-            isAlive: player.username === data.victim ? false : player.isAlive
-          }))
-        );
+        setNightVictim(data.victim);
+
+        setHasVotedNight(false);
+        setNightTieBreakData(null);
+
+        setPlayers(prevPlayers => {
+          const updatedPlayers = prevPlayers.map(player => {
+            const updatedPlayer = {
+              ...player,
+              nightVotes: 0,
+              lynchVotes: 0
+            };
+
+            if (player.username === data.victim) {
+              console.log(` Marcando como muerto a: ${player.username}`);
+              updatedPlayer.isAlive = false;
+            }
+
+            return updatedPlayer;
+          });
+
+          console.log(" Estado después de noche - Vivos:",
+            updatedPlayers.filter(p => p.isAlive).map(p => p.username));
+          console.log(" Estado después de noche - Muertos:",
+            updatedPlayers.filter(p => !p.isAlive).map(p => p.username));
+
+          return updatedPlayers;
+        });
+
       });
 
       socket.on("alreadyVotedNight", (data) => {
@@ -354,14 +426,50 @@ export default function Game() {
   };
 
   const voteLynch = (candidateUsername) => {
+
+    console.log("  Intentando votar por:", candidateUsername);
+    console.log(" Estado actual del jugador:", {
+      username,
+      isAlive: players.find(p => p.username === username)?.isAlive,
+      hasVoted: hasVotedForLynch
+    });
+
+    const currentPlayer = players.find(p => p.username === username);
+    if (!currentPlayer) {
+      alert("Error: No se encontró tu usuario en el juego");
+      return;
+    }
+
+    if (!currentPlayer.isAlive) {
+      alert("Error: No puedes votar porque estás muerto");
+      return;
+    }
+
+    const candidatePlayer = players.find(p => p.username === candidateUsername);
+    if (!candidatePlayer) {
+      alert("Error: El jugador seleccionado no existe");
+      return;
+    }
+
+    if (!candidatePlayer.isAlive) {
+      alert("Error: No puedes votar por un jugador muerto");
+      return;
+    }
+
     if (socket && roomCode && !hasVotedForLynch) {
-      console.log(` ${username} votando por linchar a ${candidateUsername}`);
+      console.log(`  ${username} votando por linchar a ${candidateUsername}`);
       socket.emit("voteLynch", {
         code: roomCode,
         voter: username,
         candidate: candidateUsername
       });
       setHasVotedForLynch(true);
+    } else {
+      console.log("  Condiciones no cumplidas para votar:", {
+        socket: !!socket,
+        roomCode: !!roomCode,
+        hasVoted: hasVotedForLynch
+      });
     }
   };
 
@@ -394,7 +502,6 @@ export default function Game() {
     }
   };
 
-
   const voteNightTieBreak = (candidateUsername) => {
     if (socket && roomCode && nightTieBreakData) {
       console.log(` 🐺 ${username} votando en desempate nocturno por ${candidateUsername}`);
@@ -408,11 +515,117 @@ export default function Game() {
     }
   };
 
-  const startDay = () => {
-    console.log(" 🌅 Iniciando día después de la noche");
-    setTimeout(() => {
-      setIsOpenLynchModal(true);
-    }, 1000);
+  function startDay() {
+    let amountLobizones = 0;
+    let amountVillagers = 0;
+
+    updatedPlayers.forEach(p => {
+      if (p.isAlive) {
+        if (p.role === 'lobizon') {
+          amountLobizones += 1;
+        } else {
+          amountVillagers += 1;
+        }
+      }
+    });
+
+    console.log("startDay ejecutándose - Cambiando a día");
+    console.log(`Lobizones vivos: ${amountLobizones}, No lobizones vivos: ${amountVillagers}`);
+
+    if (amountLobizones >= amountVillagers) {
+      <FindeJuego />;
+    } else {
+      setIsNight(false);
+      setNightVictim(null);
+      setHasVotedNight(false);
+      setNightTieBreakData(null);
+      setIsOpenNightTieBreak(false);
+      setIsOpenNightModal(false);
+
+      setTimeout(() => {
+        console.log("Abriendo modal de linchamiento desde startDay");
+        setIsOpenLynchModal(true);
+      }, 500);
+    }
+  }
+
+  const assignRandomRoles = (players) => {
+
+    const playersArray = [...players];
+    let currentIndex = playersArray.length;
+
+    while (currentIndex !== 0) {
+      const randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+      [playersArray[currentIndex], playersArray[randomIndex]] = [
+        playersArray[randomIndex],
+        playersArray[currentIndex],
+      ];
+    }
+
+    const getRolesForPlayerCount = (count) => {
+      const baseRoles = {
+        6: ["Palermitano", "Conurbanense", "Conurbanense", "Medium", "Tarotista", "Lobizón"],
+        7: ["Palermitano", "Conurbanense", "Conurbanense", "Medium", "Tarotista", "Lobizón", "Lobizón"],
+        8: ["Palermitano", "Conurbanense", "Conurbanense", "Medium", "Tarotista", "Lobizón", "Lobizón", "Viuda negra"],
+
+      };
+
+      return baseRoles[count] || baseRoles[6];
+    };
+
+    const roles = getRolesForPlayerCount(players.length);
+    const randomPool = ["Pombero", "Jubilado", "Chamán"];
+
+
+    if (players.length > 13) {
+      randomPool.push("Colectivero");
+    }
+
+    const usedRandomRoles = [];
+
+
+    const playersWithRoles = playersArray.map((player, i) => {
+      let role = roles[i] || "Palermitano";
+
+
+      if (role === "Random1" || role === "Random2") {
+        if (randomPool.length === 0) {
+          role = "Palermitano";
+        } else {
+          const randomIndex = Math.floor(Math.random() * randomPool.length);
+          role = randomPool[randomIndex];
+          usedRandomRoles.push(role);
+          randomPool.splice(randomIndex, 1);
+        }
+      }
+
+      return {
+        ...player,
+        role: role.toLowerCase(),
+        isAlive: true,
+        votesReceived: 0,
+        wasProtected: false
+      };
+    });
+
+    console.log("Roles asignados con sistema random:", playersWithRoles.map(p => ({
+      username: p.username,
+      role: p.role
+    })));
+
+    return playersWithRoles;
+  };
+
+  const assignRoles = (players) => {
+    const updatedPlayers = assignRandomRoles(players);
+
+    console.log("Roles asignados:", updatedPlayers.map(p => ({
+      username: p.username,
+      role: p.role
+    })));
+
+    return updatedPlayers;
   };
 
   return (
@@ -446,8 +659,10 @@ export default function Game() {
               hasVotedNight={hasVotedNight}
               nightTieBreakData={nightTieBreakData}
               isOpenNightTieBreak={isOpenNightTieBreak}
+              setIsOpenNightTieBreak={setIsOpenNightTieBreak}
               voteNightTieBreak={voteNightTieBreak}
               startDay={startDay}
+
             />
           ) : (
             <Day
@@ -468,6 +683,7 @@ export default function Game() {
               decideLynchTieBreak={decideLynchTieBreak}
               lynchedPlayer={lynchedPlayer}
               isOpenLynchModal={isOpenLynchModal}
+              setIsOpenLynchModal={setIsOpenLynchModal}
               closeLynchModal={closeLynchModal}
             />
           )}
