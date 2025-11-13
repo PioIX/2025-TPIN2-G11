@@ -24,7 +24,8 @@ export default function Day({
     lynchedPlayer,
     isOpenLynchModal,
     setIsOpenLynchModal,
-    closeLynchModal
+    closeLynchModal,
+    setLynchedPlayer
 }) {
     const [isOpenMayor, setIsOpenMayor] = useState(false);
     const [isOpen, setIsOpen] = useState(true);

@@ -54,83 +54,83 @@ const rooms = [];
 
 // Helper functions
 function assignRandomRoles(players) {
-    const shuffledArray = [...players];
-    let currentIndex = shuffledArray.length;
+  const shuffledArray = [...players];
+  let currentIndex = shuffledArray.length;
 
-    // Algoritmo Fisher-Yates
-    while (currentIndex !== 0) {
-        const randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex--;
-        [shuffledArray[currentIndex], shuffledArray[randomIndex]] = [
-            shuffledArray[randomIndex],
-            shuffledArray[currentIndex],
-        ];
-    }
-
-    const roles = [
-        "Palermitano", "Conurbanense", "Conurbanense", "Medium",
-        "Tarotista", "Lobizón", "Palermitano", "Lobizón",
-        "Viuda negra", "Random1", "Conurbanense", "Lobizón",
-        "Palermitano", "Random2", "Conurbanense", "Palermitano"
+  // Algoritmo Fisher-Yates
+  while (currentIndex !== 0) {
+    const randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [shuffledArray[currentIndex], shuffledArray[randomIndex]] = [
+      shuffledArray[randomIndex],
+      shuffledArray[currentIndex],
     ];
+  }
 
-    const randomPool = ["Pombero", "Jubilado", "Chamán"];
-    
-    // Si hay más de 13 jugadores, agregar Colectivero
-    if (players.length > 13) {
-        randomPool.push("Colectivero");
+  const roles = [
+    "Palermitano", "Conurbanense", "Conurbanense", "Medium",
+    "Tarotista", "Lobizón", "Palermitano", "Lobizón",
+    "Viuda negra", "Random1", "Conurbanense", "Lobizón",
+    "Palermitano", "Random2", "Conurbanense", "Palermitano"
+  ];
+
+  const randomPool = ["Pombero", "Jubilado", "Chamán"];
+
+  // Si hay más de 13 jugadores, agregar Colectivero
+  if (players.length > 13) {
+    randomPool.push("Colectivero");
+  }
+
+  const usedRandomRoles = [];
+
+  // Asignar roles a los jugadores mezclados
+  const playersWithRoles = shuffledArray.map((player, i) => {
+    let role = roles[i];
+
+    if (role === "Random1" || role === "Random2") {
+      if (randomPool.length === 0) {
+        // Si no hay roles en el pool, asignar uno por defecto
+        role = "Palermitano";
+      } else {
+        // Seleccionar rol aleatorio del pool
+        const randomIndex = Math.floor(Math.random() * randomPool.length);
+        role = randomPool[randomIndex];
+        usedRandomRoles.push(role);
+        randomPool.splice(randomIndex, 1);
+      }
     }
 
-    const usedRandomRoles = [];
+    return {
+      ...player,
+      role: role.toLowerCase(), // Convertir a minúsculas para consistencia
+      isAlive: true,
+      votesReceived: 0,
+      wasProtected: false
+    };
+  });
 
-    // Asignar roles a los jugadores mezclados
-    const playersWithRoles = shuffledArray.map((player, i) => {
-        let role = roles[i];
+  console.log("Roles asignados con sistema random:", playersWithRoles.map(p => ({
+    username: p.username,
+    role: p.role
+  })));
 
-        if (role === "Random1" || role === "Random2") {
-            if (randomPool.length === 0) {
-                // Si no hay roles en el pool, asignar uno por defecto
-                role = "Palermitano";
-            } else {
-                // Seleccionar rol aleatorio del pool
-                const randomIndex = Math.floor(Math.random() * randomPool.length);
-                role = randomPool[randomIndex];
-                usedRandomRoles.push(role);
-                randomPool.splice(randomIndex, 1);
-            }
-          }
-
-        return {
-            ...player,
-            role: role.toLowerCase(), // Convertir a minúsculas para consistencia
-            isAlive: true,
-            votesReceived: 0,
-            wasProtected: false
-        };
-    });
-
-    console.log("Roles asignados con sistema random:", playersWithRoles.map(p => ({
-        username: p.username,
-        role: p.role
-    })));
-
-    return playersWithRoles;
+  return playersWithRoles;
 }
 
 // Función assignRoles modificada
 function assignRoles(room) {
-    const updatedPlayers = assignRandomRoles(room.players);
-    
-    console.log("Roles asignados:", updatedPlayers.map(p => ({ 
-        username: p.username, 
-        role: p.role 
-    })));
-    
-    return {
-        ...room,
-        players: updatedPlayers,
-        assignedRoles: true
-    };
+  const updatedPlayers = assignRandomRoles(room.players);
+
+  console.log("Roles asignados:", updatedPlayers.map(p => ({
+    username: p.username,
+    role: p.role
+  })));
+
+  return {
+    ...room,
+    players: updatedPlayers,
+    assignedRoles: true
+  };
 }
 
 function countVotes(votes) {
@@ -257,22 +257,22 @@ app.post("/crearSalaBD", async (req, res) => {
     }
 
 
-//     CREATE TABLE Games (
-// 	id INT PRIMARY KEY AUTO_INCREMENT NOT NULL UNIQUE,
-// 	code VARCHAR(100) NOT NULL,
-// 	village_won BOOLEAN NOT NULL,
-//     status BOOLEAN NOT NULL,
-//     players_amount INT NOT NULL
-// );
+    //     CREATE TABLE Games (
+    // 	id INT PRIMARY KEY AUTO_INCREMENT NOT NULL UNIQUE,
+    // 	code VARCHAR(100) NOT NULL,
+    // 	village_won BOOLEAN NOT NULL,
+    //     status BOOLEAN NOT NULL,
+    //     players_amount INT NOT NULL
+    // );
 
-// CREATE TABLE UsersXGames (
-// id INT PRIMARY KEY AUTO_INCREMENT NOT NULL UNIQUE,
-// id_user INT UNIQUE NOT NULL,
-// FOREIGN KEY (id_user) REFERENCES Users(id),
-// id_game INT UNIQUE NOT NULL,
-// FOREIGN KEY (id_game) REFERENCES Games(id),
-// was_villager BOOLEAN NOT NULL
-// );
+    // CREATE TABLE UsersXGames (
+    // id INT PRIMARY KEY AUTO_INCREMENT NOT NULL UNIQUE,
+    // id_user INT UNIQUE NOT NULL,
+    // FOREIGN KEY (id_user) REFERENCES Users(id),
+    // id_game INT UNIQUE NOT NULL,
+    // FOREIGN KEY (id_game) REFERENCES Games(id),
+    // was_villager BOOLEAN NOT NULL
+    // );
 
     // Insertar nueva sala
     const result = await realizarQuery(
@@ -409,6 +409,7 @@ app.get("/logout", (req, res) => {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
 // Socket.io connection handling
 io.on("connection", (socket) => {
   console.log(" Nuevo usuario conectado:", socket.id);
@@ -467,7 +468,6 @@ io.on("connection", (socket) => {
         lynchVotes: {},
         mayor: null,
         lastVictim: null,
-        winner: null,
         active: true,
         createdInDB: true
       };
@@ -532,7 +532,6 @@ io.on("connection", (socket) => {
           lynchVotes: {},
           mayor: null,
           lastVictim: null,
-          winner: null,
           active: true,
           createdInDB: true
         };
@@ -1121,7 +1120,6 @@ io.on("connection", (socket) => {
     }
   });
 
-
   function finalizeLynchVote(room, lynchedPlayer, votes) {
     const player = room.players.find(p => p.username === lynchedPlayer);
     if (player) {
@@ -1138,12 +1136,8 @@ io.on("connection", (socket) => {
     });
 
     room.lynchVotes = {};
-
-    if (winner) {
-      room.winner = winner;
-      io.to(room.code).emit("gameOver", winner);
-    }
   }
+
 
   socket.on("startNight", ({ code }) => {
     try {
@@ -1387,7 +1381,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  
+
   function finalizeNightVote(room, victim, votes) {
     const player = room.players.find(p => p.username === victim);
     if (player) {
@@ -1406,12 +1400,8 @@ io.on("connection", (socket) => {
     room.nightVotes = {};
     room.nightTieBreakVotes = {};
     room.nightTieBreakCandidates = null;
-
-    if (winner) {
-      room.winner = winner;
-      io.to(room.code).emit("gameOver", winner);
-    }
   }
+
 
   function finalizeMayorElection(room, electedMayor, votes) {
     room.mayor = electedMayor;
@@ -1439,8 +1429,6 @@ io.on("connection", (socket) => {
     delete room.wasTieBreak;
   }
 });
-
-
 
 // Limpiar salas sin anfitrión
 setInterval(async () => {

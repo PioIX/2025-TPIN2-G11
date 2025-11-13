@@ -40,44 +40,44 @@ export default function Night({
     const canVote = isLobizon && players.find(p => p.username === username)?.isAlive;
 
     useEffect(() => {
-        if (nightVictim && isNight) {
-            console.log("Noche completada - Iniciando transición a día...");
-            
-            if (transitionTimeoutRef.current) {
-                clearTimeout(transitionTimeoutRef.current);
-            }
+    if (nightVictim && isNight) {
+        console.log("Noche completada - Iniciando transición a día...");
 
-            setIsOpenNightModal(false);
-            setIsOpenNightTieBreak(false);
-
-            transitionTimeoutRef.current = setTimeout(() => {
-                console.log(" Mostrando resultado de la noche...");
-                
-                transitionTimeoutRef.current = setTimeout(() => {
-                    console.log("Mostrando transición a día...");
-                    setShowDayTransition(true);
-                    
-                    transitionTimeoutRef.current = setTimeout(() => {
-                        console.log("Llamando a startDay...");
-                        setShowDayTransition(false);
- 
-                        if (startDay && typeof startDay === 'function') {
-                            startDay();
-                        } else {
-                            console.error(" startDay no es una función válida");
-                            setIsNight(false);
-                        }
-                    }, 2000); 
-                }, 3000); 
-            }, 500); 
+        if (transitionTimeoutRef.current) {
+            clearTimeout(transitionTimeoutRef.current);
         }
 
-        return () => {
-            if (transitionTimeoutRef.current) {
-                clearTimeout(transitionTimeoutRef.current);
-            }
-        };
-    }, [nightVictim, isNight, startDay, setIsNight, setIsOpenNightModal, setIsOpenNightTieBreak]);
+        setIsOpenNightModal(false);
+        setIsOpenNightTieBreak(false);
+
+        transitionTimeoutRef.current = setTimeout(() => {
+            console.log(" Mostrando resultado de la noche...");
+
+            transitionTimeoutRef.current = setTimeout(() => {
+                console.log("Mostrando transición a día...");
+                setShowDayTransition(true);
+
+                transitionTimeoutRef.current = setTimeout(() => {
+                    console.log("Llamando a startDay...");
+                    setShowDayTransition(false);
+
+                    if (startDay && typeof startDay === 'function') {
+                        startDay(); 
+                    } else {
+                        console.error(" startDay no es una función válida");
+                        setIsNight(false);
+                    }
+                }, 2000);
+            }, 3000);
+        }, 500);
+    }
+
+    return () => {
+        if (transitionTimeoutRef.current) {
+            clearTimeout(transitionTimeoutRef.current);
+        }
+    };
+}, [nightVictim, isNight, startDay, setIsNight, setIsOpenNightModal, setIsOpenNightTieBreak]);;
 
     useEffect(() => {
         if (!isNight) {
@@ -85,7 +85,7 @@ export default function Night({
             setShowDayTransition(false);
             setIsOpenNightModal(false);
             setIsOpenNightTieBreak(false);
-            
+
             if (transitionTimeoutRef.current) {
                 clearTimeout(transitionTimeoutRef.current);
             }
@@ -100,7 +100,7 @@ export default function Night({
         });
     };
 
-   
+
     if (!isNight) {
         console.log("Night component - isNight es false, no renderizar");
         return null;
