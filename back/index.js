@@ -149,6 +149,8 @@ app.get('/', function (req, res) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+// Verificar que el usuario exista en BDD
 app.get("/verifyUser", async (req, res) => {
   try {
     const { username, password, alreadyLogged } = req.query;
@@ -243,7 +245,7 @@ app.post("/crearSalaBD", async (req, res) => {
 
     const userId = usuario[0].id;
 
-    // Verificar si ya existe una sala ACTIVA con ese código
+    // Verificar si ya existe una sala activa con ese código
     const salaExistente = await realizarQuery(
       `SELECT code FROM Games WHERE code = ? AND status = true`,
       [code]
@@ -330,25 +332,6 @@ app.get("/verifyRoom/:code", async (req, res) => {
   }
 });
 
-// Cerrar sala
-app.post("/cerrarSala", async (req, res) => {
-  try {
-    const { code } = req.body;
-
-    await realizarQuery(
-      `UPDATE Games SET status = false WHERE code = ?`,
-      [code]
-    );
-
-    console.log("Sala cerrada en BD:", code);
-    res.json({ success: true, message: "Sala cerrada exitosamente" });
-
-  } catch (error) {
-    console.error(" Error en /cerrarSala:", error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
 app.post("/regUser", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -407,7 +390,7 @@ app.get("/logout", (req, res) => {
   });
 });
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////    SOCKET    ///////////////////////////////////////////////////////////////////////////////////////////
 
 // Socket.io connection handling
 io.on("connection", (socket) => {
@@ -426,7 +409,7 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // Buscar la sala en BD para verificar que fue creada por HTTP
+      // Buscar la sala en BDD para verificar que fue creada por HTTP
       const roomDB = await realizarQuery(
         `SELECT id, code, village_won FROM Games WHERE code = ? AND status = true`,
         [code]
@@ -437,7 +420,7 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // Obtener el username del anfitrión desde la BD
+      // Obtener el username del anfitrión desde la BDD
       const hostUser = await realizarQuery(
         `SELECT username FROM Users WHERE id = ?`,
         [roomDB[0].village_won]
@@ -482,7 +465,7 @@ io.on("connection", (socket) => {
       console.log("Sala activada en memoria para:", hostUsername);
       console.log("Jugadores en sala:", newRoom.players);
 
-      // Enviar la lista de jugadores a TODOS en la sala
+      // Enviar la lista de jugadores a todos en la sala
       io.to(code).emit("usersInRoom", newRoom.players);
 
     } catch (error) {
@@ -585,7 +568,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Iniciar juego - VERSIÓN CORREGIDA
+  // Iniciar juego
   socket.on("startGame", ({ code }) => {
     try {
       console.log(" INTENTANDO INICIAR JUEGO EN SALA:", code);
