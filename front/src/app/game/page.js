@@ -42,6 +42,7 @@ export default function Game() {
   const [nightTieBreakData, setNightTieBreakData] = useState(null);
   const [isOpenNightTieBreak, setIsOpenNightTieBreak] = useState(false);
   const [winner, setWinner] = useState([]);
+  const [finishGame, setFinishGame] = useState(false);
 
   function checkWinner() {
     if (!players || players.length === 0) {
@@ -549,9 +550,15 @@ export default function Game() {
     const winner = checkWinner();
 
     if (winner) {
+      setIsNight(false);
+      setNightVictim(null);
+      setHasVotedNight(false);
+      setNightTieBreakData(null);
+      setIsOpenNightTieBreak(false);
+      setIsOpenNightModal(false);
       console.log("¡Hay un ganador!", winner);
       setWinner(winner);
-      return;
+      setFinishGame(true);
     } else {
       console.log("El juego continúa - Cambiando a día");
       setIsNight(false);
@@ -572,7 +579,7 @@ export default function Game() {
 
   return (
     <>
-      {lobby === true ? (
+      {finishGame ? (<><FindeJuego></FindeJuego></>) : (<>{lobby === true ? (
         <Lobby
           players={players}
           username={username}
@@ -631,6 +638,7 @@ export default function Game() {
           )}
         </>
       )}
+      </>)}
     </>
   );
 }
