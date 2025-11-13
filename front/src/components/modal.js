@@ -81,7 +81,7 @@ export default function Modal({
       onMouseDown={handleOverlayMouseDown}
       onClick={handleOverlayClick}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <Button className={styles.close} onClick={onClose} title="✕" />
+        <button className={styles.close} onClick={onClose}>✕</button>
 
 
         {/* Modal para unirse a sala */}

@@ -1,19 +1,21 @@
-
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   height: 56px;
-  padding: 0 44px;
-  border-radius: 36px;
-  background: #5a3127; 
-  color: #d7b08a;     
+  width: 275px;
+  border-radius: 18px;
+  background-image: url('/wood.webp');
+  filter: saturate(150%);
+  background-repeat: repeat;
+  background-size: auto;
+  color: #ecd2b6;     
   font-weight: 600;
   letter-spacing: 2px;
   font-size: 20px;
   text-transform: uppercase;
-  border: 1px solid rgba(0,0,0,0.15);
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.03), 0 6px 18px rgba(0,0,0,0.35);
+  border: 3px solid rgba(255, 248, 235, 0.473);
+  box-shadow: 1px -1px 15px 4px rgba(255, 238, 193, 0.315);
   cursor: pointer;
   transition: transform .14s ease, box-shadow .14s ease;
   user-select: none;
@@ -22,7 +24,7 @@
 
 .btn:hover {
   transform: translateY(-3px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02), 0 10px 26px rgba(0,0,0,0.45);
+  box-shadow: 1px -1px 25px 6px rgba(255, 238, 193, 0.4);
 }
 
 @media (max-width: 640px) {
