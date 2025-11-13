@@ -206,7 +206,7 @@ export default function Game() {
         }
       });
 
-      // En el useEffect de sockets, modificar el evento "lynchResult"
+
       socket.on("lynchResult", (data) => {
         console.log(" 🔨 Resultado del linchamiento:", data);
         setLynchedPlayer(data.lynched);
@@ -224,19 +224,19 @@ export default function Game() {
         if (data.lynched) {
           alert(`¡${data.lynched} ha sido linchado!`);
 
-          // NUEVO: Esperar y luego iniciar la noche automáticamente
+
           setTimeout(() => {
             setIsOpenLynchModal(false);
             setLynchedPlayer(null);
 
-            console.log(" Linchamiento completado - Iniciando noche...");
+
+            console.log("Linchamiento completado - Iniciando noche...");
             if (socket && roomCode) {
               socket.emit("startNight", { code: roomCode });
             }
           }, 3000);
         } else {
           alert("No se linchó a nadie.");
-
           setTimeout(() => {
             setIsOpenLynchModal(false);
             console.log("Sin linchamiento - Iniciando noche...");

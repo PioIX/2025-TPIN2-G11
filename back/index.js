@@ -134,22 +134,24 @@ function assignRoles(room) {
 }
 
 function checkWinner(room) {
-  const lobizonesAlive = room.players.filter(p =>
-    p.role === 'lobizón' && p.isAlive
+  const lobizonesAlive = room.players.filter(p => 
+    (p.role === 'lobizón' || p.role === 'lobizon') && p.isAlive
   );
   const aliveVillagers = room.players.filter(p =>
-    p.role !== 'lobizón' && p.isAlive
+    p.role !== 'lobizón' && p.role !== 'lobizon' && p.isAlive
   );
+
+  console.log(` Verificando ganador: ${lobizonesAlive.length} lobizones vivos, ${aliveVillagers.length} aldeanos vivos`);
 
   if (lobizonesAlive.length === 0) {
     return {
       winner: 'aldeanos',
-      message: '¡Los aldeanos han ganado!'
+      message: '¡Los aldeanos han ganado! Todos los lobizones han sido eliminados.'
     };
   } else if (lobizonesAlive.length >= aliveVillagers.length) {
     return {
-      winner: 'lobizones',
-      message: '¡Los lobizones han ganado!'
+      winner: 'lobizones', 
+      message: '¡Los lobizones han ganado! Han superado en número a los aldeanos.'
     };
   }
   return null;

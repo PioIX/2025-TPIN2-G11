@@ -170,7 +170,8 @@
     margin-left: 8px;
 }
 
-/* Transición de Anochecer */
+/* Agregar al final de day.module.css */
+
 .nightTransition {
     position: fixed;
     top: 0;
@@ -184,21 +185,21 @@
     align-items: center;
     color: white;
     z-index: 9999;
-    animation: fadeInOut 4s ease-in-out forwards;
+    animation: fadeInOutNight 4s ease-in-out forwards;
 }
 
-.transitionContent {
+.nightTransitionContent {
     text-align: center;
     animation: pulse 2s infinite;
 }
 
-.transitionContent h1 {
+.nightTransitionContent h1 {
     font-size: 3rem;
     margin-bottom: 1rem;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
-.transitionContent p {
+.nightTransitionContent p {
     font-size: 1.5rem;
     margin-bottom: 2rem;
     opacity: 0.8;
@@ -209,29 +210,41 @@
     animation: float 3s ease-in-out infinite;
 }
 
-.startNightButton {
-    display: flex;
-    justify-content: center;
-    margin: 20px 0;
+.deadPlayer {
+    opacity: 0.6;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    border: 2px solid #6c757d !important;
 }
 
-.startNightButton button {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.deadBadge {
+    background: #6c757d;
     color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 16px;
+    padding: 4px 8px;
+    border-radius: 10px;
+    font-size: 0.8rem;
     font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    margin-top: 5px;
 }
 
-.startNightButton button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
 
+@keyframes fadeInOutNight {
+    0% { 
+        opacity: 0; 
+        background: linear-gradient(to bottom, rgba(10, 10, 42, 0), rgba(26, 26, 74, 0));
+    }
+    20% { 
+        opacity: 1; 
+        background: linear-gradient(to bottom, #0a0a2a, #1a1a4a);
+    }
+    80% { 
+        opacity: 1; 
+        background: linear-gradient(to bottom, #0a0a2a, #1a1a4a);
+    }
+    100% { 
+        opacity: 0; 
+        background: linear-gradient(to bottom, rgba(10, 10, 42, 0), rgba(26, 26, 74, 0));
+    }
+}
 @keyframes fadeInOut {
     0% { 
         opacity: 0; 
