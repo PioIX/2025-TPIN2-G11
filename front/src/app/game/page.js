@@ -44,13 +44,13 @@ export default function Game() {
   const [winner, setWinner] = useState([]);
   const [finishGame, setFinishGame] = useState(false);
 
-  function checkWinner() {
-    if (!players || players.length === 0) {
+  function checkWinner(playersToCheck = players) {
+    if (!playersToCheck || playersToCheck.length === 0) {
       console.log(" No hay jugadores para verificar");
       return null;
     }
 
-    const alivePlayers = players.filter(p => p.isAlive);
+    const alivePlayers = playersToCheck.filter(p => p.isAlive);
     console.log("Jugadores vivos:", alivePlayers.map(p => ({ username: p.username, role: p.role, isAlive: p.isAlive })));
 
     const aliveLobizones = alivePlayers.filter(p => p.role === 'Lobizón');
@@ -60,7 +60,7 @@ export default function Game() {
     console.log("aldeanos vivos:", aliveVillagers.map(p => p.username));
 
     console.log("  Verificando ganador:", {
-      totalJugadores: players.length,
+      totalJugadores: playersToCheck.length,
       jugadoresVivos: alivePlayers.length,
       lobizonesVivos: aliveLobizones.length,
       aldeanosVivos: aliveVillagers.length,
@@ -285,36 +285,47 @@ export default function Game() {
       });
 
       socket.on("lynchResult", (data) => {
-        console.log(" 🔨 Resultado del linchamiento:", data);
+        console.log(" Resultado del linchamiento:", data);
         setLynchedPlayer(data.lynched);
         setIsOpenLynchTieBreak(false);
         setLynchTieBreakData(null);
         setHasVotedForLynch(false);
 
-        setPlayers(prevPlayers =>
-          prevPlayers.map(player => ({
+        // Actualizar players y verificar ganador con los datos actualizados
+        setPlayers(prevPlayers => {
+          const updatedPlayers = prevPlayers.map(player => ({
             ...player,
             lynchVotes: 0,
             ...(player.username === data.lynched && { isAlive: false })
-          }))
-        );
+          }));
+          const winner = checkWinner(updatedPlayers);
+
+          if (winner) {
+            setIsNight(false);
+            setNightVictim(null);
+            setHasVotedNight(false);
+            setNightTieBreakData(null);
+            setIsOpenNightTieBreak(false);
+            setIsOpenNightModal(false);
+            console.log("¡Hay un ganador!", winner);
+            setWinner(winner);
+            setFinishGame(true);
+          } else {
+            setTimeout(() => {
+              setIsOpenLynchModal(false);
+              setLynchedPlayer(null);
+              console.log("Iniciando noche después del linchamiento...");
+              socket.emit("startNight", { code: roomCode });
+            }, 3000);
+          }
+
+          return updatedPlayers;
+        });
 
         if (data.lynched) {
           alert(`¡${data.lynched} ha sido linchado!`);
         } else {
           alert("No se linchó a nadie.");
-        }
-
-        const winner = checkWinner(players, role);
-        if (winner) {
-          setGameWinner(winner);
-        } else {
-          setTimeout(() => {
-            setIsOpenLynchModal(false);
-            setLynchedPlayer(null);
-            console.log("Iniciando noche después del linchamiento...");
-            socket.emit("startNight", { code: roomCode });
-          }, 3000);
         }
       });
 
