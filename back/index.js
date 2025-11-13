@@ -620,8 +620,7 @@ io.on("connection", (socket) => {
       console.log(" JUEGO INICIADO - Emitiendo gameStarted a todos los jugadores");
       console.log(" Jugadores en la sala:", room.players.map(p => p.username));
 
-      // ¡ESTA ES LA LÍNEA CRÍTICA QUE FALTABA!
-      // Emitir a TODOS los jugadores de la sala
+      // Emitir a todos los jugadores de la sala
       io.to(code).emit("gameStarted", {
         message: "El juego ha comenzado",
         players: room.players,
@@ -773,7 +772,7 @@ io.on("connection", (socket) => {
     }
   });
 
-
+// Votar intendente
   socket.on("voteMayor", ({ code, voter, candidate }) => {
     try {
       console.log(` Voto para intendente recibido: ${voter} -> ${candidate}`);
@@ -867,7 +866,7 @@ io.on("connection", (socket) => {
           }
         });
 
-        // NUEVO SISTEMA DE DESEMPATE COMPLEJO
+        // Desempate
         if (tieCandidates.length > 1) {
           console.log(` EMPATE DETECTADO entre: ${tieCandidates.join(', ')}`);
 
@@ -904,7 +903,7 @@ io.on("connection", (socket) => {
     }
   });
 
-
+ // Host desempata intendente
   socket.on("mayorTieBreakDecision", ({ code, chosenCandidate, tieCandidates }) => {
     try {
       console.log(` Decisión de desempate recibida: ${chosenCandidate}`);
