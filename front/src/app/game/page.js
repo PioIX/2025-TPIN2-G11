@@ -41,14 +41,83 @@ export default function Game() {
   const [hasVotedNight, setHasVotedNight] = useState(false);
   const [nightTieBreakData, setNightTieBreakData] = useState(null);
   const [isOpenNightTieBreak, setIsOpenNightTieBreak] = useState(false);
-  const [gameWinner, setGameWinner] = useState(null); 
+  const [gameWinner, setGameWinner] = useState(null);
 
-  // Usar el hook de lógica del juego
-  const { checkWinner } = useGameLogic();
-  
+  function checkWinner() {
+    if (!players || players.length === 0) {
+      console.log(" No hay jugadores para verificar");
+      return null;
+    }
+
+    const alivePlayers = players.filter(p => p.isAlive);
+    console.log(alivePlayers)
+
+    const aliveLobizones = alivePlayers.filter(p =>
+      p.role === 'lobizón' || p.role === 'lobizon'
+    );
+    const aliveVillagers = alivePlayers.filter(p =>
+      p.role !== 'lobizón' && p.role !== 'lobizon'
+    );
+
+    console.log(`AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA villagers: ${p.role} `)
+
+    console.log("  Verificando ganador:", {
+      totalJugadores: players.length,
+      jugadoresVivos: alivePlayers.length,
+      lobizonesVivos: aliveLobizones.length,
+      aldeanosVivos: aliveVillagers.length,
+      lobizones: aliveLobizones.map(p => p.username),
+      aldeanos: aliveVillagers.map(p => p.username)
+    });
+
+    if (aliveLobizones.length === 0 && aliveVillagers.length > 0) {
+      console.log(" ¡Ganan los aldeanos! No quedan lobizones");
+      return {
+        winner: "Aldeanos",
+        message: "¡Los aldeanos han eliminado a todos los lobizones!",
+        details: {
+          lobizonesRestantes: 0,
+          aldeanosRestantes: aliveVillagers.length
+        }
+      };
+    }
+
+    if (aliveLobizones.length >= aliveVillagers.length && aliveLobizones.length > 0) {
+      console.log("¡Ganan los lobizones! Superan a los aldeanos");
+      return {
+        winner: "Lobizones",
+        message: "¡Los lobizones han devorado a la aldea!",
+        details: {
+          lobizonesRestantes: aliveLobizones.length,
+          aldeanosRestantes: aliveVillagers.length
+        }
+      };
+    }
+
+    if (alivePlayers.length === 1) {
+      const lastPlayer = alivePlayers[0];
+      const isLobizon = lastPlayer.role === 'lobizón' || lastPlayer.role === 'lobizon';
+      console.log(`¡Solo queda 1 jugador! ${lastPlayer.username} (${isLobizon ? 'Lobizón' : 'Aldeano'})`);
+
+      return {
+        winner: isLobizon ? "Lobizones" : "Aldeanos",
+        message: isLobizon
+          ? `¡${lastPlayer.username} como lobizón ha devorado a la aldea!`
+          : `¡${lastPlayer.username} ha sobrevivido como aldeano!`,
+        details: {
+          jugadorFinal: lastPlayer.username,
+          rolFinal: lastPlayer.role
+        }
+      };
+    }
+
+    console.log(" El juego continúa...");
+    return null;
+  }
+
   const joinedARoom = useRef(false);
 
-    
+
 
   useEffect(() => {
     const userToUse = usernameFromParams || localStorage.getItem("username") || "Invitado";
@@ -83,10 +152,10 @@ export default function Game() {
         console.error(" Error de sala recibido:", message);
         setErrorMessage(message);
         alert("Error: " + message);
-        
+
         const criticalErrors = [
           "La sala no existe",
-          "cerró la sala", 
+          "cerró la sala",
           "anfitrión abandonó",
           "anfitrión se desconectó",
           "sala está llena",
@@ -143,12 +212,11 @@ export default function Game() {
 
         setIsOpenTieBreak(false);
         setTieBreakData(null);
-        
+
         setTimeout(() => {
           alert(`¡${data.mayor} ha sido electo como intendente con ${data.votes} votos!`);
         }, 500);
 
-        // Iniciar la primera noche después de elegir intendente
         setTimeout(() => {
           console.log(" Iniciando la primera noche...");
           socket.emit("startNight", { code: roomCode });
@@ -199,7 +267,6 @@ export default function Game() {
           prevPlayers.map(player => ({
             ...player,
             lynchVotes: 0,
-            // Marcar jugador linchado como muerto
             ...(player.username === data.lynched && { isAlive: false })
           }))
         );
@@ -210,12 +277,10 @@ export default function Game() {
           alert("No se linchó a nadie.");
         }
 
-        // Verificar si hay ganador después del linchamiento
-        const winner = checkWinner(players);
+        const winner = checkWinner(players, role);
         if (winner) {
           setGameWinner(winner);
         } else {
-          // Solo iniciar noche si no hay ganador
           setTimeout(() => {
             setIsOpenLynchModal(false);
             setLynchedPlayer(null);
@@ -457,13 +522,15 @@ export default function Game() {
   };
 
   function startDay() {
+
     console.log("startDay ejecutándose - Verificando estado del juego...");
-    
-    const winner = checkWinner(players);
-    
-    if (winner) {
-      console.log("¡Juego terminado en startDay! Ganador:", winner);
-      setGameWinner(winner);
+
+    const winner = checkWinner(players, role);
+
+    if (winner!=null) {
+      return (
+        <FindeJuego/>
+      );
     } else {
       console.log("El juego continúa - Cambiando a día");
       setIsNight(false);
@@ -474,22 +541,13 @@ export default function Game() {
       setIsOpenNightModal(false);
 
       setTimeout(() => {
-        console.log("🗳️ Abriendo modal de linchamiento desde startDay");
+        console.log("Abriendo modal de linchamiento desde startDay");
         setIsOpenLynchModal(true);
       }, 500);
     }
   }
 
-  if (gameWinner) {
-    return (
-      <FindeJuego 
-        winner={gameWinner.winner}
-        message={gameWinner.message}
-        details={gameWinner.details}
-        players={players}
-      />
-    );
-  }
+
 
   return (
     <>

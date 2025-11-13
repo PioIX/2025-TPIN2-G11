@@ -33,6 +33,8 @@ export default function Day({
     const [showNightTransition, setShowNightTransition] = useState(false);
     const isInitialMount = useRef(true);
 
+
+    
     useEffect(() => {
         console.log('Estado de modales:', {
             isOpen,

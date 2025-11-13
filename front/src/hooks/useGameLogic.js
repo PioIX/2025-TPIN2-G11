@@ -2,9 +2,12 @@
 
 import { useCallback } from "react";
 
-export const useGameLogic = () => {
+export const useGameLogic = (role, players) => {
     
-    const checkWinner = useCallback((players) => {
+    console.log("roles", role);
+    console.log("jugadores", players)
+
+    const checkWinner = useCallback(() => {
         if (!players || players.length === 0) {
             console.log(" No hay jugadores para verificar");
             return null;
@@ -12,6 +15,7 @@ export const useGameLogic = () => {
         
         const alivePlayers = players.filter(p => p.isAlive);
         console.log(alivePlayers)
+        
         const aliveLobizones = alivePlayers.filter(p => 
             p.role === 'lobizón' || p.role === 'lobizon'
         );
