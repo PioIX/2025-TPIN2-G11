@@ -132,8 +132,8 @@ app.get('/', function (req, res) {
     message: 'GET Home route working fine!'
   });
 });
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 app.get("/verifyUser", async (req, res) => {
   try {
@@ -852,9 +852,9 @@ io.on("connection", (socket) => {
           }
         });
 
-        // NUEVO SISTEMA DE DESEMPATE COMPLEJO
+        // DESEMPATE
         if (tieCandidates.length > 1) {
-          console.log(` EMPATE DETECTADO entre: ${tieCandidates.join(', ')}`);
+          console.log(` Hubo un empate entre: ${tieCandidates.join(', ')}`);
 
           // Verificar que el anfitrión esté conectado
           const hostPlayer = room.players.find(p => p.username === room.host && p.isAlive);
@@ -1065,8 +1065,8 @@ io.on("connection", (socket) => {
       socket.emit("roomError", "Error al procesar el voto de linchamiento");
     }
   });
-
-  // Decisión de desempate del intendente para linchamiento
+//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJUJUDWJUDJWUDJWDUJDIUWJIWJDIWAJDUIJAIUWJDAUIWJDUIWAJD
+  // Decisión de desempate del intendente para linchamiento /////////////////////////////////////////////////////////////////////////////////////////////////////////////
   socket.on("lynchTieBreakDecision", ({ code, chosenCandidate, tieCandidates }) => {
     try {
       console.log(` Decisión de desempate de linchamiento recibida: ${chosenCandidate}`);
@@ -1112,7 +1112,7 @@ io.on("connection", (socket) => {
       player.isAlive = false;
     }
 
-    console.log(` JUGADOR LINCHADO: ${lynchedPlayer} con ${votes} votos`);
+    console.log(` Jugador linchado: ${lynchedPlayer} con ${votes} votos`);
 
     io.to(room.code).emit("lynchResult", {
       lynched: lynchedPlayer,
@@ -1134,9 +1134,9 @@ io.on("connection", (socket) => {
         socket.emit("roomError", "La sala no existe");
         return;
       }
-      
+
       room.state = gameStates.NOCHE_LOBIZONES;
-      room.nightVotes = {}; 
+      room.nightVotes = {};
 
       console.log(" Noche iniciada. Notificando a todos los jugadores...");
 
