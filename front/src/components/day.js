@@ -24,13 +24,23 @@ export default function Day({
     lynchedPlayer,
     isOpenLynchModal,
     setIsOpenLynchModal,
-    closeLynchModal
+    closeLynchModal,
+    setLynchedPlayer
 }) {
     const [isOpenMayor, setIsOpenMayor] = useState(false);
     const [isOpen, setIsOpen] = useState(true);
     const [hasShownWelcome, setHasShownWelcome] = useState(false);
     const [showNightTransition, setShowNightTransition] = useState(false);
     const isInitialMount = useRef(true);
+
+    useEffect(() => {
+        console.log("🔍 Day - Estado actual:", {
+            username,
+            players: players.map(p => p.username),
+            mayor,
+            role
+        });
+    }, [username, players, mayor, role]);
 
     useEffect(() => {
         console.log('Estado de modales:', {
@@ -41,19 +51,19 @@ export default function Day({
         });
     }, [isOpen, isOpenMayor, isOpenTieBreak, tieBreakData]);
 
-    
+
     useEffect(() => {
         if (lynchedPlayer && !isOpenLynchModal) {
             console.log("🌙 Linchamiento completado - Mostrando transición a noche...");
-            
-           
+
+
             setShowNightTransition(true);
 
             const timer = setTimeout(() => {
                 setShowNightTransition(false);
                 setLynchedPlayer(null);
             }, 5000);
-            
+
             return () => clearTimeout(timer);
         }
     }, [lynchedPlayer, isOpenLynchModal]);
@@ -139,12 +149,13 @@ export default function Day({
                 />
             )}
 
+            {/* Modal de votación de linchamiento normal */}
             {isOpenLynchModal && (
                 <Modal
                     isOpen={isOpenLynchModal}
                     onClose={closeLynchModal}
                     type={"lynch"}
-                    players={players} 
+                    players={players}
                     voteLynch={voteLynch}
                     hasVotedForLynch={hasVotedForLynch}
                     lynchedPlayer={lynchedPlayer}

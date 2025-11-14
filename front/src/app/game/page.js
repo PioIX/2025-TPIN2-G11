@@ -1,8 +1,8 @@
 "use client";
 import { useSocket } from "../../hooks/useSocket.js";
+import { useGameLogic } from "../../hooks/useGameLogic.js";
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Button from "../../components/button.js";
 import Lobby from "@/components/lobby.js";
 import Day from "@/components/day.js";
 import Modal from "@/components/modal.js";
@@ -41,11 +41,213 @@ export default function Game() {
   const [hasVotedNight, setHasVotedNight] = useState(false);
   const [nightTieBreakData, setNightTieBreakData] = useState(null);
   const [isOpenNightTieBreak, setIsOpenNightTieBreak] = useState(false);
+  const [winner, setWinner] = useState([]);
+  const [finishGame, setFinishGame] = useState(false);
+  const [isOpenSuccessorModal, setIsOpenSuccessorModal] = useState(false);
+  const [successorCandidates, setSuccessorCandidates] = useState([]);
+  const [deadMayor, setDeadMayor] = useState(null);
+  const [successorTimeout, setSuccessorTimeout] = useState(null);
+  const [blockOtherModals, setBlockOtherModals] = useState(false);
+
+
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("chooseMayorSuccessor", (data) => {
+      console.log(" Debes elegir un sucesor como intendente muerto:", data);
+
+      setBlockOtherModals(true);
+      setIsOpenLynchModal(false);
+      setIsOpenLynchTieBreak(false);
+      setIsOpenNightModal(false);
+      setIsOpenNightTieBreak(false);
+      setIsOpenTieBreak(false);
+
+      setSuccessorCandidates(data.alivePlayers);
+      setDeadMayor(data.deadMayor);
+      setIsOpenSuccessorModal(true);
+
+      const timeout = setTimeout(() => {
+        if (isOpenSuccessorModal) {
+          console.log("Timeout alcanzado, eligiendo sucesor automáticamente");
+          socket.emit("requestAutoSuccessor", {
+            code: roomCode,
+            deadMayor: data.deadMayor
+          });
+          setIsOpenSuccessorModal(false);
+          setBlockOtherModals(false);
+        }
+      }, 30000);
+
+      setSuccessorTimeout(timeout);
+    });
+
+    socket.on("mayorSuccessorChosen", (data) => {
+      console.log("Nuevo intendente elegido:", data);
+
+      setMayor(data.newMayor);
+
+
+      setPlayers(prevPlayers =>
+        prevPlayers.map(player => ({
+          ...player,
+          isMayor: player.username === data.newMayor
+        }))
+      );
+
+      setIsOpenSuccessorModal(false);
+      setBlockOtherModals(false);
+
+      if (successorTimeout) {
+        clearTimeout(successorTimeout);
+        setSuccessorTimeout(null);
+      }
+
+      if (data.wasAutomatic) {
+        alert(`El intendente ${data.previousMayor} no eligió sucesor. ${data.newMayor} es el nuevo intendente por elección automática.`);
+      } else {
+        alert(`${data.newMayor} es el nuevo intendente, elegido por ${data.chosenBy}.`);
+      }
+    });
+
+    return () => {
+      if (successorTimeout) {
+        clearTimeout(successorTimeout);
+      }
+    };
+  }, [socket, roomCode, isOpenSuccessorModal, successorTimeout]);
+
+  const chooseSuccessor = (successorUsername) => {
+    if (socket && roomCode && deadMayor) {
+      console.log(`Eligiendo sucesor: ${successorUsername}`);
+
+      socket.emit("chooseSuccessor", {
+        code: roomCode,
+        successor: successorUsername,
+        deadMayor: deadMayor
+      });
+
+      setIsOpenSuccessorModal(false);
+      setDeadMayor(null);
+      setSuccessorCandidates([]);
+
+      if (successorTimeout) {
+        clearTimeout(successorTimeout);
+        setSuccessorTimeout(null);
+      }
+    }
+  };
+
+
+  const closeSuccessorModal = () => {
+    setIsOpenSuccessorModal(false);
+    setDeadMayor(null);
+    setSuccessorCandidates([]);
+
+    if (socket && roomCode && deadMayor) {
+      socket.emit("requestAutoSuccessor", {
+        code: roomCode,
+        deadMayor: deadMayor
+      });
+    }
+  };
+
+  // Debug específico para la elección del intendente
+  useEffect(() => {
+    console.log("🎯 ELECCIÓN DE INTENDENTE - Estado actual:", {
+      mayor,
+      username,
+      soyIntendente: mayor === username,
+      playersCount: players.length,
+      playersMayors: players.filter(p => p.isMayor).map(p => p.username)
+    });
+  }, [mayor, username, players]);
+
+  useEffect(() => {
+    console.log("🔍 Estados actuales:", {
+      mayor,
+      username,
+      isOpenLynchTieBreak,
+      lynchTieBreakData: lynchTieBreakData ? "Presente" : "null",
+      soyIntendente: mayor === username
+    });
+  }, [mayor, username, isOpenLynchTieBreak, lynchTieBreakData]);
+
+
+  function checkWinner(playersToCheck = players) {
+    if (!playersToCheck || playersToCheck.length === 0) {
+      console.log(" No hay jugadores para verificar");
+      return null;
+    }
+
+    const alivePlayers = playersToCheck.filter(p => p.isAlive);
+    console.log("Jugadores vivos:", alivePlayers.map(p => ({ username: p.username, role: p.role, isAlive: p.isAlive })));
+
+    const aliveLobizones = alivePlayers.filter(p => p.role === 'Lobizón');
+    console.log("lobizones vivos:", aliveLobizones.map(p => p.username));
+
+    const aliveVillagers = alivePlayers.filter(p => p.role !== 'Lobizón');
+    console.log("aldeanos vivos:", aliveVillagers.map(p => p.username));
+
+    console.log("  Verificando ganador:", {
+      totalJugadores: playersToCheck.length,
+      jugadoresVivos: alivePlayers.length,
+      lobizonesVivos: aliveLobizones.length,
+      aldeanosVivos: aliveVillagers.length,
+      lobizones: aliveLobizones.map(p => p.username),
+      aldeanos: aliveVillagers.map(p => p.username)
+    });
+
+    if (aliveLobizones.length === 0 && aliveVillagers.length > 0) {
+      console.log(" ¡Ganan los aldeanos! No quedan lobizones");
+      return {
+        winner: "Aldeanos",
+        message: "¡Los aldeanos han eliminado a todos los lobizones!",
+        details: {
+          lobizonesRestantes: 0,
+          aldeanosRestantes: aliveVillagers.length
+        }
+      };
+    }
+
+    if (aliveLobizones.length >= aliveVillagers.length && aliveLobizones.length > 0) {
+      console.log("¡Ganan los lobizones! Superan a los aldeanos");
+      return {
+        winner: "Lobizones",
+        message: "¡Los lobizones han devorado a la aldea!",
+        details: {
+          lobizonesRestantes: aliveLobizones.length,
+          aldeanosRestantes: aliveVillagers.length
+        }
+      };
+    }
+
+    if (alivePlayers.length === 1) {
+      const lastPlayer = alivePlayers[0];
+      const isLobizon = lastPlayer.role === 'Lobizón';
+      console.log(`¡Solo queda 1 jugador! ${lastPlayer.username} (${isLobizon ? 'Lobizón' : 'Aldeano'})`);
+
+      return {
+        winner: isLobizon ? "Lobizones" : "Aldeanos",
+        message: isLobizon
+          ? `¡${lastPlayer.username} como Lobizón ha devorado a la aldea!`
+          : `¡${lastPlayer.username} ha sobrevivido como aldeano!`,
+        details: {
+          jugadorFinal: lastPlayer.username,
+          rolFinal: lastPlayer.role
+        }
+      };
+    }
+
+    console.log(" El juego continúa...");
+    return null;
+  }
 
   const joinedARoom = useRef(false);
 
-  useEffect(() => {
 
+  useEffect(() => {
     const userToUse = usernameFromParams || localStorage.getItem("username") || "Invitado";
     setUsername(userToUse);
 
@@ -55,7 +257,6 @@ export default function Game() {
       roomCode,
       isHost,
       username: userToUse,
-      usernameFromParams: usernameFromParams
     });
 
     if (!socket) {
@@ -71,13 +272,26 @@ export default function Game() {
     const setupSocketListeners = () => {
       socket.on("usersInRoom", (playersList) => {
         console.log("Jugadores en sala recibidos:", playersList);
-        setPlayers(playersList);
+        if (gameStarted && players.length > 0) {
+          const playersWithRoles = playersList.map(newPlayer => {
+            const existingPlayer = players.find(p => p.username === newPlayer.username);
+            return {
+              ...newPlayer,
+              role: existingPlayer ? existingPlayer.role : newPlayer.role
+            };
+          });
+          setPlayers(playersWithRoles);
+        } else {
+          setPlayers(playersList);
+        }
+
         setCreatedRoom(true);
       });
 
       socket.on("roomError", (message) => {
         console.error(" Error de sala recibido:", message);
         setErrorMessage(message);
+        alert("Error: " + message);
 
         const criticalErrors = [
           "La sala no existe",
@@ -89,20 +303,20 @@ export default function Game() {
         ];
 
         const isCritical = criticalErrors.some(error => message.includes(error));
-
         if (isCritical) {
-          console.log(" Error crítico - redirigiendo a home");
-          alert("Error: " + message);
           setTimeout(() => router.push("/"), 3000);
-        } else {
-          console.log(" Error no crítico - mostrando alerta:", message);
-          alert("Error: " + message);
         }
       });
 
-      socket.on("voteError", (message) => {
-        console.log(" Error de votación:", message);
-        alert("Votación: " + message);
+      socket.on("openNightModal", () => {
+        console.log(" Abriendo modal de votación nocturna desde backend");
+        console.log(" Estado del jugador:", {
+          username,
+          role,
+          isLobizon: role === 'Lobizón',
+          isAlive: players.find(p => p.username === username)?.isAlive
+        });
+        setIsOpenNightModal(true);
       });
 
       socket.on("gameStarted", (data) => {
@@ -114,11 +328,16 @@ export default function Game() {
         setGame(true);
 
         if (data.players) {
+          setPlayers(data.players);
+
+          console.log("roles recibidos:", data.players.map(p => ({
+            username: p.username,
+            role: p.role
+          })));
+
           const currentPlayer = data.players.find(p => p.username === userToUse);
           if (currentPlayer) {
             setRole(currentPlayer.role);
-
-
             alert(`Tu rol es: ${currentPlayer.role}`);
           }
         }
@@ -137,36 +356,41 @@ export default function Game() {
             mayorVotes: data.votes[player.username] || 0
           }))
         );
-
-        Object.entries(data.votes).forEach(([candidate, votes]) => {
-          if (votes > 0) {
-            console.log(` ${candidate} tiene ${votes} voto(s)`);
-          }
-        });
       });
 
       socket.on("mayorElected", (data) => {
-        console.log(" Intendente electo:", data);
+        console.log("INTENDENTE ELECTO - Actualizando estado:", data);
+
+        // Actualizar el estado mayor INMEDIATAMENTE
         setMayor(data.mayor);
-        setPlayers(prevPlayers =>
-          prevPlayers.map(player => ({
+
+        // Actualizar players para que isMayor sea correcto
+        setPlayers(prevPlayers => {
+          const updatedPlayers = prevPlayers.map(player => ({
             ...player,
-            isMayor: player.username === data.mayor
-          }))
-        );
+            isMayor: player.username === data.mayor,
+            mayorVotes: 0
+          }));
+
+          console.log("🔄 Players actualizados con intendente:",
+            updatedPlayers.filter(p => p.isMayor).map(p => p.username)
+          );
+
+          return updatedPlayers;
+        });
 
         setIsOpenTieBreak(false);
         setTieBreakData(null);
-        setTimeout(() => {
-          console.log(" Iniciando la primera noche...");
-          socket.emit("startNight", { code: roomCode });
-        }, 2000);
 
         setTimeout(() => {
           alert(`¡${data.mayor} ha sido electo como intendente con ${data.votes} votos!`);
         }, 500);
-      });
 
+        setTimeout(() => {
+          console.log("🌙 Iniciando la primera noche...");
+          socket.emit("startNight", { code: roomCode });
+        }, 2000);
+      });
 
       socket.on("mayorTieBreak", (data) => {
         console.log("EMPATE - Se requiere desempate del anfitrión:", data);
@@ -176,7 +400,6 @@ export default function Game() {
           alert("¡Hay un empate! Debes elegir al intendente.");
         }
       });
-
 
       socket.on("lynchVoteRegistered", (data) => {
         console.log(` ${data.voter} votó por linchar a ${data.candidate}`);
@@ -194,72 +417,125 @@ export default function Game() {
       });
 
       socket.on("lynchTieBreak", (data) => {
-        console.log(" EMPATE en linchamiento - Se requiere desempate del intendente:", data);
-        if (mayor === username) {
+        console.log("🔨 EMPATE en linchamiento - Se requiere desempate:", data);
+
+        // VERIFICACIÓN DIRECTA POR SOCKET ID - método más confiable
+        const amIMayorBySocket = data.mayorSocketId === socket.id;
+        const amIMayorByUsername = data.mayorUsername === username;
+
+        console.log("🔍 VERIFICACIÓN POR SOCKET:", {
+          socketIdLocal: socket.id,
+          socketIdBackend: data.mayorSocketId,
+          coincide: amIMayorBySocket
+        });
+
+        console.log("🔍 VERIFICACIÓN POR USERNAME:", {
+          usernameLocal: username,
+          usernameBackend: data.mayorUsername,
+          coincide: amIMayorByUsername
+        });
+
+        // FORZAR la actualización del estado mayor si es necesario
+        if (data.mayorUsername && mayor !== data.mayorUsername) {
+          console.log("🔄 Actualizando estado mayor desde backend:", data.mayorUsername);
+          setMayor(data.mayorUsername);
+        }
+
+        // USAR cualquiera de las verificaciones
+        const amIMayor = amIMayorBySocket || amIMayorByUsername;
+
+        if (amIMayor) {
+          console.log("✅ VERIFICADO COMO INTENDENTE - Abriendo modal");
+
+          // Actualizar el estado de players para asegurar que isMayor esté correcto
+          setPlayers(prevPlayers =>
+            prevPlayers.map(player => ({
+              ...player,
+              isMayor: player.username === data.mayorUsername
+            }))
+          );
+
           setLynchTieBreakData(data);
           setIsOpenLynchTieBreak(true);
-          alert("¡Hay un empate en el linchamiento! Debes elegir a quién linchar.");
+          setIsOpenLynchModal(false);
+
+          // Forzar un doble renderizado para asegurar que el modal se abra
+          setTimeout(() => {
+            setIsOpenLynchTieBreak(true);
+          }, 50);
+
+        } else {
+          console.log("❌ NO SOY EL INTENDENTE - Cerrando modal");
+          console.log("📊 Datos completos:", {
+            mayorEstado: mayor,
+            username,
+            socketId: socket.id,
+            dataFromBackend: data
+          });
+          setIsOpenLynchModal(false);
         }
       });
 
-
       socket.on("lynchResult", (data) => {
-        console.log(" 🔨 Resultado del linchamiento:", data);
+        console.log(" Resultado del linchamiento:", data);
         setLynchedPlayer(data.lynched);
         setIsOpenLynchTieBreak(false);
         setLynchTieBreakData(null);
         setHasVotedForLynch(false);
 
-        setPlayers(prevPlayers =>
-          prevPlayers.map(player => ({
+        // Actualizar players y verificar ganador con los datos actualizados
+        setPlayers(prevPlayers => {
+          const updatedPlayers = prevPlayers.map(player => ({
             ...player,
-            lynchVotes: 0
-          }))
-        );
+            lynchVotes: 0,
+            ...(player.username === data.lynched && { isAlive: false })
+          }));
+          const winner = checkWinner(updatedPlayers);
+
+          if (winner) {
+            setIsNight(false);
+            setNightVictim(null);
+            setHasVotedNight(false);
+            setNightTieBreakData(null);
+            setIsOpenNightTieBreak(false);
+            setIsOpenNightModal(false);
+            console.log("¡Hay un ganador!", winner);
+            setWinner(winner);
+            setFinishGame(true);
+          } else {
+            setTimeout(() => {
+              setIsOpenLynchModal(false);
+              setLynchedPlayer(null);
+              console.log("Iniciando noche después del linchamiento...");
+              socket.emit("startNight", { code: roomCode });
+            }, 3000);
+          }
+
+          return updatedPlayers;
+        });
 
         if (data.lynched) {
           alert(`¡${data.lynched} ha sido linchado!`);
-
-
-          setTimeout(() => {
-            setIsOpenLynchModal(false);
-            setLynchedPlayer(null);
-
-
-            console.log("Linchamiento completado - Iniciando noche...");
-            if (socket && roomCode) {
-              socket.emit("startNight", { code: roomCode });
-            }
-          }, 3000);
         } else {
           alert("No se linchó a nadie.");
-          setTimeout(() => {
-            setIsOpenLynchModal(false);
-            console.log("Sin linchamiento - Iniciando noche...");
-            if (socket && roomCode) {
-              socket.emit("startNight", { code: roomCode });
-            }
-          }, 3000);
         }
       });
 
       socket.on("alreadyVotedLynch", (data) => {
-        console.log(" Ya habías votado para linchamiento:", data);
         alert("Ya has votado para linchamiento");
       });
 
       socket.on("startLynchVote", () => {
-        console.log(" Iniciando votación de linchamiento...");
-        setIsOpenLynchModal(true);
+        if (!blockOtherModals && !isOpenSuccessorModal) {
+          console.log(" Iniciando votación de linchamiento...");
+          setIsOpenLynchModal(true);
+        } else {
+          console.log("Linchamiento bloqueado - Hay herencia pendiente o modal de sucesor abierto");
+        }
       });
 
       socket.on("alreadyVoted", (data) => {
-        console.log(" Ya habías votado:", data);
         alert("Ya has votado por el intendente");
-      });
-
-      socket.onAny((eventName, ...args) => {
-        console.log(" Evento socket recibido:", eventName, args);
       });
 
       socket.on("nightStarted", (data) => {
@@ -267,11 +543,6 @@ export default function Game() {
         setIsNight(true);
         setNightVictim(null);
         setHasVotedNight(false);
-      });
-
-      socket.on("openNightModal", () => {
-        console.log(" Abriendo modal de votación nocturna desde backend");
-        setIsOpenNightModal(true);
       });
 
       socket.on("nightVoteRegistered", (data) => {
@@ -290,7 +561,7 @@ export default function Game() {
       });
 
       socket.on("nightTieBreak", (data) => {
-        console.log(" 🐺 EMPATE NOCTURNO - Se requiere revotación:", data);
+        console.log("  EMPATE NOCTURNO - Se requiere revotación:", data);
         setNightTieBreakData(data);
         setIsOpenNightTieBreak(true);
         setIsOpenNightModal(false);
@@ -302,43 +573,31 @@ export default function Game() {
 
       socket.on("nightResult", (data) => {
         console.log(" Resultado de la noche recibido:", data);
-
         setNightVictim(data.victim);
-
         setHasVotedNight(false);
         setNightTieBreakData(null);
 
         setPlayers(prevPlayers => {
-          const updatedPlayers = prevPlayers.map(player => {
-            const updatedPlayer = {
-              ...player,
-              nightVotes: 0,
-              lynchVotes: 0
-            };
-
-            if (player.username === data.victim) {
-              console.log(` Marcando como muerto a: ${player.username}`);
-              updatedPlayer.isAlive = false;
-            }
-
-            return updatedPlayer;
-          });
+          const updatedPlayers = prevPlayers.map(player => ({
+            ...player,
+            nightVotes: 0,
+            lynchVotes: 0,
+            // Marcar víctima nocturna como muerta
+            ...(player.username === data.victim && { isAlive: false })
+          }));
 
           console.log(" Estado después de noche - Vivos:",
             updatedPlayers.filter(p => p.isAlive).map(p => p.username));
-          console.log(" Estado después de noche - Muertos:",
-            updatedPlayers.filter(p => !p.isAlive).map(p => p.username));
 
           return updatedPlayers;
         });
-
       });
 
       socket.on("alreadyVotedNight", (data) => {
-        console.log(" Ya habías votado en la noche:", data);
         alert("Ya has votado en la noche");
       });
     };
+
     setupSocketListeners();
 
     const timeoutId = setTimeout(() => {
@@ -349,7 +608,7 @@ export default function Game() {
         console.log(" Anfitrión creando sala...");
         socket.emit("crearSala", {
           code: roomCode,
-          anfitrion: userToUse,
+          host: userToUse,
           maxPlayers: parseInt(playersAmount)
         });
       } else {
@@ -362,8 +621,8 @@ export default function Game() {
       joinedARoom.current = true;
     }, 1000);
 
-
-  }, [socket, roomCode, isHost, playersAmount, router, usernameFromParams]); // Agregar usernameFromParams a las dependencias
+    return () => clearTimeout(timeoutId);
+  }, [socket, roomCode, isHost, playersAmount, router, usernameFromParams, checkWinner, mayor, username]);
 
   const startGame = () => {
     if (socket && isHost) {
@@ -404,15 +663,6 @@ export default function Game() {
     }
   };
 
-  useEffect(() => {
-    console.log("Estado actual:", {
-      lobby,
-      game,
-      gameStarted,
-      playersCount: players.length
-    });
-  }, [lobby, game, gameStarted, players]);
-
   const voteMayor = (candidateUsername) => {
     if (socket && roomCode && !hasVotedForMayor) {
       console.log(`🗳️ ${username} votando por ${candidateUsername} como intendente`);
@@ -426,14 +676,6 @@ export default function Game() {
   };
 
   const voteLynch = (candidateUsername) => {
-
-    console.log("  Intentando votar por:", candidateUsername);
-    console.log(" Estado actual del jugador:", {
-      username,
-      isAlive: players.find(p => p.username === username)?.isAlive,
-      hasVoted: hasVotedForLynch
-    });
-
     const currentPlayer = players.find(p => p.username === username);
     if (!currentPlayer) {
       alert("Error: No se encontró tu usuario en el juego");
@@ -464,27 +706,36 @@ export default function Game() {
         candidate: candidateUsername
       });
       setHasVotedForLynch(true);
-    } else {
-      console.log("  Condiciones no cumplidas para votar:", {
-        socket: !!socket,
-        roomCode: !!roomCode,
-        hasVoted: hasVotedForLynch
-      });
     }
   };
 
   const decideLynchTieBreak = (chosenCandidate) => {
     if (socket && roomCode && lynchTieBreakData) {
-      console.log(` Intendente decide desempate de linchamiento: ${chosenCandidate}`);
+      console.log(`🔨 Intendente ${username} decide desempate de linchamiento: ${chosenCandidate}`);
+      console.log("📤 Enviando lynchTieBreakDecision al backend con:", {
+        code: roomCode,
+        chosenCandidate: chosenCandidate,
+        tieCandidates: lynchTieBreakData.tieCandidates
+      });
+
       socket.emit("lynchTieBreakDecision", {
         code: roomCode,
         chosenCandidate: chosenCandidate,
         tieCandidates: lynchTieBreakData.tieCandidates
       });
+
+      // Cerrar el modal después de enviar
       setIsOpenLynchTieBreak(false);
       setLynchTieBreakData(null);
+    } else {
+      console.error("❌ Error: Faltan datos para decidir desempate:", {
+        socket: !!socket,
+        roomCode: !!roomCode,
+        lynchTieBreakData: !!lynchTieBreakData
+      });
     }
   };
+
 
   const closeLynchModal = () => {
     setIsOpenLynchModal(false);
@@ -516,25 +767,23 @@ export default function Game() {
   };
 
   function startDay() {
-    let amountLobizones = 0;
-    let amountVillagers = 0;
+    console.log("startDay ejecutándose - Verificando estado del juego...");
 
-    updatedPlayers.forEach(p => {
-      if (p.isAlive) {
-        if (p.role === 'lobizon') {
-          amountLobizones += 1;
-        } else {
-          amountVillagers += 1;
-        }
-      }
-    });
+    const winner = checkWinner();
 
-    console.log("startDay ejecutándose - Cambiando a día");
-    console.log(`Lobizones vivos: ${amountLobizones}, No lobizones vivos: ${amountVillagers}`);
-
-    if (amountLobizones >= amountVillagers) {
-      <FindeJuego />;
+    if (winner) {
+      setIsNight(false);
+      setNightVictim(null);
+      setHasVotedNight(false);
+      setNightTieBreakData(null);
+      setIsOpenNightTieBreak(false);
+      setIsOpenNightModal(false);
+      console.log("¡Hay un ganador!", winner);
+      setWinner(winner);
+      setFinishGame(true);
     } else {
+      console.log("El juego continúa - Cambiando a día");
+
       setIsNight(false);
       setNightVictim(null);
       setHasVotedNight(false);
@@ -543,149 +792,95 @@ export default function Game() {
       setIsOpenNightModal(false);
 
       setTimeout(() => {
+
+
+        if (blockOtherModals || isOpenSuccessorModal) {
+          console.log(" Evitando abrir linchamiento porque hay sucesión en curso");
+          return;
+        }
+
         console.log("Abriendo modal de linchamiento desde startDay");
         setIsOpenLynchModal(true);
+
       }, 500);
     }
   }
 
-  const assignRandomRoles = (players) => {
-
-    const playersArray = [...players];
-    let currentIndex = playersArray.length;
-
-    while (currentIndex !== 0) {
-      const randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex--;
-      [playersArray[currentIndex], playersArray[randomIndex]] = [
-        playersArray[randomIndex],
-        playersArray[currentIndex],
-      ];
-    }
-
-    const getRolesForPlayerCount = (count) => {
-      const baseRoles = {
-        6: ["Palermitano", "Conurbanense", "Conurbanense", "Medium", "Tarotista", "Lobizón"],
-        7: ["Palermitano", "Conurbanense", "Conurbanense", "Medium", "Tarotista", "Lobizón", "Lobizón"],
-        8: ["Palermitano", "Conurbanense", "Conurbanense", "Medium", "Tarotista", "Lobizón", "Lobizón", "Viuda negra"],
-
-      };
-
-      return baseRoles[count] || baseRoles[6];
-    };
-
-    const roles = getRolesForPlayerCount(players.length);
-    const randomPool = ["Pombero", "Jubilado", "Chamán"];
-
-
-    if (players.length > 13) {
-      randomPool.push("Colectivero");
-    }
-
-    const usedRandomRoles = [];
-
-
-    const playersWithRoles = playersArray.map((player, i) => {
-      let role = roles[i] || "Palermitano";
-
-
-      if (role === "Random1" || role === "Random2") {
-        if (randomPool.length === 0) {
-          role = "Palermitano";
-        } else {
-          const randomIndex = Math.floor(Math.random() * randomPool.length);
-          role = randomPool[randomIndex];
-          usedRandomRoles.push(role);
-          randomPool.splice(randomIndex, 1);
-        }
-      }
-
-      return {
-        ...player,
-        role: role.toLowerCase(),
-        isAlive: true,
-        votesReceived: 0,
-        wasProtected: false
-      };
-    });
-
-    console.log("Roles asignados con sistema random:", playersWithRoles.map(p => ({
-      username: p.username,
-      role: p.role
-    })));
-
-    return playersWithRoles;
-  };
-
-  const assignRoles = (players) => {
-    const updatedPlayers = assignRandomRoles(players);
-
-    console.log("Roles asignados:", updatedPlayers.map(p => ({
-      username: p.username,
-      role: p.role
-    })));
-
-    return updatedPlayers;
-  };
 
   return (
     <>
-      {lobby === true ? (
-        <Lobby
-          players={players}
-          username={username}
-          createdRoom={createdRoom}
-          errorMessage={errorMessage}
-          setLobby={setLobby}
-          setGame={setGame}
-          roomCode={roomCode}
-          closeRoom={closeRoom}
-          leaveRoom={leaveRoom}
-          socketGame={startGame}
-        />
-      ) : (
+      {finishGame ? (<FindeJuego />) : (
         <>
-          {isNight ? (
-            <Night
+          {lobby === true ? (
+            <Lobby
               players={players}
               username={username}
-              role={role}
-              isNight={isNight}
-              setIsNight={setIsNight}
-              nightVictim={nightVictim}
-              isOpenNightModal={isOpenNightModal}
-              setIsOpenNightModal={setIsOpenNightModal}
-              voteNightKill={voteNightKill}
-              hasVotedNight={hasVotedNight}
-              nightTieBreakData={nightTieBreakData}
-              isOpenNightTieBreak={isOpenNightTieBreak}
-              setIsOpenNightTieBreak={setIsOpenNightTieBreak}
-              voteNightTieBreak={voteNightTieBreak}
-              startDay={startDay}
-
+              createdRoom={createdRoom}
+              errorMessage={errorMessage}
+              setLobby={setLobby}
+              setGame={setGame}
+              roomCode={roomCode}
+              closeRoom={closeRoom}
+              leaveRoom={leaveRoom}
+              socketGame={startGame}
+              isHost={isHost}
+              playersAmount={playersAmount}
             />
           ) : (
-            <Day
-              role={role}
-              players={players}
-              username={username}
-              setUsername={setUsername}
-              voteMayor={voteMayor}
-              hasVotedForMayor={hasVotedForMayor}
-              mayor={mayor}
-              tieBreakData={tieBreakData}
-              isOpenTieBreak={isOpenTieBreak}
-              decideTieBreak={decideTieBreak}
-              voteLynch={voteLynch}
-              hasVotedForLynch={hasVotedForLynch}
-              lynchTieBreakData={lynchTieBreakData}
-              isOpenLynchTieBreak={isOpenLynchTieBreak}
-              decideLynchTieBreak={decideLynchTieBreak}
-              lynchedPlayer={lynchedPlayer}
-              isOpenLynchModal={isOpenLynchModal}
-              setIsOpenLynchModal={setIsOpenLynchModal}
-              closeLynchModal={closeLynchModal}
-            />
+            <>
+              {isOpenSuccessorModal && (
+                <Modal
+                  isOpen={isOpenSuccessorModal}
+                  onClose={closeSuccessorModal}
+                  type={"successor"}
+                  successorCandidates={successorCandidates}
+                  chooseSuccessor={chooseSuccessor}
+                />
+              )}
+
+              {isNight ? (
+                <Night
+                  players={players}
+                  username={username}
+                  role={role}
+                  isNight={isNight}
+                  setIsNight={setIsNight}
+                  nightVictim={nightVictim}
+                  isOpenNightModal={isOpenNightModal}
+                  setIsOpenNightModal={setIsOpenNightModal}
+                  voteNightKill={voteNightKill}
+                  hasVotedNight={hasVotedNight}
+                  nightTieBreakData={nightTieBreakData}
+                  isOpenNightTieBreak={isOpenNightTieBreak}
+                  setIsOpenNightTieBreak={setIsOpenNightTieBreak}
+                  voteNightTieBreak={voteNightTieBreak}
+                  startDay={startDay}
+                />
+              ) : (
+                <Day
+                  role={role}
+                  players={players}
+                  username={username}
+                  setUsername={setUsername}
+                  voteMayor={voteMayor}
+                  hasVotedForMayor={hasVotedForMayor}
+                  mayor={mayor}
+                  tieBreakData={tieBreakData}
+                  isOpenTieBreak={isOpenTieBreak}
+                  decideTieBreak={decideTieBreak}
+                  voteLynch={voteLynch}
+                  hasVotedForLynch={hasVotedForLynch}
+                  lynchTieBreakData={lynchTieBreakData}
+                  isOpenLynchTieBreak={isOpenLynchTieBreak}
+                  decideLynchTieBreak={decideLynchTieBreak}
+                  lynchedPlayer={lynchedPlayer}
+                  setLynchedPlayer={setLynchedPlayer}
+                  isOpenLynchModal={isOpenLynchModal}
+                  setIsOpenLynchModal={setIsOpenLynchModal}
+                  closeLynchModal={closeLynchModal}
+                />
+              )}
+            </>
           )}
         </>
       )}

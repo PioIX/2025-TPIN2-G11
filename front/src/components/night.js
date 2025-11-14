@@ -36,13 +36,22 @@ export default function Night({
         setAlivePlayers(alive);
     }, [players]);
 
-    const isLobizon = role === 'lobizón' || role === 'lobizon';
+
+    const isLobizon = role === 'Lobizón';
     const canVote = isLobizon && players.find(p => p.username === username)?.isAlive;
+
+    console.log("Night - Estado del jugador:", {
+        username,
+        role,
+        isLobizon,
+        canVote,
+        isAlive: players.find(p => p.username === username)?.isAlive
+    });
 
     useEffect(() => {
         if (nightVictim && isNight) {
             console.log("Noche completada - Iniciando transición a día...");
-            
+
             if (transitionTimeoutRef.current) {
                 clearTimeout(transitionTimeoutRef.current);
             }
@@ -52,24 +61,24 @@ export default function Night({
 
             transitionTimeoutRef.current = setTimeout(() => {
                 console.log(" Mostrando resultado de la noche...");
-                
+
                 transitionTimeoutRef.current = setTimeout(() => {
                     console.log("Mostrando transición a día...");
                     setShowDayTransition(true);
-                    
+
                     transitionTimeoutRef.current = setTimeout(() => {
                         console.log("Llamando a startDay...");
                         setShowDayTransition(false);
- 
+
                         if (startDay && typeof startDay === 'function') {
-                            startDay();
+                            startDay(); 
                         } else {
                             console.error(" startDay no es una función válida");
                             setIsNight(false);
                         }
-                    }, 2000); 
-                }, 3000); 
-            }, 500); 
+                    }, 2000);
+                }, 3000);
+            }, 500);
         }
 
         return () => {
@@ -85,7 +94,7 @@ export default function Night({
             setShowDayTransition(false);
             setIsOpenNightModal(false);
             setIsOpenNightTieBreak(false);
-            
+
             if (transitionTimeoutRef.current) {
                 clearTimeout(transitionTimeoutRef.current);
             }
@@ -95,12 +104,11 @@ export default function Night({
     const getAttackablePlayers = () => {
         return alivePlayers.filter(player => {
             const isOtherPlayer = player.username !== username;
-            const isNotLobizon = player.role !== 'lobizón' && player.role !== 'lobizon';
+            const isNotLobizon = player.role !== 'Lobizón';
             return isOtherPlayer && isNotLobizon && player.isAlive;
         });
     };
 
-   
     if (!isNight) {
         console.log("Night component - isNight es false, no renderizar");
         return null;
@@ -114,7 +122,8 @@ export default function Night({
         username,
         alivePlayersCount: alivePlayers.length,
         nightVictim,
-        showDayTransition
+        showDayTransition,
+        attackablePlayers: getAttackablePlayers().length
     });
 
     return (

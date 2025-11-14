@@ -53,7 +53,9 @@ export default function Modal({
   hasVotedNight,
   nightVictim,
   nightTieBreakData,
-  voteNightTieBreak
+  voteNightTieBreak,
+  successorCandidates,
+  chooseSuccessor
 }) {
   const mouseDownTarget = useRef(null);
 
@@ -304,7 +306,7 @@ export default function Modal({
                     <h4>Jugadores Vivos ({players.filter(p => p.isAlive).length}):</h4>
                     <ul>
                       {players
-                        .filter(player => player.isAlive) 
+                        .filter(player => player.isAlive)
                         .map((player, index) => (
                           <li className={styles.playerItem} key={index}>
                             <Button
@@ -341,30 +343,82 @@ export default function Modal({
             <div className={styles.lynchTieBreakInfo}>
               <p>Los siguientes jugadores tienen la misma cantidad de votos:</p>
               <ul className={styles.lynchTieCandidatesList}>
-                {lynchTieBreakData.tieCandidates.map((candidate, index) => (
-                  <li key={index} className={styles.lynchTieCandidate}>
-                    <strong>{candidate}</strong> - {lynchTieBreakData.votes[candidate]} votos
-                  </li>
-                ))}
+                {lynchTieBreakData && lynchTieBreakData.tieCandidates &&
+                  lynchTieBreakData.tieCandidates.map((candidate, index) => (
+                    <li key={index} className={styles.lynchTieCandidate}>
+                      <strong>{candidate}</strong> - {lynchTieBreakData.votes[candidate]} votos
+                    </li>
+                  ))
+                }
               </ul>
             </div>
 
             <div className={styles.lynchTieBreakDecision}>
               <h3>¿A quién eliges linchar?</h3>
               <div className={styles.lynchTieBreakButtons}>
-                {lynchTieBreakData.tieCandidates.map((candidate, index) => (
-                  <Button
-                    key={index}
-                    className={styles.lynchTieBreakBtn}
-                    onClick={() => decideLynchTieBreak(candidate)}
-                    title={`Linchar a ${candidate}`}
-                  />
-                ))}
+                {lynchTieBreakData && lynchTieBreakData.tieCandidates &&
+                  lynchTieBreakData.tieCandidates.map((candidate, index) => (
+                    <Button
+                      key={index}
+                      className={styles.lynchTieBreakBtn}
+                      onClick={() => {
+                        console.log(`🔨 Intendente decide linchar a: ${candidate}`);
+                        decideLynchTieBreak(candidate);
+                      }}
+                      title={`Linchar a ${candidate}`}
+                    />
+                  ))
+                }
               </div>
             </div>
 
             <div className={styles.lynchTieBreakNote}>
-              <p>Tu decisión es final y determinará a quién se lincha.</p>
+              <p>⚠️ Tu decisión es final y determinará a quién se lincha.</p>
+            </div>
+          </div>
+        )}
+
+        {type === "successor" && (
+          <div
+            className={styles.overlaySuccessor}
+            style={{ zIndex: 10000 }}
+            onMouseDown={handleOverlayMouseDown}
+            onClick={handleOverlayClick}
+          >
+            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+              <button className={styles.close} onClick={onClose}>✕</button>
+
+              <div className={styles.successor}>
+                <div className={styles.successorHeader}>
+                  <h2>¡Has Muerto como Intendente!</h2>
+                  <p>Tienes el honor de elegir a tu sucesor</p>
+                </div>
+
+                <div className={styles.successorInfo}>
+                  <p>Como intendente caído en servicio, debes elegir quién tomará tu puesto:</p>
+                  <div className={styles.timerInfo}>
+                    <p>Tienes 30 segundos para elegir, o el sistema elegirá por ti</p>
+                  </div>
+                </div>
+
+                <div className={styles.successorDecision}>
+                  <h3>¿A quién eliges como nuevo intendente?</h3>
+                  <div className={styles.successorButtons}>
+                    {successorCandidates.map((candidate, index) => (
+                      <Button
+                        key={index}
+                        className={styles.successorBtn}
+                        onClick={() => chooseSuccessor(candidate)}
+                        title={`Elegir a ${candidate}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className={styles.successorNote}>
+                  <p>Tu elección es final. El nuevo intendente tendrá el poder del Plan Platita.</p>
+                </div>
+              </div>
             </div>
           </div>
         )}
