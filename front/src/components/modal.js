@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import styles from "./modal.module.css";
+import styles from "./modal.module.css"; // ¡ESTA LÍNEA FALTABA!
 import Button from "./button";
 
 export default function Modal({
@@ -66,7 +66,6 @@ export default function Modal({
   const handleOverlayClick = (e) => {
     if (mouseDownTarget.current === e.currentTarget && e.target === e.currentTarget) {
       onClose();
-
     }
     mouseDownTarget.current = null;
   };
@@ -84,124 +83,132 @@ export default function Modal({
       onClick={handleOverlayClick}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <button className={styles.close} onClick={onClose}>✕</button>
-
-
-        {/* Modal para unirse a sala */}
-        {type === "join" && (
-          <>
-            <h2>Ingrese el código de sala</h2>
-            <input
-              type="text"
-              placeholder="Ej: 12345"
-              value={joinCode}
-              onChange={onChangeJoinCode}
-            />
-            <br />
-            <br />
-            <Button className={styles.btn} onClick={onSubmitJoinning} title="Unirse" />
-          </>
-        )}
-
-        {/* Modal para ranking */}
-        {type === "ranking" && (
-          <>
-            <h2>Ranking de jugadores</h2>
-            <ul className={styles.rankingList}>
-              {ranking.length > 0 ? (
-                ranking.map((user, i) => (
-                  <li key={i}>
-                    <strong>{i + 1}. {user.username}</strong> — {user.score} pts
-                  </li>
-                ))
-              ) : (
-                <p>No hay jugadores aún</p>
-              )}
-            </ul>
-          </>
-        )}
-
-        {/* Modal para crear sala */}
-        {type === "createRoom" && (
-          <div className={styles.createRoom}>
-            <h2>Crear nueva sala</h2>
-            <label>Código personalizado:</label>
-            <input
-              type="text"
-              value={roomCode}
-              onChange={onChangeRoomCode}
-              placeholder="amigos2025"
-            />
-            <label>Cantidad de jugadores:</label>
-            <input
-              type="number"
-              min="6"
-              max="16"
-              value={playersAmount}
-              onChange={onChangePlayersAmount}
-            />
-            <br /><br />
-            <Button
-              className={styles.btn}
-              onClick={onSubmitCreate}
-              title="Crear sala"
-            />
+        
+        <div className={styles.modalContent}>
+          <div className={styles.modalHeader}>
+            <h2>
+              {type === "join" && "Unirse a Sala"}
+              {type === "ranking" && "Ranking de Jugadores"}
+              {type === "createRoom" && "Crear Nueva Sala"}
+              {type === "settings" && "Configuraciones"}
+              {type === "login" && (registered ? "Iniciar Sesión" : "Registrarse")}
+              {type === "startGame" && "Bienvenido a Castro Barros"}
+              {type === "mayor" && "Elección de Intendente"}
+              {type === "tieBreak" && "¡Empate Detectado!"}
+              {type === "lynch" && "Votación de Linchamiento"}
+              {type === "lynchTieBreak" && "¡Empate en Linchamiento!"}
+              {type === "successor" && "Elección de Sucesor"}
+              {type === "nightKill" && "Votación Nocturna"}
+              {type === "nightTieBreak" && "¡Empate Nocturno!"}
+            </h2>
           </div>
-        )}
 
-        {/* Modal para configuraciones */}
-        {type === "settings" && (
-          <div className={styles.settings}>
-                <Button title="INICIAR SESIÓN" onClick={onOpenLogin} />
-                <Button className={styles.btn} onClick={onSubmitModifyAccount} title="Modificar cuenta" />
-                <Button className={styles.btn} onClick={onSubmitCloseSession} title="Cerrar sesión" />
-          </div>
-        )}
-
-
-        {/* Modal para login/registro */}
-        {type === "login" && (
-          <div className={styles.loginContainer}>
-            <h2>{registered ? "Iniciar sesión" : "Registrarse"}</h2>
-
-            <input
-              placeholder="Nombre de usuario"
-              value={username}
-              onChange={onChangeUsername}
-            />
-            <br />
-            <input
-              type="password"
-              placeholder="Contraseña"
-              value={password}
-              onChange={onChangePassword}
-            />
-            <br />
-            <Button
-              className={styles.btn}
-              onClick={onSubmitLogin}
-              title={registered ? "Iniciar sesión" : "Registrarse"}
-            />
-            <p>{registered ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}</p>
-            <a onClick={onToggleRegister} className={styles.toggleLink}>
-              {registered ? "¡Regístrate!" : "¡Inicia sesión!"}
-            </a>
-          </div>
-        )}
-
-        {type === "startGame" && (
-          <div className={styles.startGame}>
+          {/* Modal para unirse a sala */}
+          {type === "join" && (
             <>
-              <h2>Bienvenido a Castro Barros</h2>
+              <p>Ingrese el código de sala</p>
+              <input
+                type="text"
+                placeholder="Ej: 12345"
+                value={joinCode}
+                onChange={onChangeJoinCode}
+              />
+              <br />
+              <Button className={styles.btn} onClick={onSubmitJoinning} title="Unirse" />
+            </>
+          )}
+
+          {/* Modal para ranking */}
+          {type === "ranking" && (
+            <>
+              <ul className={styles.rankingList}>
+                {ranking.length > 0 ? (
+                  ranking.map((user, i) => (
+                    <li key={i}>
+                      <strong>{i + 1}. {user.username}</strong> — {user.score} pts
+                    </li>
+                  ))
+                ) : (
+                  <p>No hay jugadores aún</p>
+                )}
+              </ul>
+            </>
+          )}
+
+          {/* Modal para crear sala */}
+          {type === "createRoom" && (
+            <div className={styles.createRoom}>
+              <label>Código personalizado:</label>
+              <input
+                type="text"
+                value={roomCode}
+                onChange={onChangeRoomCode}
+                placeholder="amigos2025"
+              />
+              <label>Cantidad de jugadores:</label>
+              <input
+                type="number"
+                min="6"
+                max="16"
+                value={playersAmount}
+                onChange={onChangePlayersAmount}
+              />
+              <br />
+              <Button
+                className={styles.btn}
+                onClick={onSubmitCreate}
+                title="Crear sala"
+              />
+            </div>
+          )}
+
+          {/* Modal para configuraciones */}
+          {type === "settings" && (
+            <div className={styles.settings}>
+              <Button title="INICIAR SESIÓN" onClick={onOpenLogin} />
+              <Button className={styles.btn} onClick={onSubmitModifyAccount} title="Modificar cuenta" />
+              <Button className={styles.btn} onClick={onSubmitCloseSession} title="Cerrar sesión" />
+            </div>
+          )}
+
+          {/* Modal para login/registro */}
+          {type === "login" && (
+            <div className={styles.loginContainer}>
+              <input
+                placeholder="Nombre de usuario"
+                value={username}
+                onChange={onChangeUsername}
+              />
+              <br />
+              <input
+                type="password"
+                placeholder="Contraseña"
+                value={password}
+                onChange={onChangePassword}
+              />
+              <br />
+              <Button
+                className={styles.btn}
+                onClick={onSubmitLogin}
+                title={registered ? "Iniciar sesión" : "Registrarse"}
+              />
+              <p>{registered ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}</p>
+              <a onClick={onToggleRegister} className={styles.toggleLink}>
+                {registered ? "¡Regístrate!" : "¡Inicia sesión!"}
+              </a>
+            </div>
+          )}
+
+          {type === "startGame" && (
+            <div className={styles.startGame}>
               <p>Usted vino en busca de la paz que la ciudad no puede darle. Pero hay un problema...</p>
               <p>¡Una invasión de <b>lobizones</b>! Encuéntrenlos y línchenlos antes que se deboren todo el pueblo.</p>
-            </>
-          </div>
-        )}
+            </div>
+          )}
 
-        {type === "mayor" && (
-          <div className={styles.mayor}>
-            <>
-              <h2>Lo primero que tenemos que hacer es votar un <strong>intendente</strong></h2>
+          {type === "mayor" && (
+            <div className={styles.mayor}>
+              <p>Lo primero que tenemos que hacer es votar un <strong>intendente</strong></p>
               <p>Quien sea intendente desempatará en los linchamientos y tendra una gran habilidad especial...<strong>el "Plan Platita"</strong></p>
               {mayor ? (
                 <div className={styles.electionResult}>
@@ -233,52 +240,49 @@ export default function Modal({
                   </div>
                 </>
               )}
-            </>
-          </div>
-        )}
-
-        {type === "tieBreak" && (
-          <div className={styles.tieBreak}>
-            <div className={styles.tieBreakHeader}>
-              <h2>¡EMPATE DETECTADO!</h2>
-              <p>Como anfitrión, debes decidir quién será el intendente</p>
             </div>
+          )}
 
-            <div className={styles.tieBreakInfo}>
-              <p>Los siguientes jugadores tienen la misma cantidad de votos:</p>
-              <ul className={styles.tieCandidatesList}>
-                {tieBreakData.tieCandidates.map((candidate, index) => (
-                  <li key={index} className={styles.tieCandidate}>
-                    <strong>{candidate}</strong> - {tieBreakData.votes[candidate]} votos
-                  </li>
-                ))}
-              </ul>
-            </div>
+          {type === "tieBreak" && (
+            <div className={styles.tieBreak}>
+              <div className={styles.tieBreakHeader}>
+                <h2>¡EMPATE DETECTADO!</h2>
+                <p>Como anfitrión, debes decidir quién será el intendente</p>
+              </div>
 
-            <div className={styles.tieBreakDecision}>
-              <h3>¿A quién eliges como intendente?</h3>
-              <div className={styles.tieBreakButtons}>
-                {tieBreakData.tieCandidates.map((candidate, index) => (
-                  <Button
-                    key={index}
-                    className={styles.tieBreakBtn}
-                    onClick={() => decideTieBreak(candidate)}
-                    title={`Elegir a ${candidate}`}
-                  />
-                ))}
+              <div className={styles.tieBreakInfo}>
+                <p>Los siguientes jugadores tienen la misma cantidad de votos:</p>
+                <ul className={styles.tieCandidatesList}>
+                  {tieBreakData.tieCandidates.map((candidate, index) => (
+                    <li key={index} className={styles.tieCandidate}>
+                      <strong>{candidate}</strong> - {tieBreakData.votes[candidate]} votos
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className={styles.tieBreakDecision}>
+                <h3>¿A quién eliges como intendente?</h3>
+                <div className={styles.tieBreakButtons}>
+                  {tieBreakData.tieCandidates.map((candidate, index) => (
+                    <Button
+                      key={index}
+                      className={styles.tieBreakBtn}
+                      onClick={() => decideTieBreak(candidate)}
+                      title={`Elegir a ${candidate}`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.tieBreakNote}>
+                <p>Tu decisión es final y determinará al intendente.</p>
               </div>
             </div>
+          )}
 
-            <div className={styles.tieBreakNote}>
-              <p>Tu decisión es final y determinará al intendente.</p>
-            </div>
-          </div>
-        )}
-
-        {type === "lynch" && (
-          <div className={styles.lynch}>
-            <>
-              <h2>Votación de Linchamiento</h2>
+          {type === "lynch" && (
+            <div className={styles.lynch}>
               <p>¡El pueblo debe decidir a quién linchar! Analicen las pistas y voten democráticamente.</p>
               <br />
 
@@ -322,184 +326,170 @@ export default function Modal({
                   </div>
                 </>
               )}
-            </>
-          </div>
-        )}
-
-        {type === "lynchTieBreak" && (
-          <div className={styles.lynchTieBreak}>
-            <div className={styles.lynchTieBreakHeader}>
-              <h2>¡EMPATE EN LINCHAMIENTO!</h2>
-              <p>Como intendente, debes decidir a quién linchar</p>
             </div>
+          )}
 
-            <div className={styles.lynchTieBreakInfo}>
-              <p>Los siguientes jugadores tienen la misma cantidad de votos:</p>
-              <ul className={styles.lynchTieCandidatesList}>
-                {lynchTieBreakData && lynchTieBreakData.tieCandidates &&
-                  lynchTieBreakData.tieCandidates.map((candidate, index) => (
-                    <li key={index} className={styles.lynchTieCandidate}>
-                      <strong>{candidate}</strong> - {lynchTieBreakData.votes[candidate]} votos
-                    </li>
-                  ))
-                }
-              </ul>
-            </div>
-
-            <div className={styles.lynchTieBreakDecision}>
-              <h3>¿A quién eliges linchar?</h3>
-              <div className={styles.lynchTieBreakButtons}>
-                {lynchTieBreakData && lynchTieBreakData.tieCandidates &&
-                  lynchTieBreakData.tieCandidates.map((candidate, index) => (
-                    <Button
-                      key={index}
-                      className={styles.lynchTieBreakBtn}
-                      onClick={() => {
-                        console.log(`🔨 Intendente decide linchar a: ${candidate}`);
-                        decideLynchTieBreak(candidate);
-                      }}
-                      title={`Linchar a ${candidate}`}
-                    />
-                  ))
-                }
+          {type === "lynchTieBreak" && (
+            <div className={styles.lynchTieBreak}>
+              <div className={styles.lynchTieBreakHeader}>
+                <h2>¡EMPATE EN LINCHAMIENTO!</h2>
+                <p>Como intendente, debes decidir a quién linchar</p>
               </div>
-            </div>
 
-            <div className={styles.lynchTieBreakNote}>
-              <p>⚠️ Tu decisión es final y determinará a quién se lincha.</p>
-            </div>
-          </div>
-        )}
+              <div className={styles.lynchTieBreakInfo}>
+                <p>Los siguientes jugadores tienen la misma cantidad de votos:</p>
+                <ul className={styles.lynchTieCandidatesList}>
+                  {lynchTieBreakData && lynchTieBreakData.tieCandidates &&
+                    lynchTieBreakData.tieCandidates.map((candidate, index) => (
+                      <li key={index} className={styles.lynchTieCandidate}>
+                        <strong>{candidate}</strong> - {lynchTieBreakData.votes[candidate]} votos
+                      </li>
+                    ))
+                  }
+                </ul>
+              </div>
 
-        {type === "successor" && (
-          <div
-            className={styles.overlaySuccessor}
-            style={{ zIndex: 10000 }}
-            onMouseDown={handleOverlayMouseDown}
-            onClick={handleOverlayClick}
-          >
-            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-              <button className={styles.close} onClick={onClose}>✕</button>
-
-              <div className={styles.successor}>
-                <div className={styles.successorHeader}>
-                  <h2>¡Has Muerto como Intendente!</h2>
-                  <p>Tienes el honor de elegir a tu sucesor</p>
-                </div>
-
-                <div className={styles.successorInfo}>
-                  <p>Como intendente caído en servicio, debes elegir quién tomará tu puesto:</p>
-                  <div className={styles.timerInfo}>
-                    <p>Tienes 30 segundos para elegir, o el sistema elegirá por ti</p>
-                  </div>
-                </div>
-
-                <div className={styles.successorDecision}>
-                  <h3>¿A quién eliges como nuevo intendente?</h3>
-                  <div className={styles.successorButtons}>
-                    {successorCandidates.map((candidate, index) => (
+              <div className={styles.lynchTieBreakDecision}>
+                <h3>¿A quién eliges linchar?</h3>
+                <div className={styles.lynchTieBreakButtons}>
+                  {lynchTieBreakData && lynchTieBreakData.tieCandidates &&
+                    lynchTieBreakData.tieCandidates.map((candidate, index) => (
                       <Button
                         key={index}
-                        className={styles.successorBtn}
-                        onClick={() => chooseSuccessor(candidate)}
-                        title={`Elegir a ${candidate}`}
+                        className={styles.lynchTieBreakBtn}
+                        onClick={() => {
+                          console.log(`🔨 Intendente decide linchar a: ${candidate}`);
+                          decideLynchTieBreak(candidate);
+                        }}
+                        title={`Linchar a ${candidate}`}
                       />
-                    ))}
+                    ))
+                  }
+                </div>
+              </div>
+
+              <div className={styles.lynchTieBreakNote}>
+                <p>⚠️ Tu decisión es final y determinará a quién se lincha.</p>
+              </div>
+            </div>
+          )}
+
+          {type === "successor" && (
+            <div className={styles.successor}>
+              <div className={styles.successorHeader}>
+                <h2>¡Has Muerto como Intendente!</h2>
+                <p>Tienes el honor de elegir a tu sucesor</p>
+              </div>
+
+              <div className={styles.successorInfo}>
+                <p>Como intendente caído en servicio, debes elegir quién tomará tu puesto:</p>
+                <div className={styles.timerInfo}>
+                  <p>Tienes 30 segundos para elegir, o el sistema elegirá por ti</p>
+                </div>
+              </div>
+
+              <div className={styles.successorDecision}>
+                <h3>¿A quién eliges como nuevo intendente?</h3>
+                <div className={styles.successorButtons}>
+                  {successorCandidates.map((candidate, index) => (
+                    <Button
+                      key={index}
+                      className={styles.successorBtn}
+                      onClick={() => chooseSuccessor(candidate)}
+                      title={`Elegir a ${candidate}`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.successorNote}>
+                <p>Tu elección es final. El nuevo intendente tendrá el poder del Plan Platita.</p>
+              </div>
+            </div>
+          )}
+
+          {type === "nightKill" && (
+            <div className={styles.nightKill}>
+              <p>Como lobizón, debes elegir a quién atacar esta noche.</p>
+              <br />
+
+              {nightVictim ? (
+                <div className={styles.nightResult}>
+                  <h3>Víctima Elegida</h3>
+                  <p><strong>{nightVictim}</strong> será atacado.</p>
+                  <p>Esperando a que amanezca...</p>
+                </div>
+              ) : (
+                <>
+                  <p>¿A quién quieres atacar?</p>
+                  {hasVotedNight && (
+                    <p className={styles.voteConfirmed}>Ya votaste. Esperando a los demás lobizones...</p>
+                  )}
+                  <section className={styles.playersSection}>
+                    <ul>
+                      {players.map((player, index) => (
+                        <li className={styles.playerItem} key={index}>
+                          <Button
+                            onClick={() => voteNightKill(player.username)}
+                            title={`${player.username} ${player.nightVotes ? `(${player.nightVotes} votos)` : ''}`}
+                            disabled={hasVotedNight || nightVictim || !player.isAlive}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                  <div className={styles.voteStatus}>
+                    <p>Lobizones que ya votaron: {
+                      players.filter(p => p.nightVotes > 0 && (p.role === 'lobizon' || p.role === 'lobizón') && p.isAlive).length
+                    } de {
+                        players.filter(p => (p.role === 'lobizon' || p.role === 'lobizón') && p.isAlive).length
+                      }</p>
                   </div>
-                </div>
+                </>
+              )}
+            </div>
+          )}
 
-                <div className={styles.successorNote}>
-                  <p>Tu elección es final. El nuevo intendente tendrá el poder del Plan Platita.</p>
+          {type === "nightTieBreak" && (
+            <div className={styles.nightTieBreak}>
+              <div className={styles.nightTieBreakHeader}>
+                <h2>¡EMPATE NOCTURNO!</h2>
+                <p>Debes revotar entre los jugadores empatados</p>
+              </div>
+
+              <div className={styles.nightTieBreakInfo}>
+                <p>Los siguientes jugadores tienen la misma cantidad de votos:</p>
+                <ul className={styles.nightTieCandidatesList}>
+                  {nightTieBreakData.tieCandidates.map((candidate, index) => (
+                    <li key={index} className={styles.nightTieCandidate}>
+                      <strong>{candidate}</strong> - {nightTieBreakData.votes[candidate]} votos
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className={styles.nightTieBreakDecision}>
+                <h3>¿A quién eliges atacar?</h3>
+                <div className={styles.nightTieBreakButtons}>
+                  {nightTieBreakData.tieCandidates.map((candidate, index) => (
+                    <Button
+                      key={index}
+                      className={styles.nightTieBreakBtn}
+                      onClick={() => voteNightTieBreak(candidate)}
+                      title={`Atacar a ${candidate}`}
+                    />
+                  ))}
                 </div>
               </div>
-            </div>
-          </div>
-        )}
 
-        {type === "nightKill" && (
-          <div className={styles.nightKill}>
-            <h2>Votación Nocturna</h2>
-            <p>Como lobizón, debes elegir a quién atacar esta noche.</p>
-            <br />
-
-            {nightVictim ? (
-              <div className={styles.nightResult}>
-                <h3>Víctima Elegida</h3>
-                <p><strong>{nightVictim}</strong> será atacado.</p>
-                <p>Esperando a que amanezca...</p>
-              </div>
-            ) : (
-              <>
-                <p>¿A quién quieres atacar?</p>
-                {hasVotedNight && (
-                  <p className={styles.voteConfirmed}>Ya votaste. Esperando a los demás lobizones...</p>
-                )}
-                <section className={styles.playersSection}>
-                  <ul>
-                    {players.map((player, index) => (
-                      <li className={styles.playerItem} key={index}>
-                        <Button
-                          onClick={() => voteNightKill(player.username)}
-                          title={`${player.username} ${player.nightVotes ? `(${player.nightVotes} votos)` : ''}`}
-                          disabled={hasVotedNight || nightVictim || !player.isAlive}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-                <div className={styles.voteStatus}>
-                  <p>Lobizones que ya votaron: {
-                    players.filter(p => p.nightVotes > 0 && (p.role === 'lobizon' || p.role === 'lobizón') && p.isAlive).length
-                  } de {
-                      players.filter(p => (p.role === 'lobizon' || p.role === 'lobizón') && p.isAlive).length
-                    }</p>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {type === "nightTieBreak" && (
-          <div className={styles.nightTieBreak}>
-            <div className={styles.nightTieBreakHeader}>
-              <h2>¡EMPATE NOCTURNO!</h2>
-              <p>Debes revotar entre los jugadores empatados</p>
-            </div>
-
-            <div className={styles.nightTieBreakInfo}>
-              <p>Los siguientes jugadores tienen la misma cantidad de votos:</p>
-              <ul className={styles.nightTieCandidatesList}>
-                {nightTieBreakData.tieCandidates.map((candidate, index) => (
-                  <li key={index} className={styles.nightTieCandidate}>
-                    <strong>{candidate}</strong> - {nightTieBreakData.votes[candidate]} votos
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className={styles.nightTieBreakDecision}>
-              <h3>¿A quién eliges atacar?</h3>
-              <div className={styles.nightTieBreakButtons}>
-                {nightTieBreakData.tieCandidates.map((candidate, index) => (
-                  <Button
-                    key={index}
-                    className={styles.nightTieBreakBtn}
-                    onClick={() => voteNightTieBreak(candidate)}
-                    title={`Atacar a ${candidate}`}
-                  />
-                ))}
+              <div className={styles.nightTieBreakNote}>
+                <p>En caso de nuevo empate, se elegirá al primero alfabéticamente.</p>
               </div>
             </div>
+          )}
 
-            <div className={styles.nightTieBreakNote}>
-              <p>En caso de nuevo empate, se elegirá al primero alfabéticamente.</p>
-            </div>
-          </div>
-        )}
-
+        </div>
       </div>
     </div>
   );
-
-
 }

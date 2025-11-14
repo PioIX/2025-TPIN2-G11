@@ -1,35 +1,28 @@
-/* ========== VARIABLES Y FONDOS COHERENTES CON EL LOBBY ========== */
+/* ========== FONDO DIURNO ACTUALIZADO ========== */
+/* ========== FONDO DIURNO ACTUALIZADO ========== */
 .container {
-  min-height: 100vh;
-  background: 
-    linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
-    url('/background.jpg') center/cover no-repeat fixed;
+  min-height: 100vh; /* Cambié height: 100% por min-height: 100vh para mejor compatibilidad */
+  width: 100%;
+  background: linear-gradient(349deg, rgba(46, 240, 233, 1) 0%, rgba(82, 186, 190, 1) 45%, rgba(225, 255, 189, 1) 100%);
   padding: 40px 20px;
   font-family: 'Arial', sans-serif;
   position: relative;
   overflow-x: hidden;
-  color: #ecd2b6;
+  color: #2c1810;
+  display: flex;
+  flex-direction: column; /* Agregado para mejor estructura */
+  align-items: center;
+  justify-content: center;
 }
 
-/* Overlay estrellado consistente */
+/* Eliminar cualquier overlay anterior que pueda estar interfiriendo */
 .container::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: 
-    radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 4px),
-    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 3px);
-  background-size: 550px 550px, 350px 350px;
-  background-position: 0 0, 40px 60px;
-  pointer-events: none;
-  z-index: 0;
+  display: none !important;
 }
 
 /* ========== HEADER CON TEXTURA DE MADERA ========== */
 .header {
+  color: wheat;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -46,6 +39,11 @@
   z-index: 10;
   border: 4px solid rgba(255, 248, 235, 0.4);
   filter: saturate(150%);
+  width: 90vw;
+}
+
+.header h2 {
+  color: wheat;
 }
 
 .phaseInfo {
@@ -67,7 +65,7 @@
   text-transform: uppercase;
 }
 
-/* ========== PLAYERS SECTION - COHERENTE CON LOBBY ========== */
+/* ========== PLAYERS SECTION ========== */
 .playersSection {
   background-image: url('/wood.webp');
   background-size: 400px;
@@ -103,9 +101,14 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 25px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-/* ========== PLAYER CARDS - MANTENIENDO ESTILO LOBBY ========== */
+/* ========== PLAYER CARDS ========== */
 .playerCard {
   background: linear-gradient(135deg, #f5f5dc 0%, #e8dcc8 100%);
   padding: 25px 20px;
@@ -195,7 +198,7 @@
   text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.9);
 }
 
-/* ========== BADGES COHERENTES ========== */
+/* ========== BADGES ========== */
 .hostBadge, .mayorBadge, .deadBadge, .voteBadge {
   background: linear-gradient(135deg, #d4a574, #c98d4f);
   color: #2c1810;
@@ -242,7 +245,10 @@
 }
 
 .mayorInfo h2 {
-  color: #ffd700;
+  color: wheat;
+  -webkit-animation: glow 1s ease-in-out infinite alternate;
+  -moz-animation: glow 1s ease-in-out infinite alternate;
+  animation: glow 1s ease-in-out infinite alternate;
   margin-bottom: 10px;
   text-shadow: 
     2px 2px 4px rgba(0, 0, 0, 0.8),
@@ -279,7 +285,7 @@
     0 0 10px rgba(255, 107, 107, 0.4);
 }
 
-/* ========== BOTONES COHERENTES ========== */
+/* ========== BOTONES ========== */
 .voteButton {
   display: inline-flex !important;
   align-items: center !important;
@@ -417,5 +423,29 @@
   
   .playerAvatar {
     font-size: 1.8rem;
+  }
+}
+
+@keyframes glow {
+  from {
+    text-shadow:
+      0 0 6px rgba(255, 240, 200, 0.2),
+      0 0 10px rgba(255, 225, 150, 0.1),
+      0 0 14px rgba(255, 210, 100, 0.1),
+      0 0 22px rgba(255, 190, 70, 0.1),
+      0 0 29px rgba(255, 180, 50, 0.2),
+      0 0 36px rgba(255, 180, 50, 0.3),
+      0 0 12px rgba(255, 180, 50, 0.61);
+  }
+
+  to {
+    text-shadow:
+      0 0 10px rgba(255, 245, 210, 0.5),
+      0 0 20px rgba(255, 230, 160, 0.4),
+      0 0 30px rgba(255, 215, 120, 0.5),
+      0 0 20px rgba(255, 214, 80, 0.6),
+      0 0 40px rgba(255, 190, 60,  0.4),
+      0 0 30px rgba(255, 198, 40, 0.6),
+      0 0 20px rgba(255, 214, 30, 0.5);
   }
 }

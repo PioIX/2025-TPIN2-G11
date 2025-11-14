@@ -1,3 +1,214 @@
+.mayor {
+  text-align: center;
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.mayor p {
+  margin: 5px 0;
+  width: 100%;
+  text-align: center;
+  line-height: 1.5;
+  font-size: 1.1rem;
+  color: #ecd2b6;
+  padding: 0 5px;
+}
+
+.mayor strong {
+  color: #f5e8c8;
+  font-weight: 700;
+}
+
+/* Lista de jugadores para votación de intendente */
+.mayor .playersSection {
+  margin: 15px 0;
+  width: 100%;
+}
+
+.mayor ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 15px 0;
+  gap: 12px;
+  width: 100%;
+  max-height: 350px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 5px;
+  box-sizing: border-box;
+}
+
+.mayor .playerItem {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  max-width: 280px;
+}
+
+/* Botones de votación SIN brillo característico */
+.mayor .playerItem .btn {
+  background-image: url('/wood.webp') !important;
+  filter: saturate(130%) !important;
+  background-repeat: repeat !important;
+  background-size: auto !important;
+  color: #ecd2b6 !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px !important;
+  font-size: 1rem !important;
+  text-transform: none !important;
+  border: 2px solid rgba(236, 210, 182, 0.4) !important;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  width: 100% !important;
+  min-height: 50px !important;
+  padding: 12px 20px !important;
+  border-radius: 10px !important;
+  margin: 0 !important;
+}
+
+.mayor .playerItem .btn:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  border-color: rgba(236, 210, 182, 0.7) !important;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  background-color: rgba(236, 210, 182, 0.1) !important;
+}
+
+.mayor .playerItem .btn:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  filter: saturate(70%) grayscale(30%) !important;
+}
+
+/* Resultado de elección */
+.mayor .electionResult {
+  text-align: center;
+  padding: 25px 20px;
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.9), rgba(169, 132, 93, 0.9));
+  color: #2c1810;
+  border-radius: 12px;
+  margin: 15px 0;
+  border: 2px solid rgba(212, 165, 116, 0.6);
+  backdrop-filter: blur(5px);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mayor .electionResult h3 {
+  color: #2c1810;
+  margin-bottom: 10px;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.mayor .electionResult p {
+  color: #2c1810;
+  font-weight: 600;
+  margin: 8px 0;
+}
+
+/* Estado de voto confirmado */
+.mayor .voteConfirmed {
+  color: #2c1810;
+  font-weight: bold;
+  text-align: center;
+  padding: 15px;
+  background: rgba(236, 210, 182, 0.9);
+  border-radius: 8px;
+  margin: 10px 0;
+  border: 2px solid rgba(212, 165, 116, 0.5);
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 1rem;
+}
+
+/* Estado de votación */
+.mayor .voteStatus {
+  margin-top: 15px;
+  padding: 12px 15px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1rem;
+  background: rgba(236, 210, 182, 0.1);
+  border: 1px solid rgba(236, 210, 182, 0.3);
+  width: 100%;
+  box-sizing: border-box;
+  color: #ecd2b6;
+  font-weight: 600;
+}
+
+/* ========== BOTONES EN LISTAS (SIN BRILLO) ========== */
+
+/* Aplicar el mismo estilo a todos los botones en listas de votación */
+.lynch .playerItem .btn,
+.nightKill .playerItem .btn,
+.tieBreakButtons .btn,
+.lynchTieBreakButtons .btn,
+.nightTieBreakButtons .btn,
+.successorButtons .btn {
+  background-image: url('/wood.webp') !important;
+  filter: saturate(130%) !important;
+  background-repeat: repeat !important;
+  background-size: auto !important;
+  color: #ecd2b6 !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px !important;
+  font-size: 1rem !important;
+  text-transform: none !important;
+  border: 2px solid rgba(236, 210, 182, 0.4) !important;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  width: 100% !important;
+  min-height: 50px !important;
+  padding: 12px 20px !important;
+  border-radius: 10px !important;
+  margin: 0 !important;
+}
+
+.lynch .playerItem .btn:hover:not(:disabled),
+.nightKill .playerItem .btn:hover:not(:disabled),
+.tieBreakButtons .btn:hover:not(:disabled),
+.lynchTieBreakButtons .btn:hover:not(:disabled),
+.nightTieBreakButtons .btn:hover:not(:disabled),
+.successorButtons .btn:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  border-color: rgba(236, 210, 182, 0.7) !important;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  background-color: rgba(236, 210, 182, 0.1) !important;
+}
+
+.lynch .playerItem .btn:disabled,
+.nightKill .playerItem .btn:disabled,
+.tieBreakButtons .btn:disabled,
+.lynchTieBreakButtons .btn:disabled,
+.nightTieBreakButtons .btn:disabled,
+.successorButtons .btn:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  filter: saturate(70%) grayscale(30%) !important;
+}
+
+/* ========== MODIFICACIONES PRINCIPALES PARA EL HEADER FIJO ========== */
 
 .overlay {
   position: fixed;
@@ -5,343 +216,588 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.404);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
-  backdrop-filter: blur(2px);
+  z-index: 1000;
+  backdrop-filter: blur(4px);
 }
 
-
 .modal {
-  background: rgba(0, 0, 31, 0.603);
-  backdrop-filter: blur(3px);
-  padding: 50px 50px;
-  max-width: 480px;
-  width: 80%;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  background: rgba(10, 8, 25, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 0; /* Eliminamos el padding general para manejar internamente */
+  max-width: 500px;
+  width: 90%;
+  max-height: 85vh;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(236, 210, 182, 0.2);
   position: relative;
   color: #ecd2b6;
   font-family: "Montserrat", sans-serif;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  max-height: 850px;
-  height: 85%;
-  border-radius: 30px;
-  background: rgba(0, 0, 17, 0.753);
-  padding: 20px;
-  border: 3px solid rgba(255, 248, 235, 0.473);
-  box-shadow: 1px -1px 15px 4px rgba(255, 238, 193, 0.315);
-  animation: appear-top 0.3s ease-in-out;
-  gap: 10px;
-}
-
-.overlay:has(.settings) {
-  display: flex;
-  align-items: top;
-  justify-content: left;
-}
-
-.modal:has(.settings) {
-  border-radius: 0;
-  max-height: 100%;
-  width: 70%;
-  height: 100%;
-  display: flex;
-  animation: appear-left 0.3s ease-in-out;
-  border: 0px solid rgba(0, 0, 0, 0);
-  border-right: 3px solid rgba(255, 248, 235, 0.473);
-  box-shadow: 1px -1px 15px 4px rgba(255, 238, 193, 0.315);
-  padding: 0;
-}
-
-.modal p {
-  margin-top: 40px;
-  width: 100%;
-  text-align: center;
-}
-
-.toggleLink {
-  margin-top: 5px;
-  width: 100%;
-  text-align: center;
-  display: inline-block;
-  -webkit-animation: glow 1s ease-in-out infinite alternate;
-  -moz-animation: glow 1s ease-in-out infinite alternate;
-  animation: glow 1s ease-in-out infinite alternate;
-}
-
-.toggleLink:hover {
-  transform: scale(1.1);
-  transition: transform .14s ease;
-  cursor: pointer;
-}
-
-.close {
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  background: none;
-  border: none;
-  font-size: 30px;
-  cursor: pointer;
-  color: #ecd2b6;
-  font-weight: 1000;
-  transition: transform 0.2s;
-  opacity: 0.8;
-}
-
-.close:hover {
-  transform: scale(1.2);
-  opacity: 1;
-}
-
-.rankingList {
-  list-style: none;
-  padding: 0;
-  margin: 16px 0 0;
-  max-height: 240px;
-  overflow-y: auto;
-}
-
-.rankingList li {
-  border-radius: 12px;
-  background-image: url('/wood.webp');
-  filter: saturate(150%);
-  background-repeat: repeat;
-  background-size: auto;
-  padding: 8px 30px;
-  margin-bottom: 15px;
-  font-weight: 500;
-  border: 3px solid rgba(255, 248, 235, 0.473);
-  box-shadow: 1px 1px 8px 2px rgba(255, 238, 193, 0.315);
-}
-
-.playerSelection {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal ul {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin-top: 30px;
-  gap: 50px;
-}
-
-
-.settings {
-    background: #00000000;
-    height: 100%;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: calc(30px + 4%);
-    animation: appear 0.6s ease-in-out;
-}
-
-.createRoom {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-}
-
-.modal h2 {
-  margin-bottom: 20px;
-  font-size: 2.5rem;
-  text-align: center;
+  border-radius: 20px;
+  border: 3px solid rgba(236, 210, 182, 0.4);
+  animation: modalAppear 0.3s ease-out;
+  overflow: hidden; /* Aseguramos que nada se salga del modal */
 }
 
 .modal input {
-  margin-bottom: 30px;
-  width: 100%;
-  max-width: 350px;
-  padding: 10px 14px;
-  background-color: #1e1e1e;
-  border: 1px solid #333;
-  border-radius: 8px;
-  color: #ecd2b6;
-  font-size: 15px;
-  font-family: "Inter", sans-serif;
-  outline: none;
-  transition: all 0.2s ease;
-  border: 3px solid rgba(255, 248, 235, 0.473);
-  box-shadow: 1px -1px 15px 4px rgba(255, 238, 193, 0.315);
-}
-
-.modal input:hover {
-  border-color: #555;
-}
+            background-color: #1a1c27;
+            color: #ecd2b6;
+            border: 1px solid #ecd2b6;
+            border-radius: 8px;
+            padding: 12px 18px;
+            font-size: 16px;
+            width: 250px;
+            transition: all 0.3s ease-in-out;
+        }
 
 .modal input:focus {
-  border-color: #888;
-  box-shadow: 0 0 0 2px #5555;
-  background-color: #242424;
-}
+            outline: none;
+            border-color: #ecd2b6;
+            border-width: 3px;
+            box-shadow: 0 0 7px 2px rgba(236, 210, 182, 0.6);
+        }
 
+.modal input::placeholder {
+            color: #ecd2b6;
+            opacity: 0.6;
+        }
 
-.modal button {
-  margin-bottom: -15px;
-}
-
-.electionResult {
+/* HEADER FIJO - OCUPA TODA LA PARTE SUPERIOR */
+.modalHeader {
+  width: 100%;
   text-align: center;
-  padding: 20px;
-  background: linear-gradient(135deg, #4CAF50, #45a049);
-  color: white;
-  border-radius: 10px;
-  margin: 10px 0;
+  padding: 25px 30px 20px 30px;
+  border-bottom: 2px solid rgba(236, 210, 182, 0.3);
+  position: sticky;
+  top: 0;
+  left: 0;
+  background: rgba(10, 8, 25, 0.98); /* Fondo más opaco para mejor contraste */
+  z-index: 20;
+  backdrop-filter: blur(10px);
+  flex-shrink: 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); /* Sombra para separar del contenido */
+  margin: 0 !important;
 }
 
-.voteConfirmed {
-  color: #050118;
+.modal h2 {
+  margin: 0;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #f5e8c8;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 20px rgba(245, 232, 200, 0.4);
+  letter-spacing: 1px;
+  line-height: 1.2;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  width: 100%;
+}
+
+/* CONTENIDO CON SCROLL - DEJA ESPACIO PARA EL HEADER FIJO */
+.modalContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 23px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 25px 30px; /* Padding interno del contenido */
+  width: 100%;
+  box-sizing: border-box;
+  max-height: calc(85vh - 100px); /* Aseguramos que no sobrepase la altura total menos el header */
+}
+
+/* BOTÓN DE CERRAR POSICIONADO SOBRE EL HEADER FIJO */
+.close {
+  position: absolute;
+  top: 20px;
+  right: 25px;
+  background: rgba(236, 210, 182, 0.1);
+  border: 2px solid rgba(236, 210, 182, 0.3);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+  cursor: pointer;
+  color: #ecd2b6;
   font-weight: bold;
-  text-align: center;
-  padding: 10px;
-  background-color: #ecd2b6;
-  border-radius: 5px;
-}
-
-.voteStatus {
-  margin-top: 15px;
-  padding: 10px;
-  border-radius: 5px;
-  text-align: center;
-  font-size: 1em;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 30; /* Por encima del header */
+  flex-shrink: 0;
 }
 
-/* Estilo para botones deshabilitados */
-.btn:disabled {
-  background-color: #cccccc !important;
-  cursor: not-allowed !important;
-  opacity: 0.6;
+.close:hover {
+  transform: scale(1.1);
+  background: rgba(236, 210, 182, 0.2);
+  border-color: rgba(236, 210, 182, 0.6);
+  color: #f5e8c8;
 }
 
-.tieBreak {
-  text-align: center;
-  max-width: 500px;
+/* Scroll personalizado */
+.modalContent::-webkit-scrollbar {
+  width: 8px;
 }
 
-.tieBreakHeader {
-  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-  color: white;
-  padding: 20px;
+.modalContent::-webkit-scrollbar-track {
+  background: rgba(236, 210, 182, 0.1);
   border-radius: 10px;
-  margin-bottom: 20px;
+  margin: 5px;
 }
 
-.tieBreakInfo {
-  background: #f8f9fa;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-
-.tieCandidatesList {
-  list-style: none;
-  padding: 0;
-  margin: 15px 0;
-}
-
-.tieCandidate {
-  background: white;
-  margin: 8px 0;
-  padding: 12px;
-  border-radius: 6px;
-  border-left: 4px solid #3498db;
-  font-size: 1.1em;
-}
-
-.tieBreakDecision {
-  background: #e8f4fd;
-  padding: 20px;
+.modalContent::-webkit-scrollbar-thumb {
+  background: rgba(236, 210, 182, 0.5);
   border-radius: 10px;
-  margin-bottom: 15px;
+  border: 1px solid rgba(236, 210, 182, 0.2);
 }
 
-.tieBreakButtons {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 15px;
+.modalContent::-webkit-scrollbar-thumb:hover {
+  background: rgba(236, 210, 182, 0.7);
 }
 
-.tieBreakBtn {
-  background: linear-gradient(135deg, #3498db, #2980b9) !important;
-  color: white !important;
-  padding: 12px 20px !important;
-  font-size: 1.1em !important;
-  border: none !important;
+/* ========== ESTILOS ESPECÍFICOS PARA MODALES CON MUCHO CONTENIDO ========== */
+
+/* Asegurar que las listas largas se desplazan correctamente */
+.mayor ul,
+.lynch ul, 
+.nightKill ul {
+  max-height: 300px; /* Altura máxima para listas de jugadores */
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  padding: 10px 5px;
+  box-sizing: border-box;
 }
 
-.tieBreakBtn:hover {
-  background: linear-gradient(135deg, #2980b9, #1f618d) !important;
-  transform: translateY(-2px);
+/* Asegurar que el contenido scrolleable no se vea detrás del header */
+.mayor ul::-webkit-scrollbar-track,
+.lynch ul::-webkit-scrollbar-track,
+.nightKill ul::-webkit-scrollbar-track {
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
-.tieBreakNote {
-  background: #fff3cd;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ffeaa7;
-  color: #856404;
+/* ========== RESTAURAR CENTRADO Y ESPACIADO ========== */
+
+/* Asegurar que el contenido principal del modal esté centrado */
+.modalContent {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
 }
 
+/* Centrar todas las listas */
+.mayor ul,
+.lynch ul, 
+.nightKill ul,
+.tieBreak ul,
+.lynchTieBreak ul,
+.nightTieBreak ul,
+.successor ul,
+.rankingList,
+.tieCandidatesList,
+.lynchTieCandidatesList,
+.nightTieCandidatesList {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
 
-@keyframes appear-left {
+/* Centrar items de lista */
+.mayor .playerItem,
+.lynch .playerItem,
+.nightKill .playerItem {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+/* Centrar botones en listas */
+.mayor .playerItem .btn,
+.lynch .playerItem .btn,
+.nightKill .playerItem .btn {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Centrar contenedores específicos */
+.mayor,
+.lynch,
+.nightKill,
+.tieBreak,
+.lynchTieBreak,
+.nightTieBreak,
+.successor,
+.createRoom,
+.loginContainer {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+}
+
+/* Centrar elementos de tiebreak */
+.tieBreakButtons,
+.lynchTieBreakButtons,
+.nightTieBreakButtons,
+.successorButtons {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+}
+
+/* Asegurar que los textos estén centrados */
+.modal p,
+.modal label,
+.modal h3,
+.modal h4 {
+  text-align: center !important;
+  width: 100% !important;
+}
+
+/* Centrar elementos de resultado */
+.electionResult,
+.lynchResult,
+.nightResult,
+.voteConfirmed,
+.voteStatus {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* ========== CENTRADO DE TEXTOS Y ESPACIADO ========== */
+
+/* Centrar TODOS los textos en modales */
+.modal,
+.modal * {
+  text-align: center !important;
+}
+
+/* Asegurar que los inputs mantengan su alineación de texto */
+.modal input {
+  text-align: left !important;
+}
+
+/* ========== GAPS CONSISTENTES EN TODOS LOS CONTENEDORES ========== */
+
+/* Gap principal del modal */
+.modalContent {
+  gap: 23px !important;
+}
+
+/* Aplicar gap a TODOS los contenedores flex dentro del modal */
+.modalContent > *,
+.mayor,
+.lynch,
+.nightKill,
+.tieBreak,
+.lynchTieBreak,
+.nightTieBreak,
+.successor,
+.createRoom,
+.loginContainer,
+.settings,
+.startGame {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 23px !important;
+  width: 100% !important;
+}
+
+/* Aplicar gap específico a listas y contenedores de listas */
+.mayor ul,
+.lynch ul,
+.nightKill ul,
+.tieCandidatesList,
+.lynchTieCandidatesList,
+.nightTieCandidatesList,
+.rankingList {
+  gap: 23px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Aplicar gap a contenedores de botones */
+.tieBreakButtons,
+.lynchTieBreakButtons,
+.nightTieBreakButtons,
+.successorButtons {
+  gap: 23px !important;
+  width: 100% !important;
+}
+
+/* Asegurar que los elementos de lista respeten el gap */
+.mayor .playerItem,
+.lynch .playerItem,
+.nightKill .playerItem {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+}
+
+/* Eliminar márgenes que interfieren con el gap */
+.modalContent p,
+.modalContent h2,
+.modalContent h3,
+.modalContent h4,
+.modalContent div,
+.electionResult,
+.lynchResult,
+.nightResult,
+.voteConfirmed,
+.voteStatus {
+  margin: 0 !important;
+}
+
+/* Asegurar que los elementos de formulario tengan gap */
+.createRoom,
+.loginContainer {
+  gap: 23px !important;
+}
+
+.createRoom > *,
+.loginContainer > * {
+  margin: 0 !important;
+}
+
+/* Aplicar gap a elementos específicos de tiebreak */
+.tieBreakInfo,
+.lynchTieBreakInfo,
+.nightTieBreakInfo,
+.tieBreakDecision,
+.lynchTieBreakDecision,
+.nightTieBreakDecision,
+.successorInfo,
+.successorDecision {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 23px !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+/* Centrado y gap para elementos de resultado */
+.electionResult,
+.lynchResult,
+.nightResult,
+.voteConfirmed,
+.voteStatus {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 15px !important; /* Un poco menos para elementos compactos */
+  width: 100% !important;
+}
+
+/* Asegurar que los botones individuales no tengan márgenes que rompan el gap */
+.modalContent .btn {
+  margin: 0 !important;
+}
+
+/* Gap específico para secciones de jugadores */
+.playersSection {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 23px !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+/* Asegurar que los inputs y labels tengan gap consistente */
+.modal input,
+.modal label {
+  margin: 0 !important;
+}
+
+.createRoom label,
+.loginContainer input {
+  margin: 0 !important;
+}
+
+/* Forzar el reset de márgenes en todos los elementos hijos del modal */
+.modalContent * {
+  margin: 0 !important;
+}
+
+/* Restaurar márgenes específicos solo donde sea necesario */
+.modalContent .close {
+  margin: 0 !important;
+  position: absolute !important;
+  top: 20px !important;
+  right: 25px !important;
+}
+
+/* Asegurar que los elementos de lista mantengan el gap */
+.rankingList li,
+.tieCandidate,
+.lynchTieCandidate,
+.nightTieCandidate {
+  margin: 0 !important;
+}
+
+/* Gap para headers específicos */
+.tieBreakHeader,
+.lynchTieBreakHeader,
+.nightTieBreakHeader,
+.successorHeader {
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+/* Asegurar que los elementos de lista tengan espaciado consistente */
+.mayor .playerItem,
+.lynch .playerItem,
+.nightKill .playerItem {
+  margin-bottom: 0 !important;
+}
+
+/* Centrado adicional para elementos específicos */
+.electionResult,
+.lynchResult,
+.nightResult,
+.voteConfirmed,
+.voteStatus {
+  text-align: center !important;
+}
+
+/* Asegurar que los títulos estén centrados */
+.modal h2,
+.modal h3,
+.modal h4 {
+  text-align: center !important;
+  width: 100% !important;
+}
+
+/* Centrar labels y párrafos */
+.modal label,
+.modal p {
+  text-align: center !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+/* Ajuste fino para elementos que podrían desalinearse */
+.rankingList li,
+.tieCandidate,
+.lynchTieCandidate,
+.nightTieCandidate {
+  text-align: center !important;
+}
+
+@keyframes modalAppear {
   0% {
-    transform: translateX(-800px);
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
   }
   100% {
-    transform: translateX(0);
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 
-@keyframes appear-top {
-  0% {
-    transform: translateY(-1000px);
+/* ========== RESPONSIVE DESIGN ========== */
+
+@media (max-width: 768px) {
+  .modal {
+    width: 95%;
+    max-height: 90vh;
+    margin: 10px;
   }
-  100% {
-    transform: translateY(0);
+  
+  .modal h2 {
+    font-size: 1.8rem;
+  }
+  
+  .modalHeader {
+    padding: 20px 25px 15px 25px;
+  }
+  
+  .modalContent {
+    padding: 20px 25px;
+    max-height: calc(90vh - 80px); /* Ajuste para móviles */
+  }
+  
+  .close {
+    top: 15px;
+    right: 20px;
+    width: 35px;
+    height: 35px;
+    font-size: 18px;
+  }
+  
+  .mayor .playerItem .btn {
+    min-height: 45px;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+  }
+  
+  .mayor p {
+    font-size: 1rem;
   }
 }
 
-@keyframes glow {
-  from {
-    text-shadow:
-      0 0 6px rgba(255, 240, 200, 0.5),
-      0 0 10px rgba(255, 225, 150, 0.6),
-      0 0 14px rgba(255, 210, 100, 0.4),
-      0 0 22px rgba(255, 190, 70, 0.5),
-      0 0 29px rgba(255, 180, 50, 0.4),
-      0 0 36px rgba(255, 180, 50, 0.3),
-      0 0 44px rgba(255, 180, 50, 0.6);
+@media (max-width: 480px) {
+  .modal {
+    padding: 0;
+    border-radius: 15px;
+    margin: 5px;
+    width: 98%;
   }
-
-  to {
-    text-shadow:
-      0 0 10px rgba(255, 245, 210, 0.95),
-      0 0 20px rgba(255, 230, 160, 0.90),
-      0 0 30px rgba(255, 215, 120, 0.85),
-      0 0 40px rgba(255, 214, 80, 0.8),
-      0 0 50px rgba(255, 190, 60,  0.75),
-      0 0 60px rgba(255, 198, 40, 0.7),
-      0 0 70px rgba(255, 214, 30, 0.65);
+  
+  .modal h2 {
+    font-size: 1.6rem;
+  }
+  
+  .modalHeader {
+    padding: 15px 20px 10px 20px;
+  }
+  
+  .modalContent {
+    padding: 15px 20px;
+    max-height: calc(90vh - 70px); /* Ajuste para móviles más pequeños */
+  }
+  
+  .close {
+    top: 12px;
+    right: 15px;
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+  
+  .mayor .playerItem .btn {
+    min-height: 42px;
+    padding: 8px 14px;
+    font-size: 0.9rem;
+  }
+  
+  .mayor p {
+    font-size: 0.95rem;
   }
 }

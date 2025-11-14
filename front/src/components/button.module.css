@@ -2,8 +2,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 70px;
-  width: 275px;
+  height: 85px;
+  width: 230px;
   border-radius: 18px;
   background-image: url('/wood.webp');
   filter: saturate(150%);
