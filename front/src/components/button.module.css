@@ -2,7 +2,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 56px;
+  height: 70px;
   width: 275px;
   border-radius: 18px;
   background-image: url('/wood.webp');
@@ -29,8 +29,17 @@
 
 @media (max-width: 640px) {
   .btn {
-    height: 48px;
+    height: 70px;
     padding: 0 20px;
+    width: 170px;
     font-size: 16px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    line-height: 1.4;
   }
+  .btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 1px -1px 25px 6px rgba(255, 238, 193, 0.4);
+}
 }
