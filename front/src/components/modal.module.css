@@ -5,42 +5,51 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.466);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: top;
+  justify-content: left;
   z-index: 100;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(3px);
 }
 
 
 .modal {
-  background: #f7f4ef;
-  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(3px);
+  border-radius: 30px;
   padding: 24px 28px;
   max-width: 480px;
   width: 90%;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
   position: relative;
-  color: #222;
+  color: #ecd2b6;
   font-family: "Montserrat", sans-serif;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: appear 0.3s ease-in-out;
 }
 
 
 .close {
   position: absolute;
-  top: 8px;
-  right: 10px;
+  top: 10px;
+  right: 20px;
   background: none;
   border: none;
-  font-size: 22px;
+  font-size: 30px;
   cursor: pointer;
-  color: #444;
+  color: #ecd2b6;
+  font-weight: 1000;
   transition: transform 0.2s;
+  opacity: 0.8;
 }
 
 .close:hover {
   transform: scale(1.2);
+  opacity: 1;
 }
 
 .rankingList {
@@ -59,9 +68,15 @@
   font-weight: 500;
 }
 
-.settings{
-    background: #e4ddcf;
-    
+.settings {
+    background: #00000000;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    animation: appear 0.6s ease-in-out;
 }
 
 .electionResult {
