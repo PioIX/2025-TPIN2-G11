@@ -338,3 +338,32 @@
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
 }
+
+.tarotistaResult {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.9);
+  padding: 2rem;
+  border-radius: 10px;
+  border: 2px solid #8B4513;
+  z-index: 1000;
+  text-align: center;
+  color: white;
+}
+
+.tarotistaResult h3 {
+  color: #D4AF37;
+  margin-bottom: 1rem;
+}
+
+.tarotistaResult button {
+  background: #8B4513;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 1rem;
+}
