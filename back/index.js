@@ -52,124 +52,87 @@ const gameStates = {
 // Array para almacenar salas en memoria
 const rooms = [];
 
-// Helper functions
 function assignRandomRoles(players) {
-    const shuffledArray = [...players];
-    let currentIndex = shuffledArray.length;
+  const shuffledArray = [...players];
+  let currentIndex = shuffledArray.length;
 
-    // Algoritmo Fisher-Yates
-    while (currentIndex !== 0) {
-        const randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex--;
-        [shuffledArray[currentIndex], shuffledArray[randomIndex]] = [
-            shuffledArray[randomIndex],
-            shuffledArray[currentIndex],
-        ];
-    }
-
-    const roles = [
-        "Palermitano", "Conurbanense", "Conurbanense", "Medium",
-        "Tarotista", "Lobizón", "Palermitano", "Lobizón",
-        "Viuda negra", "Random1", "Conurbanense", "Lobizón",
-        "Palermitano", "Random2", "Conurbanense", "Palermitano"
+  while (currentIndex !== 0) {
+    const randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [shuffledArray[currentIndex], shuffledArray[randomIndex]] = [
+      shuffledArray[randomIndex],
+      shuffledArray[currentIndex],
     ];
+  }
 
-    const randomPool = ["Pombero", "Jubilado", "Chamán"];
-    
-    // Si hay más de 13 jugadores, agregar Colectivero
-    if (players.length > 13) {
-        randomPool.push("Colectivero");
+  const roles = [
+    "Palermitano", "Conurbanense", "Conurbanense", "Medium",
+    "Tarotista", "Lobizón", "Palermitano", "Lobizón",
+    "Viuda negra", "Random1", "Conurbanense", "Lobizón",
+    "Palermitano", "Random2", "Conurbanense", "Palermitano"
+  ];
+
+  const randomPool = ["Pombero", "Jubilado", "Chamán"];
+
+  if (players.length > 13) {
+    randomPool.push("Colectivero");
+  }
+
+  const usedRandomRoles = [];
+
+  const playersWithRoles = shuffledArray.map((player, i) => {
+    let role = roles[i];
+
+    if (role === "Random1" || role === "Random2") {
+      if (randomPool.length === 0) {
+        role = "Palermitano";
+      } else {
+        const randomIndex = Math.floor(Math.random() * randomPool.length);
+        role = randomPool[randomIndex];
+        usedRandomRoles.push(role);
+        randomPool.splice(randomIndex, 1);
+      }
     }
 
-    const usedRandomRoles = [];
-
-    // Asignar roles a los jugadores mezclados
-    const playersWithRoles = shuffledArray.map((player, i) => {
-        let role = roles[i];
-
-        if (role === "Random1" || role === "Random2") {
-            if (randomPool.length === 0) {
-                // Si no hay roles en el pool, asignar uno por defecto
-                role = "Palermitano";
-            } else {
-                // Seleccionar rol aleatorio del pool
-                const randomIndex = Math.floor(Math.random() * randomPool.length);
-                role = randomPool[randomIndex];
-                usedRandomRoles.push(role);
-                randomPool.splice(randomIndex, 1);
-            }
-          }
-
-        return {
-            ...player,
-            role: role.toLowerCase(), // Convertir a minúsculas para consistencia
-            isAlive: true,
-            votesReceived: 0,
-            wasProtected: false
-        };
-    });
-
-    console.log("Roles asignados con sistema random:", playersWithRoles.map(p => ({
-        username: p.username,
-        role: p.role
-    })));
-
-    return playersWithRoles;
-}
-
-// Función assignRoles modificada
-function assignRoles(room) {
-    const updatedPlayers = assignRandomRoles(room.players);
-    
-    console.log("Roles asignados:", updatedPlayers.map(p => ({ 
-        username: p.username, 
-        role: p.role 
-    })));
-    
     return {
-        ...room,
-        players: updatedPlayers,
-        assignedRoles: true
+      ...player,
+      role: role,
+      isAlive: true,
+      votesReceived: 0,
+      wasProtected: false
     };
-}
-
-function checkWinner(room) {
-  const lobizonesAlive = room.players.filter(p =>
-    p.role === 'lobizon' && p.isAlive
-  );
-  const aliveVillagers = room.players.filter(p =>
-    p.role !== 'lobizon' && p.isAlive
-  );
-
-  if (lobizonesAlive.length === 0) {
-    return {
-      winner: 'aldeanos',
-      message: '¡Los aldeanos han ganado!'
-    };
-  } else if (lobizonesAlive.length >= aliveVillagers.length) {
-    return {
-      winner: 'lobizones',
-      message: '¡Los lobizones han ganado!'
-    };
-  }
-  return null;
-}
-
-function countVotes(votes) {
-  const count = {};
-  Object.values(votes).forEach(socketId => {
-    count[socketId] = (count[socketId] || 0) + 1;
   });
-  return count;
+
+  console.log("Roles asignados:", playersWithRoles.map(p => ({
+    username: p.username,
+    role: p.role
+  })));
+
+  return playersWithRoles;
 }
+
+function assignRoles(room) {
+  const updatedPlayers = assignRandomRoles(room.players);
+
+  console.log("Roles asignados:", updatedPlayers.map(p => ({
+    username: p.username,
+    role: p.role
+  })));
+
+  return {
+    ...room,
+    players: updatedPlayers,
+    assignedRoles: true
+  };
+}
+
+// ... (tus endpoints HTTP permanecen iguales) ...
 
 app.get('/', function (req, res) {
   res.status(200).send({
     message: 'GET Home route working fine!'
   });
 });
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 app.get("/verifyUser", async (req, res) => {
   try {
@@ -202,7 +165,6 @@ app.get("/verifyUser", async (req, res) => {
   }
 });
 
-// Obtener salas activas
 app.get("/getSalas", async (req, res) => {
   try {
     const salas = await realizarQuery(
@@ -216,7 +178,6 @@ app.get("/getSalas", async (req, res) => {
   }
 });
 
-// Endpoint de prueba para verificar la BD
 app.get("/test-db", async (req, res) => {
   try {
     const test = await realizarQuery("SELECT 1 as test");
@@ -239,21 +200,20 @@ app.get("/debug-tabla", async (req, res) => {
   }
 });
 
-// Crear sala en la BD
 app.post("/crearSalaBD", async (req, res) => {
   try {
     const { code, host, maxPlayers } = req.body;
 
-    console.log(" Creando sala en BD - Datos recibidos:", {
+    console.log("Creando sala en BD - Datos recibidos:", {
       code,
       host,
       maxPlayers
     });
 
-    // Obtener el ID del usuario desde la base de datos
+    // Obtener el ID del usuario
     const usuario = await realizarQuery(
       `SELECT id FROM Users WHERE username = ?`,
-      [host]
+      [host] // ← Buscar por username, no por ID
     );
 
     if (usuario.length === 0) {
@@ -265,7 +225,7 @@ app.post("/crearSalaBD", async (req, res) => {
 
     const userId = usuario[0].id;
 
-    // Verificar si ya existe una sala ACTIVA con ese código
+    // Verificar si ya existe una sala activa con ese código
     const salaExistente = await realizarQuery(
       `SELECT code FROM Games WHERE code = ? AND status = true`,
       [code]
@@ -278,32 +238,14 @@ app.post("/crearSalaBD", async (req, res) => {
       });
     }
 
-
-//     CREATE TABLE Games (
-// 	id INT PRIMARY KEY AUTO_INCREMENT NOT NULL UNIQUE,
-// 	code VARCHAR(100) NOT NULL,
-// 	village_won BOOLEAN NOT NULL,
-//     status BOOLEAN NOT NULL,
-//     players_amount INT NOT NULL
-// );
-
-// CREATE TABLE UsersXGames (
-// id INT PRIMARY KEY AUTO_INCREMENT NOT NULL UNIQUE,
-// id_user INT UNIQUE NOT NULL,
-// FOREIGN KEY (id_user) REFERENCES Users(id),
-// id_game INT UNIQUE NOT NULL,
-// FOREIGN KEY (id_game) REFERENCES Games(id),
-// was_villager BOOLEAN NOT NULL
-// );
-
-    // Insertar nueva sala
+    // GUARDAR EL USER_ID COMO HOST_ID EN LA TABLA
     const result = await realizarQuery(
-      `INSERT INTO Games (code, village_won, status, players_amount) 
-       VALUES (?, ?, true, ?)`,
-      [code, userId, maxPlayers]
+      `INSERT INTO Games (code, host_id, village_won, status, players_amount) 
+       VALUES (?, ?, false, true, ?)`,
+      [code, userId, maxPlayers] // ← Guardar el ID del host
     );
 
-    console.log(" Sala creada exitosamente en BD, ID:", result.insertId);
+    console.log("✅ Sala creada exitosamente en BD, ID:", result.insertId);
 
     res.json({
       success: true,
@@ -312,7 +254,7 @@ app.post("/crearSalaBD", async (req, res) => {
     });
 
   } catch (error) {
-    console.error(" Error en /crearSalaBD:", error);
+    console.error("❌ Error en /crearSalaBD:", error);
     res.status(500).json({
       success: false,
       error: error.message,
@@ -321,7 +263,7 @@ app.post("/crearSalaBD", async (req, res) => {
   }
 });
 
-// Verificar si una sala existe
+
 app.get("/verifyRoom/:code", async (req, res) => {
   try {
     const { code } = req.params;
@@ -352,7 +294,6 @@ app.get("/verifyRoom/:code", async (req, res) => {
   }
 });
 
-// Cerrar sala
 app.post("/cerrarSala", async (req, res) => {
   try {
     const { code } = req.body;
@@ -429,11 +370,10 @@ app.get("/logout", (req, res) => {
   });
 });
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 // Socket.io connection handling
 io.on("connection", (socket) => {
   console.log(" Nuevo usuario conectado:", socket.id);
+
 
   // Crear sala - Mantener compatibilidad con frontend
   socket.on("crearSala", async ({ code, host, maxPlayers }) => {
@@ -450,7 +390,7 @@ io.on("connection", (socket) => {
 
       // Buscar la sala en BD para verificar que fue creada por HTTP
       const roomDB = await realizarQuery(
-        `SELECT id, code, village_won FROM Games WHERE code = ? AND status = true`,
+        `SELECT id, code, status FROM Games WHERE code = ? AND status = true`,
         [code]
       );
 
@@ -459,22 +399,20 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // Obtener el username del anfitrión desde la BD
-      const hostUser = await realizarQuery(
-        `SELECT username FROM Users WHERE id = ?`,
-        [roomDB[0].village_won]
-      );
+      // USAR DIRECTAMENTE EL HOST QUE VIENE DEL FRONTEND
+      // Ya que es el username del usuario autenticado
+      const hostUsername = host;
 
-      const hostUsername = hostUser.length > 0 ? hostUser[0].username : host;
+      console.log("🔧 Creando sala con host:", hostUsername);
 
       const newRoom = {
         code: code,
-        host: hostUsername,
+        host: hostUsername, // ← Usar el host del frontend directamente
         hostSocketId: socket.id,
         maxPlayers: parseInt(maxPlayers) || 6,
         players: [{
           id: socket.id,
-          username: hostUsername,
+          username: hostUsername, // ← Usar el mismo username
           socketId: socket.id,
           isHost: true,
           role: null,
@@ -489,7 +427,6 @@ io.on("connection", (socket) => {
         lynchVotes: {},
         mayor: null,
         lastVictim: null,
-        winner: null,
         active: true,
         createdInDB: true
       };
@@ -501,17 +438,18 @@ io.on("connection", (socket) => {
       socket.isHost = true;
       socket.username = hostUsername;
 
-      console.log("Sala activada en memoria para:", hostUsername);
-      console.log("Jugadores en sala:", newRoom.players);
+      console.log("✅ Sala activada en memoria para:", hostUsername);
+      console.log("👥 Jugadores en sala:", newRoom.players);
 
       // Enviar la lista de jugadores a TODOS en la sala
       io.to(code).emit("usersInRoom", newRoom.players);
 
     } catch (error) {
-      console.error(" Error creando sala en socket:", error);
+      console.error("❌ Error creando sala en socket:", error);
       socket.emit("roomError", "Error interno del servidor");
     }
   });
+
 
   // Unirse a sala
   socket.on("joinRoom", async ({ code, username }) => {
@@ -520,7 +458,10 @@ io.on("connection", (socket) => {
 
       // Verificar en BD si la sala existe y está activa
       const roomDB = await realizarQuery(
-        `SELECT id, code, village_won FROM Games WHERE code = ? AND status = true`,
+        `SELECT g.code, u.username as host_username 
+       FROM Games g 
+       JOIN Users u ON g.host_id = u.id 
+       WHERE g.code = ? AND g.status = true`,
         [code]
       );
 
@@ -530,16 +471,11 @@ io.on("connection", (socket) => {
       }
 
       // Buscar en memoria
-      let room = rooms.find(r => r.code === code && r.active); // Cambiado de "sala" a "room"
+      let room = rooms.find(r => r.code === code && r.active);
 
       if (!room) {
         // Si no está en memoria pero sí en BD, crear en memoria
-        const hostUser = await realizarQuery(
-          `SELECT username FROM Users WHERE id = ?`,
-          [roomDB[0].village_won]
-        );
-
-        const hostUsername = hostUser.length > 0 ? hostUser[0].username : "Anfitrión";
+        const hostUsername = roomDB[0].host_username;
 
         room = {
           code: code,
@@ -554,30 +490,30 @@ io.on("connection", (socket) => {
           lynchVotes: {},
           mayor: null,
           lastVictim: null,
-          winner: null,
           active: true,
           createdInDB: true
         };
         rooms.push(room);
       }
 
-      // Verificar si el jugador ya está en la sala
+      // VERIFICAR SI EL JUGADOR YA ESTÁ EN LA SALA
       if (room.players.find(p => p.username === username)) {
         socket.emit("roomError", "Ya estás en esta sala");
         return;
       }
 
+      // VERIFICAR SI LA SALA ESTÁ LLENA
       if (room.players.length >= room.maxPlayers) {
         socket.emit("roomError", "La sala está llena");
         return;
       }
 
-      // Unir al jugador
+      // AGREGAR JUGADOR A LA SALA
       const newPlayer = {
         id: socket.id,
         username: username,
         socketId: socket.id,
-        isHost: (username === room.host && !room.hostSocketId),
+        isHost: (username === room.host), // Solo el host original es host
         role: null,
         isAlive: true,
         votesReceived: 0,
@@ -586,11 +522,11 @@ io.on("connection", (socket) => {
 
       room.players.push(newPlayer);
 
-      // Si es el anfitrión reconectándose, actualizar su socket ID
+      // Si es el host reconectándose, actualizar socketId
       if (username === room.host && !room.hostSocketId) {
         room.hostSocketId = socket.id;
         newPlayer.isHost = true;
-        console.log("Anfitrión reconectado:", username);
+        console.log("Host reconectado:", username);
       }
 
       socket.join(code);
@@ -598,14 +534,18 @@ io.on("connection", (socket) => {
       socket.isHost = newPlayer.isHost;
       socket.username = username;
 
-      console.log("Usuario unido exitosamente:", username);
+      console.log("✅ Usuario unido exitosamente:", username);
+      console.log("👥 Jugadores en sala ahora:", room.players.map(p => p.username));
+
       io.to(code).emit("usersInRoom", room.players);
 
     } catch (error) {
-      console.error(" Error uniéndose a sala:", error);
+      console.error("❌ Error uniéndose a sala:", error);
       socket.emit("roomError", "Error interno del servidor");
     }
   });
+
+
 
   // Iniciar juego - VERSIÓN CORREGIDA
   socket.on("startGame", ({ code }) => {
@@ -806,9 +746,24 @@ io.on("connection", (socket) => {
         return;
       }
 
+      // DEBUG: Verificar todos los jugadores en la sala
+      console.log("DEBUG - Jugadores en sala:", room.players.map(p => ({
+        username: p.username,
+        isHost: p.isHost,
+        socketId: p.socketId
+      })));
+
       // Verificar que el votante esté en la sala
-      const voterPlayer = room.players.find(p => p.username === voter);
+      const voterPlayer = room.players.find(p =>
+        p.username === voter || p.socketId === socket.id
+      );
+
       if (!voterPlayer) {
+        console.log("ERROR - Votante no encontrado:", {
+          voter,
+          socketId: socket.id,
+          players: room.players.map(p => p.username)
+        });
         socket.emit("roomError", "Jugador no encontrado");
         return;
       }
@@ -889,9 +844,9 @@ io.on("connection", (socket) => {
           }
         });
 
-        // NUEVO SISTEMA DE DESEMPATE COMPLEJO
+        // DESEMPATE
         if (tieCandidates.length > 1) {
-          console.log(` EMPATE DETECTADO entre: ${tieCandidates.join(', ')}`);
+          console.log(` Hubo un empate entre: ${tieCandidates.join(', ')}`);
 
           // Verificar que el anfitrión esté conectado
           const hostPlayer = room.players.find(p => p.username === room.host && p.isAlive);
@@ -968,7 +923,7 @@ io.on("connection", (socket) => {
   // Votación para linchamiento durante el día
   socket.on("voteLynch", ({ code, voter, candidate }) => {
     try {
-      console.log(` Voto para linchamiento recibido: ${voter} -> ${candidate}`);
+      console.log(`🗳️ Voto para linchamiento recibido: ${voter} -> ${candidate}`);
 
       const room = rooms.find(r => r.code === code && r.active);
       if (!room) {
@@ -997,14 +952,14 @@ io.on("connection", (socket) => {
 
       // Verificar si el usuario ya votó
       if (room.lynchVotes[voter]) {
-        console.log(` ${voter} intentó votar nuevamente en linchamiento`);
+        console.log(`⚠️ ${voter} intentó votar nuevamente en linchamiento`);
         socket.emit("alreadyVotedLynch", { voter, previousVote: room.lynchVotes[voter] });
         return;
       }
 
       // Registrar el voto
       room.lynchVotes[voter] = candidate;
-      console.log(` Voto de linchamiento registrado: ${voter} votó por ${candidate}`);
+      console.log(`✅ Voto de linchamiento registrado: ${voter} votó por ${candidate}`);
 
       // Confirmar el voto individualmente
       socket.emit("lynchVoteRegistered", {
@@ -1018,18 +973,29 @@ io.on("connection", (socket) => {
         voteCount[candidate] = (voteCount[candidate] || 0) + 1;
       });
 
-      console.log("Conteo actual de votos para linchamiento:", voteCount);
+      console.log("📊 Conteo actual de votos para linchamiento:", voteCount);
 
       // Actualizar contadores de votos en los jugadores
       room.players.forEach(player => {
         player.lynchVotes = voteCount[player.username] || 0;
       });
 
+      // CRÍTICO: Calcular jugadores vivos ANTES de notificar
+      const alivePlayers = room.players.filter(p => p.isAlive);
+      const totalVotesReceived = Object.keys(room.lynchVotes).length;
+
+      console.log("🔍 Estado de votación:", {
+        jugadoresVivos: alivePlayers.length,
+        votosRecibidos: totalVotesReceived,
+        jugadoresVivosQueVotaron: alivePlayers.filter(p => room.lynchVotes[p.username]).map(p => p.username),
+        faltanVotos: alivePlayers.length - totalVotesReceived
+      });
+
       // Notificar a todos los jugadores sobre la actualización de votos
       io.to(code).emit("lynchVoteUpdate", {
         votes: voteCount,
-        totalVotes: Object.keys(room.lynchVotes).length,
-        totalAlivePlayers: room.players.filter(p => p.isAlive).length,
+        totalVotes: totalVotesReceived,
+        totalAlivePlayers: alivePlayers.length,
         recentVote: { voter, candidate }
       });
 
@@ -1038,12 +1004,11 @@ io.on("connection", (socket) => {
       Object.entries(room.lynchVotes).forEach(([voter, candidate]) => {
         console.log(`   ${voter} -> ${candidate}`);
       });
-      console.log("--------------------------------------");
+      console.log(`--- Total: ${totalVotesReceived}/${alivePlayers.length} ---`);
 
-      // Verificar si todos los vivos han votado
-      const alivePlayers = room.players.filter(p => p.isAlive);
-      if (Object.keys(room.lynchVotes).length === alivePlayers.length) {
-        console.log(" Todos los jugadores vivos han votado, procediendo al linchamiento...");
+      // VERIFICAR SI TODOS LOS VIVOS HAN VOTADO
+      if (totalVotesReceived === alivePlayers.length) {
+        console.log("✅ ¡TODOS los jugadores vivos han votado! Procesando resultado...");
 
         // Encontrar al candidato con más votos
         let maxVotes = 0;
@@ -1060,26 +1025,65 @@ io.on("connection", (socket) => {
           }
         });
 
+        console.log("📊 Resultado de votación:", {
+          maxVotos: maxVotes,
+          candidatoMasVotado: lynchedPlayer,
+          hayEmpate: tieCandidates.length > 1,
+          candidatosEmpatados: tieCandidates
+        });
+
         // Si hay empate, el intendente decide
         if (tieCandidates.length > 1) {
-          console.log(` EMPATE DETECTADO en linchamiento entre: ${tieCandidates.join(', ')}`);
+          console.log(`⚖️ ¡EMPATE DETECTADO! Candidatos: ${tieCandidates.join(', ')}`);
 
-          // Verificar que el intendente esté vivo
+          // Buscar al intendente (debe estar vivo)
           const mayorPlayer = room.players.find(p => p.isMayor && p.isAlive);
-          if (mayorPlayer && mayorPlayer.socketId) {
-            console.log(` Solicitando desempate al intendente: ${mayorPlayer.username}`);
 
-            // Emitir evento al intendente para que decida
+          console.log("🔍 Buscando intendente:", {
+            intendenteBD: room.mayor,
+            intendenteEncontrado: mayorPlayer ? mayorPlayer.username : "No encontrado",
+            estaVivo: mayorPlayer ? mayorPlayer.isAlive : false,
+            tieneSocketId: mayorPlayer ? !!mayorPlayer.socketId : false
+          });
+
+          if (mayorPlayer && mayorPlayer.socketId) {
+            console.log(`👑 Enviando desempate al intendente: ${mayorPlayer.username} (socket: ${mayorPlayer.socketId})`);
+
+            // Emitir evento SOLO al intendente para que decida - CON MÁS INFORMACIÓN
             io.to(mayorPlayer.socketId).emit("lynchTieBreak", {
               tieCandidates: tieCandidates,
               votes: voteCount,
-              roomCode: code
+              roomCode: code,
+              mayorUsername: mayorPlayer.username,
+              mayorSocketId: mayorPlayer.socketId,
+              timestamp: Date.now(),
+              // Incluir información de debug
+              debug: {
+                roomMayor: room.mayor,
+                mayorPlayer: {
+                  username: mayorPlayer.username,
+                  socketId: mayorPlayer.socketId,
+                  isMayor: mayorPlayer.isMayor,
+                  isAlive: mayorPlayer.isAlive
+                }
+              }
             });
 
-            console.log(" Esperando decisión del intendente...");
-            return; // Salir sin linchar todavía
-          } else {
-            console.log(" Intendente no disponible para desempate, no se lincha a nadie");
+            console.log("⏳ Esperando decisión del intendente...");
+            return;
+          }
+          else {
+            console.log("⚠️ Intendente no disponible para desempate");
+            console.log("📋 Estado del intendente:", {
+              mayorEnRoom: room.mayor,
+              todosLosJugadores: room.players.map(p => ({
+                username: p.username,
+                isMayor: p.isMayor,
+                isAlive: p.isAlive,
+                socketId: p.socketId
+              }))
+            });
+
             // Si no hay intendente, no se lincha a nadie
             io.to(code).emit("lynchResult", {
               lynched: null,
@@ -1092,21 +1096,25 @@ io.on("connection", (socket) => {
           }
         }
 
+        // Si no hay empate, linchar directamente
         if (lynchedPlayer) {
+          console.log(`🔨 Sin empate - Linchando a ${lynchedPlayer}`);
           finalizeLynchVote(room, lynchedPlayer, maxVotes);
         }
+      } else {
+        console.log(`⏳ Esperando más votos... (${totalVotesReceived}/${alivePlayers.length})`);
       }
 
     } catch (error) {
-      console.error(" Error en voteLynch:", error);
+      console.error("❌ Error en voteLynch:", error);
       socket.emit("roomError", "Error al procesar el voto de linchamiento");
     }
   });
-
-  // Decisión de desempate del intendente para linchamiento
+  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJUJUDWJUDJWUDJWDUJDIUWJIWJDIWAJDUIJAIUWJDAUIWJDUIWAJD
+  // Decisión de desempate del intendente para linchamiento /////////////////////////////////////////////////////////////////////////////////////////////////////////////
   socket.on("lynchTieBreakDecision", ({ code, chosenCandidate, tieCandidates }) => {
     try {
-      console.log(` Decisión de desempate de linchamiento recibida: ${chosenCandidate}`);
+      console.log(`🔨 Decisión de desempate de linchamiento recibida: ${chosenCandidate}`);
 
       const room = rooms.find(r => r.code === code && r.active);
       if (!room) {
@@ -1116,7 +1124,12 @@ io.on("connection", (socket) => {
 
       // Verificar que el que decide es el intendente
       const mayorPlayer = room.players.find(p => p.isMayor && p.isAlive);
-      if (!mayorPlayer || socket.id !== mayorPlayer.socketId) {
+      if (!mayorPlayer) {
+        socket.emit("roomError", "No hay intendente vivo");
+        return;
+      }
+
+      if (socket.id !== mayorPlayer.socketId) {
         socket.emit("roomError", "Solo el intendente puede decidir el desempate");
         return;
       }
@@ -1127,49 +1140,60 @@ io.on("connection", (socket) => {
         return;
       }
 
-      console.log(` Intendente ${mayorPlayer.username} eligió linchar a ${chosenCandidate}`);
+      console.log(`👑 Intendente ${mayorPlayer.username} eligió linchar a ${chosenCandidate}`);
 
+      // Contar votos originales para el mensaje
       const voteCount = {};
       Object.values(room.lynchVotes).forEach(candidate => {
         voteCount[candidate] = (voteCount[candidate] || 0) + 1;
       });
       const votes = voteCount[chosenCandidate] || tieCandidates.length;
 
+      // Marcar que fue desempate
+      room.wasTieBreak = true;
+
+      // Finalizar el linchamiento con el candidato elegido
       finalizeLynchVote(room, chosenCandidate, votes);
 
     } catch (error) {
-      console.error("Error en lynchTieBreakDecision:", error);
+      console.error("❌ Error en lynchTieBreakDecision:", error);
       socket.emit("roomError", "Error al procesar la decisión de desempate");
     }
   });
 
-  // Función para finalizar la votación de linchamiento
+
+
+
   function finalizeLynchVote(room, lynchedPlayer, votes) {
-    // Marcar al jugador como no vivo
     const player = room.players.find(p => p.username === lynchedPlayer);
     if (player) {
       player.isAlive = false;
     }
 
-    console.log(` JUGADOR LINCHADO: ${lynchedPlayer} con ${votes} votos`);
+    if (room.mayor === lynchedPlayer) {
+      console.log(` INTENDENTE LINCHADO: ${lynchedPlayer}`);
+      handleMayorDeath(room, lynchedPlayer);
+    }
 
+
+    console.log(`🔨 Jugador linchado: ${lynchedPlayer} con ${votes} votos`);
+
+    // Emitir resultado a TODA la sala
     io.to(room.code).emit("lynchResult", {
       lynched: lynchedPlayer,
       votes: votes,
-      totalVoters: room.players.filter(p => p.isAlive).length,
+      totalVoters: room.players.filter(p => p.isAlive).length + 1, // +1 porque el linchado también votó
       wasTieBreak: room.wasTieBreak || false
     });
 
+    // Limpiar votos para la siguiente ronda
     room.lynchVotes = {};
-
-    const winner = checkWinner(room);
-    if (winner) {
-      room.winner = winner;
-      io.to(room.code).emit("gameOver", winner);
-    }
+    room.wasTieBreak = false;
   }
 
-  // Evento para iniciar la noche
+
+
+
   socket.on("startNight", ({ code }) => {
     try {
       console.log(" Iniciando noche en sala:", code);
@@ -1180,25 +1204,27 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // Cambiar estado a noche
       room.state = gameStates.NOCHE_LOBIZONES;
-      room.nightVotes = {}; // Limpiar votos de noche anteriores
+      room.nightVotes = {};
 
       console.log(" Noche iniciada. Notificando a todos los jugadores...");
 
-      // Notificar a todos que comienza la noche
       io.to(code).emit("nightStarted", {
         message: "Cae la noche en Castro Barros...",
         roomCode: code
       });
 
-      // Abrir el modal de votación solo para lobizones
-      const lobizones = room.players.filter(p => p.role === 'lobizon' && p.isAlive);
+      const lobizones = room.players.filter(p => p.role === 'Lobizón' && p.isAlive);
       console.log(` Lobizones que deben votar: ${lobizones.map(l => l.username).join(', ')}`);
 
       lobizones.forEach(lobizon => {
+        console.log(` Enviando openNightModal a: ${lobizon.username} (socket: ${lobizon.socketId})`);
         io.to(lobizon.socketId).emit("openNightModal");
       });
+
+      if (lobizones.length === 0) {
+        console.log(" ADVERTENCIA: No hay lobizones vivos para votar");
+      }
 
     } catch (error) {
       console.error(" Error en startNight:", error);
@@ -1217,17 +1243,17 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // Verificar que el votante sea un lobizón y esté vivo
-      const voterPlayer = room.players.find(p => p.username === voter && p.isAlive && p.role === 'lobizon');
+      // Verificar que el votante sea un Lobizón y esté vivo
+      const voterPlayer = room.players.find(p => p.username === voter && p.isAlive && p.role === 'Lobizón');
       if (!voterPlayer) {
-        socket.emit("roomError", "No eres un lobizón o no estás vivo");
+        socket.emit("roomError", "No eres un Lobizón o no estás vivo");
         return;
       }
 
-      // Verificar que el candidato esté en la sala y esté vivo y NO sea lobizón
-      const candidatePlayer = room.players.find(p => p.username === candidate && p.isAlive && p.role !== 'lobizon');
+      // Verificar que el candidato esté en la sala y esté vivo y NO sea Lobizón
+      const candidatePlayer = room.players.find(p => p.username === candidate && p.isAlive && p.role !== 'Lobizón');
       if (!candidatePlayer) {
-        socket.emit("roomError", "Candidato no encontrado, no está vivo o es lobizón");
+        socket.emit("roomError", "Candidato no encontrado, no está vivo o es Lobizón");
         return;
       }
 
@@ -1236,7 +1262,7 @@ io.on("connection", (socket) => {
         room.nightVotes = {};
       }
 
-      // Verificar si el lobizón ya votó
+      // Verificar si el Lobizón ya votó
       if (room.nightVotes[voter]) {
         console.log(` ${voter} intentó votar nuevamente en la noche`);
         socket.emit("alreadyVotedNight", { voter, previousVote: room.nightVotes[voter] });
@@ -1262,7 +1288,7 @@ io.on("connection", (socket) => {
       console.log("Conteo actual de votos nocturnos:", voteCount);
 
       // Notificar a todos los lobizones sobre la actualización de votos
-      const aliveLobizones = room.players.filter(p => p.role === 'lobizon' && p.isAlive);
+      const aliveLobizones = room.players.filter(p => p.role === 'Lobizón' && p.isAlive);
       aliveLobizones.forEach(lobizon => {
         io.to(lobizon.socketId).emit("nightVoteUpdate", {
           votes: voteCount,
@@ -1334,10 +1360,10 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // Verificar que el votante sea un lobizón y esté vivo
-      const voterPlayer = room.players.find(p => p.username === voter && p.isAlive && p.role === 'lobizon');
+      // Verificar que el votante sea un Lobizón y esté vivo
+      const voterPlayer = room.players.find(p => p.username === voter && p.isAlive && p.role === 'Lobizón');
       if (!voterPlayer) {
-        socket.emit("roomError", "No eres un lobizón o no estás vivo");
+        socket.emit("roomError", "No eres un Lobizón o no estás vivo");
         return;
       }
 
@@ -1352,7 +1378,7 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // Verificar si el lobizón ya votó en el desempate
+      // Verificar si el Lobizón ya votó en el desempate
       if (room.nightTieBreakVotes[voter]) {
         socket.emit("alreadyVotedNight", { voter, previousVote: room.nightTieBreakVotes[voter] });
         return;
@@ -1371,7 +1397,7 @@ io.on("connection", (socket) => {
       console.log("Conteo actual de votos de desempate nocturno:", tieBreakVoteCount);
 
       // Notificar a los lobizones sobre la actualización de votos de desempate
-      const aliveLobizones = room.players.filter(p => p.role === 'lobizon' && p.isAlive);
+      const aliveLobizones = room.players.filter(p => p.role === 'Lobizón' && p.isAlive);
       aliveLobizones.forEach(lobizon => {
         io.to(lobizon.socketId).emit("nightTieBreakUpdate", {
           votes: tieBreakVoteCount,
@@ -1412,13 +1438,18 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Función para finalizar la votación nocturna
+
   function finalizeNightVote(room, victim, votes) {
-    // Marcar al jugador como no vivo
+
     const player = room.players.find(p => p.username === victim);
     if (player) {
       player.isAlive = false;
       room.lastVictim = victim;
+    }
+
+    if (room.mayor === victim) {
+      console.log(` INTENDENTE ASESINADO: ${victim}`);
+      handleMayorDeath(room, victim);
     }
 
     console.log(` VÍCTIMA NOCTURNA: ${victim} con ${votes} votos`);
@@ -1426,19 +1457,14 @@ io.on("connection", (socket) => {
     io.to(room.code).emit("nightResult", {
       victim: victim,
       votes: votes,
-      totalVoters: room.players.filter(p => p.role === 'lobizon' && p.isAlive).length
+      totalVoters: room.players.filter(p => p.role === 'Lobizón' && p.isAlive).length
     });
 
     room.nightVotes = {};
     room.nightTieBreakVotes = {};
     room.nightTieBreakCandidates = null;
-
-    const winner = checkWinner(room);
-    if (winner) {
-      room.winner = winner;
-      io.to(room.code).emit("gameOver", winner);
-    }
   }
+
 
   function finalizeMayorElection(room, electedMayor, votes) {
     room.mayor = electedMayor;
@@ -1465,11 +1491,179 @@ io.on("connection", (socket) => {
 
     delete room.wasTieBreak;
   }
+  // Función para manejar la muerte del intendente y elección de sucesor
+  function handleMayorDeath(room, deadMayorUsername) {
+    console.log(`💀 Intendente ${deadMayorUsername} ha muerto. Eligiendo sucesor...`);
+
+    const deadMayor = room.players.find(p => p.username === deadMayorUsername);
+    if (!deadMayor) return;
+
+    if (deadMayor.socketId) {
+      const alivePlayers = room.players.filter(p => p.isAlive && p.username !== deadMayorUsername);
+
+      console.log(`👥 Candidatos para sucesor: ${alivePlayers.map(p => p.username).join(', ')}`);
+
+      io.to(deadMayor.socketId).emit("chooseMayorSuccessor", {
+        roomCode: room.code,
+        alivePlayers: alivePlayers.map(p => p.username),
+        deadMayor: deadMayorUsername
+      });
+    }
+  }
+
+  // Evento para recibir la elección del sucesor
+  socket.on("chooseSuccessor", ({ code, successor, deadMayor }) => {
+    try {
+      console.log(`👑 Intendente ${deadMayor} elige sucesor: ${successor}`);
+
+      const room = rooms.find(r => r.code === code && r.active);
+      if (!room) {
+        socket.emit("roomError", "La sala no existe");
+        return;
+      }
+
+      if (socket.username !== deadMayor) {
+        socket.emit("roomError", "Solo el intendente muerto puede elegir sucesor");
+        return;
+      }
+
+      const successorPlayer = room.players.find(p => p.username === successor && p.isAlive);
+      if (!successorPlayer) {
+        socket.emit("roomError", "El sucesor debe estar vivo");
+        return;
+      }
+
+      room.mayor = successor;
+      room.players.forEach(player => {
+        player.isMayor = player.username === successor;
+      });
+
+      console.log(`✅ Nuevo intendente: ${successor}`);
+
+      io.to(code).emit("mayorSuccessorChosen", {
+        newMayor: successor,
+        previousMayor: deadMayor,
+        chosenBy: deadMayor
+      });
+
+    } catch (error) {
+      console.error("❌ Error en chooseSuccessor:", error);
+      socket.emit("roomError", "Error al elegir sucesor");
+    }
+  });
+
+  // Timeout para elección automática si el intendente muerto no elige
+  socket.on("requestAutoSuccessor", ({ code, deadMayor }) => {
+    try {
+      console.log(`⏰ Solicitando sucesor automático para intendente ${deadMayor}`);
+
+      const room = rooms.find(r => r.code === code && r.active);
+      if (!room) return;
+
+      const alivePlayers = room.players.filter(p => p.isAlive);
+
+      if (alivePlayers.length === 0) {
+        console.log("❌ No hay jugadores vivos para elegir sucesor");
+        return;
+      }
+
+      let newMayor = null;
+      const playersWithVotes = alivePlayers
+        .filter(p => p.mayorVotes > 0)
+        .sort((a, b) => b.mayorVotes - a.mayorVotes);
+
+      if (playersWithVotes.length > 0) {
+        newMayor = playersWithVotes[0].username;
+      } else {
+        const randomIndex = Math.floor(Math.random() * alivePlayers.length);
+        newMayor = alivePlayers[randomIndex].username;
+      }
+
+      console.log(`Sucesor automático: ${newMayor}`);
+
+      room.mayor = newMayor;
+      room.players.forEach(player => {
+        player.isMayor = player.username === newMayor;
+      });
+
+      io.to(code).emit("mayorSuccessorChosen", {
+        newMayor: newMayor,
+        previousMayor: deadMayor,
+        chosenBy: "sistema",
+        wasAutomatic: true
+      });
+
+    } catch (error) {
+      console.error("Error en requestAutoSuccessor:", error);
+    }
+  });
+
+  socket.on("resetGame", ({ code, host }) => {
+    try {
+      console.log("Solicitando reset del juego para sala:", code);
+
+      const room = rooms.find(r => r.code === code && r.active);
+      if (!room) {
+        socket.emit("roomError", "La sala no existe");
+        return;
+      }
+
+      if (socket.username !== room.host) {
+        socket.emit("roomError", "Solo el anfitrión puede reiniciar el juego");
+        return;
+      }
+
+      console.log("Reiniciando juego en sala:", code);
+
+      room.state = gameStates.INICIO;
+      room.round = 1;
+      room.assignedRoles = false;
+      room.lobizonesVotes = {};
+      room.lynchVotes = {};
+      room.mayor = null;
+      room.lastVictim = null;
+      room.nightVotes = {};
+      room.nightTieBreakVotes = {};
+      room.nightTieBreakCandidates = null;
+      room.wasTieBreak = false;
+      room.mayorVotes = {};
+
+      room.players = room.players.map(player => ({
+        ...player,
+        role: null,                  
+        isAlive: true,                
+        votesReceived: 0,            
+        wasProtected: false,          
+        isMayor: false,                
+        mayorVotes: 0,              
+        lynchVotes: 0,                 
+        nightVotes: 0                  
+      }));
+
+      console.log(" Sala reiniciada completamente. Jugadores:",
+        room.players.map(p => ({
+          username: p.username,
+          isAlive: p.isAlive,
+          role: p.role
+        }))
+      );
+
+      io.to(code).emit("gameReset", {
+        players: room.players,
+        message: "El juego ha sido reiniciado. Volviendo al lobby.",
+        host: host
+      });
+
+      console.log(`${host} ha reiniciado el juego. Volviendo al lobby...`);
+
+    } catch (error) {
+      console.error(" Error en resetGame:", error);
+      socket.emit("roomError", "Error al reiniciar el juego");
+    }
+  });
 });
 
 
-
-// Limpiar salas sin anfitrión
 setInterval(async () => {
   try {
     const activeRoomsDB = await realizarQuery(`SELECT code FROM Games WHERE status = true`);
@@ -1484,11 +1678,7 @@ setInterval(async () => {
   } catch (error) {
     console.error(" Error en limpieza automática:", error);
   }
-}
-
-  , 5 * 60 * 1000);
-
-
+}, 5 * 60 * 1000);
 
 server.listen(port, function () {
   console.log(` Server running at http://localhost:${port}`);

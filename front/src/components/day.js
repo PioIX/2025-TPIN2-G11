@@ -23,10 +23,24 @@ export default function Day({
     decideLynchTieBreak,
     lynchedPlayer,
     isOpenLynchModal,
-    closeLynchModal
+    setIsOpenLynchModal,
+    closeLynchModal,
+    setLynchedPlayer
 }) {
     const [isOpenMayor, setIsOpenMayor] = useState(false);
     const [isOpen, setIsOpen] = useState(true);
+    const [hasShownWelcome, setHasShownWelcome] = useState(false);
+    const [showNightTransition, setShowNightTransition] = useState(false);
+    const isInitialMount = useRef(true);
+
+    useEffect(() => {
+        console.log("🔍 Day - Estado actual:", {
+            username,
+            players: players.map(p => p.username),
+            mayor,
+            role
+        });
+    }, [username, players, mayor, role]);
 
     useEffect(() => {
         console.log('Estado de modales:', {
@@ -36,6 +50,34 @@ export default function Day({
             tieBreakCandidates: tieBreakData?.tieCandidates
         });
     }, [isOpen, isOpenMayor, isOpenTieBreak, tieBreakData]);
+
+
+    useEffect(() => {
+        if (lynchedPlayer && !isOpenLynchModal) {
+            console.log("🌙 Linchamiento completado - Mostrando transición a noche...");
+
+
+            setShowNightTransition(true);
+
+            const timer = setTimeout(() => {
+                setShowNightTransition(false);
+                setLynchedPlayer(null);
+            }, 5000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [lynchedPlayer, isOpenLynchModal]);
+
+    useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            if (role && !hasShownWelcome && !mayor) {
+                console.log("Mostrando modal de bienvenida inicial");
+                setIsOpen(true);
+                setHasShownWelcome(true);
+            }
+        }
+    }, [role, hasShownWelcome, mayor]);
 
     function onClose() {
         setIsOpen(false);
@@ -52,9 +94,23 @@ export default function Day({
         setIsOpenMayor(false);
     }
 
+    if (mayor && isOpen) {
+        setIsOpen(false);
+    }
 
     return (
         <>
+            {/* Transición de Anochecer */}
+            {showNightTransition && (
+                <div className={styles.nightTransition}>
+                    <div className={styles.nightTransitionContent}>
+                        <h1>Anocheciendo...</h1>
+                        <p>El día ha terminado</p>
+                        <div className={styles.moon}>🌙</div>
+                    </div>
+                </div>
+            )}
+
             {isOpen == true ?
                 <Modal
                     isOpen={isOpen}
@@ -93,12 +149,13 @@ export default function Day({
                 />
             )}
 
+            {/* Modal de votación de linchamiento normal */}
             {isOpenLynchModal && (
                 <Modal
                     isOpen={isOpenLynchModal}
                     onClose={closeLynchModal}
                     type={"lynch"}
-                    players={players.filter(player => player.isAlive)}
+                    players={players}
                     voteLynch={voteLynch}
                     hasVotedForLynch={hasVotedForLynch}
                     lynchedPlayer={lynchedPlayer}
@@ -115,9 +172,10 @@ export default function Day({
                 />
             )}
 
-            {lynchedPlayer && (
+            {lynchedPlayer && !showNightTransition && (
                 <div className={styles.lynchInfo}>
                     <h2>🔨 ¡{lynchedPlayer} ha sido linchado!</h2>
+                    <p>Preparando la noche...</p>
                 </div>
             )}
 
@@ -129,12 +187,12 @@ export default function Day({
                             className={`${styles.playerCard} 
                                 ${player.username === username ? styles.currentPlayer : ""}
                                 ${player.isHost ? styles.hostPlayer : ""}
-                                ${player.isMayor ? styles.mayorPlayer : ""}`}
+                                ${player.isMayor ? styles.mayorPlayer : ""}
+                                ${!player.isAlive ? styles.deadPlayer : ""}`}
                         >
                             <div className={styles.playerAvatar}>
                                 {player.username === username ? "👤" :
                                     player.isHost ? "👑" : "🎯"}
-
                             </div>
                             <div className={styles.playerInfo}>
                                 <span className={styles.playerName}>
@@ -144,13 +202,18 @@ export default function Day({
                                 {player.isHost && (
                                     <span className={styles.hostBadge}>Anfitrión</span>
                                 )}
+                                {player.isMayor && (
+                                    <span className={styles.mayorBadge}>Intendente</span>
+                                )}
+                                {!player.isAlive && (
+                                    <span className={styles.deadBadge}>💀 Muerto</span>
+                                )}
                             </div>
                             {index === 0 && <div className={styles.crown}>👑</div>}
                         </div>
                     ))}
                 </div>
             </section>
-
         </>
     );
 }

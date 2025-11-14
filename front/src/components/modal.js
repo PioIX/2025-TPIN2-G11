@@ -53,7 +53,9 @@ export default function Modal({
   hasVotedNight,
   nightVictim,
   nightTieBreakData,
-  voteNightTieBreak
+  voteNightTieBreak,
+  successorCandidates,
+  chooseSuccessor
 }) {
   const mouseDownTarget = useRef(null);
 
@@ -193,7 +195,6 @@ export default function Modal({
               <p>usted vino en busca de la paz que la ciudad no puede darte. Pero hnay un problema...¡Una invasion de lobizones! Encuentrenlos y linchenlos antes que se deboren todo el pueblo</p>
               <br />
               <br />
-              <p>tu rol es {rol}</p>
             </>
           </div>
         )}
@@ -286,7 +287,6 @@ export default function Modal({
               <h2>Votación de Linchamiento</h2>
               <p>¡El pueblo debe decidir a quién linchar! Analicen las pistas y voten democráticamente.</p>
               <br />
-              <br />
 
               {lynchedPlayer ? (
                 <div className={styles.lynchResult}>
@@ -300,21 +300,31 @@ export default function Modal({
                   {hasVotedForLynch && (
                     <p className={styles.voteConfirmed}>Ya votaste. Esperando a los demás jugadores...</p>
                   )}
+
                   <section className={styles.playersSection}>
+                    <h4>Jugadores Vivos ({players.filter(p => p.isAlive).length}):</h4>
                     <ul>
-                      {players.map((player, index) => (
-                        <li className={styles.playerItem} key={index}>
-                          <Button
-                            onClick={() => voteLynch(player.username)}
-                            title={`${player.username} ${player.lynchVotes ? `(${player.lynchVotes} votos)` : ''}`}
-                            disabled={hasVotedForLynch || lynchedPlayer}
-                          />
-                        </li>
-                      ))}
+                      {players
+                        .filter(player => player.isAlive)
+                        .map((player, index) => (
+                          <li className={styles.playerItem} key={index}>
+                            <Button
+                              onClick={() => voteLynch(player.username)}
+                              title={`${player.username} ${player.lynchVotes ? `(${player.lynchVotes} votos)` : ''}`}
+                              disabled={hasVotedForLynch || lynchedPlayer}
+                            />
+                          </li>
+                        ))
+                      }
                     </ul>
                   </section>
+
                   <div className={styles.voteStatus}>
-                    <p>Jugadores vivos que ya votaron: {players.filter(p => p.lynchVotes > 0).length} de {players.length}</p>
+                    <p>Jugadores vivos que ya votaron: {
+                      players.filter(p => p.isAlive && p.lynchVotes > 0).length
+                    } de {
+                        players.filter(p => p.isAlive).length
+                      }</p>
                   </div>
                 </>
               )}
@@ -332,30 +342,82 @@ export default function Modal({
             <div className={styles.lynchTieBreakInfo}>
               <p>Los siguientes jugadores tienen la misma cantidad de votos:</p>
               <ul className={styles.lynchTieCandidatesList}>
-                {lynchTieBreakData.tieCandidates.map((candidate, index) => (
-                  <li key={index} className={styles.lynchTieCandidate}>
-                    <strong>{candidate}</strong> - {lynchTieBreakData.votes[candidate]} votos
-                  </li>
-                ))}
+                {lynchTieBreakData && lynchTieBreakData.tieCandidates &&
+                  lynchTieBreakData.tieCandidates.map((candidate, index) => (
+                    <li key={index} className={styles.lynchTieCandidate}>
+                      <strong>{candidate}</strong> - {lynchTieBreakData.votes[candidate]} votos
+                    </li>
+                  ))
+                }
               </ul>
             </div>
 
             <div className={styles.lynchTieBreakDecision}>
               <h3>¿A quién eliges linchar?</h3>
               <div className={styles.lynchTieBreakButtons}>
-                {lynchTieBreakData.tieCandidates.map((candidate, index) => (
-                  <Button
-                    key={index}
-                    className={styles.lynchTieBreakBtn}
-                    onClick={() => decideLynchTieBreak(candidate)}
-                    title={`Linchar a ${candidate}`}
-                  />
-                ))}
+                {lynchTieBreakData && lynchTieBreakData.tieCandidates &&
+                  lynchTieBreakData.tieCandidates.map((candidate, index) => (
+                    <Button
+                      key={index}
+                      className={styles.lynchTieBreakBtn}
+                      onClick={() => {
+                        console.log(`🔨 Intendente decide linchar a: ${candidate}`);
+                        decideLynchTieBreak(candidate);
+                      }}
+                      title={`Linchar a ${candidate}`}
+                    />
+                  ))
+                }
               </div>
             </div>
 
             <div className={styles.lynchTieBreakNote}>
-              <p>Tu decisión es final y determinará a quién se lincha.</p>
+              <p>⚠️ Tu decisión es final y determinará a quién se lincha.</p>
+            </div>
+          </div>
+        )}
+
+        {type === "successor" && (
+          <div
+            className={styles.overlaySuccessor}
+            style={{ zIndex: 10000 }}
+            onMouseDown={handleOverlayMouseDown}
+            onClick={handleOverlayClick}
+          >
+            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+              <button className={styles.close} onClick={onClose}>✕</button>
+
+              <div className={styles.successor}>
+                <div className={styles.successorHeader}>
+                  <h2>¡Has Muerto como Intendente!</h2>
+                  <p>Tienes el honor de elegir a tu sucesor</p>
+                </div>
+
+                <div className={styles.successorInfo}>
+                  <p>Como intendente caído en servicio, debes elegir quién tomará tu puesto:</p>
+                  <div className={styles.timerInfo}>
+                    <p>Tienes 30 segundos para elegir, o el sistema elegirá por ti</p>
+                  </div>
+                </div>
+
+                <div className={styles.successorDecision}>
+                  <h3>¿A quién eliges como nuevo intendente?</h3>
+                  <div className={styles.successorButtons}>
+                    {successorCandidates.map((candidate, index) => (
+                      <Button
+                        key={index}
+                        className={styles.successorBtn}
+                        onClick={() => chooseSuccessor(candidate)}
+                        title={`Elegir a ${candidate}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className={styles.successorNote}>
+                  <p>Tu elección es final. El nuevo intendente tendrá el poder del Plan Platita.</p>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -376,7 +438,7 @@ export default function Modal({
               <>
                 <p>¿A quién quieres atacar?</p>
                 {hasVotedNight && (
-                  <p className={styles.voteConfirmed}>a votaste. Esperando a los demás lobizones...</p>
+                  <p className={styles.voteConfirmed}>Ya votaste. Esperando a los demás lobizones...</p>
                 )}
                 <section className={styles.playersSection}>
                   <ul>
@@ -385,14 +447,18 @@ export default function Modal({
                         <Button
                           onClick={() => voteNightKill(player.username)}
                           title={`${player.username} ${player.nightVotes ? `(${player.nightVotes} votos)` : ''}`}
-                          disabled={hasVotedNight || nightVictim}
+                          disabled={hasVotedNight || nightVictim || !player.isAlive}
                         />
                       </li>
                     ))}
                   </ul>
                 </section>
                 <div className={styles.voteStatus}>
-                  <p>Lobizones que ya votaron: {players.filter(p => p.nightVotes > 0).length} de {players.filter(p => p.role === 'lobizon' && p.isAlive).length}</p>
+                  <p>Lobizones que ya votaron: {
+                    players.filter(p => p.nightVotes > 0 && (p.role === 'lobizon' || p.role === 'lobizón') && p.isAlive).length
+                  } de {
+                      players.filter(p => (p.role === 'lobizon' || p.role === 'lobizón') && p.isAlive).length
+                    }</p>
                 </div>
               </>
             )}
