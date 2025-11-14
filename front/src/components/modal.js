@@ -103,7 +103,7 @@ export default function Modal({
         {/* Modal para ranking */}
         {type === "ranking" && (
           <>
-            <h2>🏆 Ranking de jugadores</h2>
+            <h2>Ranking de jugadores</h2>
             <ul className={styles.rankingList}>
               {ranking.length > 0 ? (
                 ranking.map((user, i) => (
@@ -209,7 +209,7 @@ export default function Modal({
 
               {mayor ? (
                 <div className={styles.electionResult}>
-                  <h3>🎉 ¡Intendente Electo!</h3>
+                  <h3>¡Intendente Electo!</h3>
                   <p><strong>{mayor}</strong> ha sido elegido como intendente.</p>
                   <p>El modal se cerrará automáticamente...</p>
                 </div>
@@ -283,14 +283,14 @@ export default function Modal({
           <div className={styles.lynch}>
             <Button className={styles.close} onClick={onClose} title="✕" />
             <>
-              <h2>🔨 Votación de Linchamiento</h2>
+              <h2>Votación de Linchamiento</h2>
               <p>¡El pueblo debe decidir a quién linchar! Analicen las pistas y voten democráticamente.</p>
               <br />
               <br />
 
               {lynchedPlayer ? (
                 <div className={styles.lynchResult}>
-                  <h3>🔨 ¡Jugador Linchado!</h3>
+                  <h3>¡Jugador Linchado!</h3>
                   <p><strong>{lynchedPlayer}</strong> ha sido linchado por el pueblo.</p>
                   <p>El modal se cerrará automáticamente...</p>
                 </div>
@@ -298,7 +298,7 @@ export default function Modal({
                 <>
                   <p>¿A quién votas para linchar?</p>
                   {hasVotedForLynch && (
-                    <p className={styles.voteConfirmed}> ✅ Ya votaste. Esperando a los demás jugadores...</p>
+                    <p className={styles.voteConfirmed}>Ya votaste. Esperando a los demás jugadores...</p>
                   )}
                   <section className={styles.playersSection}>
                     <ul>
@@ -325,7 +325,7 @@ export default function Modal({
         {type === "lynchTieBreak" && (
           <div className={styles.lynchTieBreak}>
             <div className={styles.lynchTieBreakHeader}>
-              <h2>🔨 ¡EMPATE EN LINCHAMIENTO!</h2>
+              <h2>¡EMPATE EN LINCHAMIENTO!</h2>
               <p>Como intendente, debes decidir a quién linchar</p>
             </div>
 
@@ -362,13 +362,13 @@ export default function Modal({
 
         {type === "nightKill" && (
           <div className={styles.nightKill}>
-            <h2>🐺 Votación Nocturna</h2>
+            <h2>Votación Nocturna</h2>
             <p>Como lobizón, debes elegir a quién atacar esta noche.</p>
             <br />
 
             {nightVictim ? (
               <div className={styles.nightResult}>
-                <h3>🎯 Víctima Elegida</h3>
+                <h3>Víctima Elegida</h3>
                 <p><strong>{nightVictim}</strong> será atacado.</p>
                 <p>Esperando a que amanezca...</p>
               </div>
@@ -376,7 +376,7 @@ export default function Modal({
               <>
                 <p>¿A quién quieres atacar?</p>
                 {hasVotedNight && (
-                  <p className={styles.voteConfirmed}> ✅ Ya votaste. Esperando a los demás lobizones...</p>
+                  <p className={styles.voteConfirmed}>a votaste. Esperando a los demás lobizones...</p>
                 )}
                 <section className={styles.playersSection}>
                   <ul>
@@ -402,7 +402,7 @@ export default function Modal({
         {type === "nightTieBreak" && (
           <div className={styles.nightTieBreak}>
             <div className={styles.nightTieBreakHeader}>
-              <h2>🐺 ¡EMPATE NOCTURNO!</h2>
+              <h2>¡EMPATE NOCTURNO!</h2>
               <p>Debes revotar entre los jugadores empatados</p>
             </div>
 

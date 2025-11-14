@@ -5,34 +5,80 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.466);
+  background: rgba(0, 0, 0, 0.404);
   display: flex;
-  align-items: top;
-  justify-content: left;
+  align-items: center;
+  justify-content: center;
   z-index: 100;
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(2px);
 }
 
 
 .modal {
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 31, 0.603);
   backdrop-filter: blur(3px);
-  border-radius: 30px;
   padding: 24px 28px;
   max-width: 480px;
-  width: 90%;
+  width: 80%;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
   position: relative;
   color: #ecd2b6;
   font-family: "Montserrat", sans-serif;
-  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  animation: appear 0.3s ease-in-out;
+  max-height: 600px;
+  height: 85%;
+  border-radius: 30px;
+  background: rgba(0, 0, 17, 0.753);
+  padding: 20px;
+  border: 3px solid rgba(255, 248, 235, 0.473);
+  box-shadow: 1px -1px 15px 4px rgba(255, 238, 193, 0.315);
+  animation: appear-top 0.3s ease-in-out;
+  gap: 10px;
 }
 
+.overlay:has(.settings) {
+  display: flex;
+  align-items: top;
+  justify-content: left;
+}
+
+.modal:has(.settings) {
+  border-radius: 0;
+  max-height: 100%;
+  width: 70%;
+  height: 100%;
+  display: flex;
+  animation: appear-left 0.3s ease-in-out;
+  border: 0px solid rgba(0, 0, 0, 0);
+  border-right: 3px solid rgba(255, 248, 235, 0.473);
+  box-shadow: 1px -1px 15px 4px rgba(255, 238, 193, 0.315);
+  padding: 0;
+}
+
+.modal p {
+  margin-top: 40px;
+  width: 100%;
+  text-align: center;
+}
+
+.toggleLink {
+  margin-top: 5px;
+  width: 100%;
+  text-align: center;
+  display: inline-block;
+  -webkit-animation: glow 1s ease-in-out infinite alternate;
+  -moz-animation: glow 1s ease-in-out infinite alternate;
+  animation: glow 1s ease-in-out infinite alternate;
+}
+
+.toggleLink:hover {
+  transform: scale(1.1);
+  transition: transform .14s ease;
+  cursor: pointer;
+}
 
 .close {
   position: absolute;
@@ -71,12 +117,13 @@
 
 .settings {
     background: #00000000;
+    height: 100%;
     padding: 20px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 30px;
+    gap: calc(30px + 4%);
     animation: appear 0.6s ease-in-out;
 }
 
@@ -88,11 +135,13 @@
   gap: 10px;
 }
 
-.createRoom h2 {
-  margin-bottom: 30px;
+.modal h2 {
+  margin-bottom: 20px;
+  font-size: 2.5rem;
+  text-align: center;
 }
 
-.createRoom input {
+.modal input {
   margin-bottom: 30px;
   width: 100%;
   max-width: 350px;
@@ -100,25 +149,27 @@
   background-color: #1e1e1e;
   border: 1px solid #333;
   border-radius: 8px;
-  color: #eee;
+  color: #ecd2b6;
   font-size: 15px;
   font-family: "Inter", sans-serif;
   outline: none;
   transition: all 0.2s ease;
+  border: 3px solid rgba(255, 248, 235, 0.473);
+  box-shadow: 1px -1px 15px 4px rgba(255, 238, 193, 0.315);
 }
 
-.createRoom input:hover {
+.modal input:hover {
   border-color: #555;
 }
 
-.createRoom input:focus {
+.modal input:focus {
   border-color: #888;
   box-shadow: 0 0 0 2px #5555;
   background-color: #242424;
 }
 
 
-.createRoom button {
+.modal button {
   margin-bottom: -15px;
 }
 
@@ -226,11 +277,44 @@
   color: #856404;
 }
 
-@keyframes appear {
+@keyframes appear-left {
   0% {
     transform: translateX(-800px);
   }
   100% {
     transform: translateX(0);
+  }
+}
+
+@keyframes appear-top {
+  0% {
+    transform: translateY(-1000px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow {
+  from {
+    text-shadow:
+      0 0 6px rgba(255, 240, 200, 0.5),
+      0 0 10px rgba(255, 225, 150, 0.6),
+      0 0 14px rgba(255, 210, 100, 0.4),
+      0 0 22px rgba(255, 190, 70, 0.5),
+      0 0 29px rgba(255, 180, 50, 0.4),
+      0 0 36px rgba(255, 180, 50, 0.3),
+      0 0 44px rgba(255, 180, 50, 0.6);
+  }
+
+  to {
+    text-shadow:
+      0 0 10px rgba(255, 245, 210, 0.95),
+      0 0 20px rgba(255, 230, 160, 0.90),
+      0 0 30px rgba(255, 215, 120, 0.85),
+      0 0 40px rgba(255, 214, 80, 0.8),
+      0 0 50px rgba(255, 190, 60,  0.75),
+      0 0 60px rgba(255, 198, 40, 0.7),
+      0 0 70px rgba(255, 214, 30, 0.65);
   }
 }
