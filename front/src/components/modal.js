@@ -195,7 +195,6 @@ export default function Modal({
               <p>usted vino en busca de la paz que la ciudad no puede darte. Pero hnay un problema...¡Una invasion de lobizones! Encuentrenlos y linchenlos antes que se deboren todo el pueblo</p>
               <br />
               <br />
-              <p>tu rol es {rol}</p>
             </>
           </div>
         )}
