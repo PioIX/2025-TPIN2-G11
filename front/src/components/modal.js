@@ -50,12 +50,14 @@ export default function Modal({
   isOpenLynchModal,
   closeLynchModal,
   voteNightKill,
+  voteNightQuestion,
   hasVotedNight,
   nightVictim,
   nightTieBreakData,
   voteNightTieBreak,
   successorCandidates,
-  chooseSuccessor
+  chooseSuccessor,
+  hasVotedQuestion
 }) {
   const mouseDownTarget = useRef(null);
 
