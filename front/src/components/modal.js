@@ -192,22 +192,17 @@ export default function Modal({
           <div className={styles.startGame}>
             <>
               <h2>Bienvenido a Castro Barros</h2>
-              <p>usted vino en busca de la paz que la ciudad no puede darte. Pero hnay un problema...¡Una invasion de lobizones! Encuentrenlos y linchenlos antes que se deboren todo el pueblo</p>
-              <br />
-              <br />
+              <p>Usted vino en busca de la paz que la ciudad no puede darle. Pero hay un problema...</p>
+              <p>¡Una invasión de <b>lobizones</b>! Encuéntrenlos y línchenlos antes que se deboren todo el pueblo.</p>
             </>
           </div>
         )}
 
         {type === "mayor" && (
           <div className={styles.mayor}>
-            <Button className={styles.close} onClick={onCloseMayor} title="✕" />
             <>
               <h2>Lo primero que tenemos que hacer es votar un <strong>intendente</strong></h2>
-              <p>quien sea intendente desempatará en los linchamientos y tendra una gran habilidad especial...<strong>el "Plan Platita"</strong></p>
-              <br />
-              <br />
-
+              <p>Quien sea intendente desempatará en los linchamientos y tendra una gran habilidad especial...<strong>el "Plan Platita"</strong></p>
               {mayor ? (
                 <div className={styles.electionResult}>
                   <h3>¡Intendente Electo!</h3>
@@ -218,7 +213,7 @@ export default function Modal({
                 <>
                   <p>¿A quién votas para intendente?</p>
                   {hasVotedForMayor && (
-                    <p className={styles.voteConfirmed}> Ya votaste. Esperando a los demás jugadores...</p>
+                    <p className={styles.voteConfirmed}>Ya votaste. Esperando a los demás jugadores...</p>
                   )}
                   <section className={styles.playersSection}>
                     <ul>
@@ -282,7 +277,6 @@ export default function Modal({
 
         {type === "lynch" && (
           <div className={styles.lynch}>
-            <Button className={styles.close} onClick={onClose} title="✕" />
             <>
               <h2>Votación de Linchamiento</h2>
               <p>¡El pueblo debe decidir a quién linchar! Analicen las pistas y voten democráticamente.</p>
