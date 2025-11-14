@@ -106,7 +106,8 @@ export default function Modal({
         {/* Modal para ranking */}
         {type === "ranking" && (
           <>
-            <h2>Ranking de jugadores</h2>
+            <button className={styles.close} onClick={onClose}>✕</button>
+            <h2>🏆 Ranking de jugadores</h2>
             <ul className={styles.rankingList}>
               {ranking.length > 0 ? (
                 ranking.map((user, i) => (
@@ -197,20 +198,25 @@ export default function Modal({
                     <button className={styles.close} onClick={onClose}>✕</button>
             <>
               <h2>Bienvenido a Castro Barros</h2>
-              <p>Usted vino en busca de la paz que la ciudad no puede darle. Pero hay un problema...</p>
-              <p>¡Una invasión de <b>lobizones</b>! Encuéntrenlos y línchenlos antes que se deboren todo el pueblo.</p>
+              <p>usted vino en busca de la paz que la ciudad no puede darte. Pero hnay un problema...¡Una invasion de lobizones! Encuentrenlos y linchenlos antes que se deboren todo el pueblo</p>
+              <br />
+              <br />
             </>
           </div>
         )}
 
         {type === "mayor" && (
           <div className={styles.mayor}>
+            <Button className={styles.close} onClick={onCloseMayor} title="✕" />
             <>
               <h2>Lo primero que tenemos que hacer es votar un <strong>intendente</strong></h2>
-              <p>Quien sea intendente desempatará en los linchamientos y tendra una gran habilidad especial...<strong>el "Plan Platita"</strong></p>
+              <p>quien sea intendente desempatará en los linchamientos y tendra una gran habilidad especial...<strong>el "Plan Platita"</strong></p>
+              <br />
+              <br />
+
               {mayor ? (
                 <div className={styles.electionResult}>
-                  <h3>¡Intendente Electo!</h3>
+                  <h3>🎉 ¡Intendente Electo!</h3>
                   <p><strong>{mayor}</strong> ha sido elegido como intendente.</p>
                   <p>El modal se cerrará automáticamente...</p>
                 </div>
@@ -218,7 +224,7 @@ export default function Modal({
                 <>
                   <p>¿A quién votas para intendente?</p>
                   {hasVotedForMayor && (
-                    <p className={styles.voteConfirmed}>Ya votaste. Esperando a los demás jugadores...</p>
+                    <p className={styles.voteConfirmed}> Ya votaste. Esperando a los demás jugadores...</p>
                   )}
                   <section className={styles.playersSection}>
                     <ul>
@@ -282,14 +288,15 @@ export default function Modal({
 
         {type === "lynch" && (
           <div className={styles.lynch}>
+            <Button className={styles.close} onClick={onClose} title="✕" />
             <>
-              <h2>Votación de Linchamiento</h2>
+              <h2>🔨 Votación de Linchamiento</h2>
               <p>¡El pueblo debe decidir a quién linchar! Analicen las pistas y voten democráticamente.</p>
               <br />
 
               {lynchedPlayer ? (
                 <div className={styles.lynchResult}>
-                  <h3>¡Jugador Linchado!</h3>
+                  <h3>🔨 ¡Jugador Linchado!</h3>
                   <p><strong>{lynchedPlayer}</strong> ha sido linchado por el pueblo.</p>
                   <p>El modal se cerrará automáticamente...</p>
                 </div>
@@ -297,7 +304,7 @@ export default function Modal({
                 <>
                   <p>¿A quién votas para linchar?</p>
                   {hasVotedForLynch && (
-                    <p className={styles.voteConfirmed}>Ya votaste. Esperando a los demás jugadores...</p>
+                    <p className={styles.voteConfirmed}> ✅ Ya votaste. Esperando a los demás jugadores...</p>
                   )}
 
                   <section className={styles.playersSection}>
@@ -334,7 +341,7 @@ export default function Modal({
         {type === "lynchTieBreak" && (
           <div className={styles.lynchTieBreak}>
             <div className={styles.lynchTieBreakHeader}>
-              <h2>¡EMPATE EN LINCHAMIENTO!</h2>
+              <h2>🔨 ¡EMPATE EN LINCHAMIENTO!</h2>
               <p>Como intendente, debes decidir a quién linchar</p>
             </div>
 
