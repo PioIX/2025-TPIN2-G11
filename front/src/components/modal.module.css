@@ -167,3 +167,79 @@
   border: 1px solid #ffeaa7;
   color: #856404;
 }
+
+/* Agregar estos estilos al final del archivo */
+
+.successor {
+  text-align: center;
+  padding: 20px;
+  max-width: 500px;
+}
+
+.successorHeader {
+  background: linear-gradient(135deg, #8B4513, #A0522D);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.successorHeader h2 {
+  margin: 0 0 10px 0;
+  font-size: 1.5em;
+}
+
+.successorInfo {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.timerInfo {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 5px;
+  padding: 10px;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.successorDecision h3 {
+  color: #8B4513;
+  margin-bottom: 20px;
+}
+
+.successorButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+}
+
+.successorBtn {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.successorBtn:hover {
+  background: linear-gradient(135deg, #218838, #1e7e34);
+  transform: translateY(-2px);
+}
+
+.successorNote {
+  background: #e9ecef;
+  border-radius: 8px;
+  padding: 15px;
+  font-style: italic;
+  color: #6c757d;
+}

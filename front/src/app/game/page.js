@@ -44,6 +44,137 @@ export default function Game() {
   const [winner, setWinner] = useState([]);
   const [finishGame, setFinishGame] = useState(false);
 
+  // Agregar estos estados después de los demás useState
+  const [isOpenSuccessorModal, setIsOpenSuccessorModal] = useState(false);
+  const [successorCandidates, setSuccessorCandidates] = useState([]);
+  const [deadMayor, setDeadMayor] = useState(null);
+  const [successorTimeout, setSuccessorTimeout] = useState(null);
+
+  // Agregar este useEffect para manejar la elección de sucesor
+  useEffect(() => {
+    if (!socket) return;
+
+    // Escuchar cuando el intendente muerto debe elegir sucesor
+    socket.on("chooseMayorSuccessor", (data) => {
+      console.log("👑 Debes elegir un sucesor como intendente muerto:", data);
+
+      setSuccessorCandidates(data.alivePlayers);
+      setDeadMayor(data.deadMayor);
+      setIsOpenSuccessorModal(true);
+
+      // Configurar timeout de 30 segundos para elección automática
+      const timeout = setTimeout(() => {
+        if (isOpenSuccessorModal) {
+          console.log("⏰ Timeout alcanzado, eligiendo sucesor automáticamente");
+          socket.emit("requestAutoSuccessor", {
+            code: roomCode,
+            deadMayor: data.deadMayor
+          });
+          setIsOpenSuccessorModal(false);
+        }
+      }, 30000);
+
+      setSuccessorTimeout(timeout);
+    });
+
+    // Escuchar cuando se elige un nuevo intendente
+    socket.on("mayorSuccessorChosen", (data) => {
+      console.log("🔄 Nuevo intendente elegido:", data);
+
+      setMayor(data.newMayor);
+
+      // Actualizar players
+      setPlayers(prevPlayers =>
+        prevPlayers.map(player => ({
+          ...player,
+          isMayor: player.username === data.newMayor
+        }))
+      );
+
+      // Cerrar modal si está abierto
+      setIsOpenSuccessorModal(false);
+
+      // Limpiar timeout
+      if (successorTimeout) {
+        clearTimeout(successorTimeout);
+        setSuccessorTimeout(null);
+      }
+
+      // Mostrar mensaje
+      if (data.wasAutomatic) {
+        alert(`⏰ El intendente ${data.previousMayor} no eligió sucesor. ${data.newMayor} es el nuevo intendente por elección automática.`);
+      } else {
+        alert(`👑 ${data.newMayor} es el nuevo intendente, elegido por ${data.chosenBy}.`);
+      }
+    });
+
+    return () => {
+      if (successorTimeout) {
+        clearTimeout(successorTimeout);
+      }
+    };
+  }, [socket, roomCode, isOpenSuccessorModal, successorTimeout]);
+
+  // Agregar función para elegir sucesor
+  const chooseSuccessor = (successorUsername) => {
+    if (socket && roomCode && deadMayor) {
+      console.log(`👑 Eligiendo sucesor: ${successorUsername}`);
+
+      socket.emit("chooseSuccessor", {
+        code: roomCode,
+        successor: successorUsername,
+        deadMayor: deadMayor
+      });
+
+      setIsOpenSuccessorModal(false);
+      setDeadMayor(null);
+      setSuccessorCandidates([]);
+
+      // Limpiar timeout
+      if (successorTimeout) {
+        clearTimeout(successorTimeout);
+        setSuccessorTimeout(null);
+      }
+    }
+  };
+
+  // Agregar función para cerrar el modal de sucesor
+  const closeSuccessorModal = () => {
+    setIsOpenSuccessorModal(false);
+    setDeadMayor(null);
+    setSuccessorCandidates([]);
+
+    // Solicitar elección automática
+    if (socket && roomCode && deadMayor) {
+      socket.emit("requestAutoSuccessor", {
+        code: roomCode,
+        deadMayor: deadMayor
+      });
+    }
+  };
+
+  // Debug específico para la elección del intendente
+  useEffect(() => {
+    console.log("🎯 ELECCIÓN DE INTENDENTE - Estado actual:", {
+      mayor,
+      username,
+      soyIntendente: mayor === username,
+      playersCount: players.length,
+      playersMayors: players.filter(p => p.isMayor).map(p => p.username)
+    });
+  }, [mayor, username, players]);
+
+  useEffect(() => {
+    console.log("🔍 Estados actuales:", {
+      mayor,
+      username,
+      isOpenLynchTieBreak,
+      lynchTieBreakData: lynchTieBreakData ? "Presente" : "null",
+      soyIntendente: mayor === username
+    });
+  }, [mayor, username, isOpenLynchTieBreak, lynchTieBreakData]);
+
+
   function checkWinner(playersToCheck = players) {
     if (!playersToCheck || playersToCheck.length === 0) {
       console.log(" No hay jugadores para verificar");
@@ -228,15 +359,25 @@ export default function Game() {
       });
 
       socket.on("mayorElected", (data) => {
-        console.log(" Intendente electo:", data);
+        console.log("🎯 INTENDENTE ELECTO - Actualizando estado:", data);
+
+        // Actualizar el estado mayor INMEDIATAMENTE
         setMayor(data.mayor);
-        setPlayers(prevPlayers =>
-          prevPlayers.map(player => ({
+
+        // Actualizar players para que isMayor sea correcto
+        setPlayers(prevPlayers => {
+          const updatedPlayers = prevPlayers.map(player => ({
             ...player,
             isMayor: player.username === data.mayor,
             mayorVotes: 0
-          }))
-        );
+          }));
+
+          console.log("🔄 Players actualizados con intendente:",
+            updatedPlayers.filter(p => p.isMayor).map(p => p.username)
+          );
+
+          return updatedPlayers;
+        });
 
         setIsOpenTieBreak(false);
         setTieBreakData(null);
@@ -246,7 +387,7 @@ export default function Game() {
         }, 500);
 
         setTimeout(() => {
-          console.log(" Iniciando la primera noche...");
+          console.log("🌙 Iniciando la primera noche...");
           socket.emit("startNight", { code: roomCode });
         }, 2000);
       });
@@ -276,11 +417,62 @@ export default function Game() {
       });
 
       socket.on("lynchTieBreak", (data) => {
-        console.log(" EMPATE en linchamiento - Se requiere desempate del intendente:", data);
-        if (mayor === username) {
+        console.log("🔨 EMPATE en linchamiento - Se requiere desempate:", data);
+
+        // VERIFICACIÓN DIRECTA POR SOCKET ID - método más confiable
+        const amIMayorBySocket = data.mayorSocketId === socket.id;
+        const amIMayorByUsername = data.mayorUsername === username;
+
+        console.log("🔍 VERIFICACIÓN POR SOCKET:", {
+          socketIdLocal: socket.id,
+          socketIdBackend: data.mayorSocketId,
+          coincide: amIMayorBySocket
+        });
+
+        console.log("🔍 VERIFICACIÓN POR USERNAME:", {
+          usernameLocal: username,
+          usernameBackend: data.mayorUsername,
+          coincide: amIMayorByUsername
+        });
+
+        // FORZAR la actualización del estado mayor si es necesario
+        if (data.mayorUsername && mayor !== data.mayorUsername) {
+          console.log("🔄 Actualizando estado mayor desde backend:", data.mayorUsername);
+          setMayor(data.mayorUsername);
+        }
+
+        // USAR cualquiera de las verificaciones
+        const amIMayor = amIMayorBySocket || amIMayorByUsername;
+
+        if (amIMayor) {
+          console.log("✅ VERIFICADO COMO INTENDENTE - Abriendo modal");
+
+          // Actualizar el estado de players para asegurar que isMayor esté correcto
+          setPlayers(prevPlayers =>
+            prevPlayers.map(player => ({
+              ...player,
+              isMayor: player.username === data.mayorUsername
+            }))
+          );
+
           setLynchTieBreakData(data);
           setIsOpenLynchTieBreak(true);
-          alert("¡Hay un empate en el linchamiento! Debes elegir a quién linchar.");
+          setIsOpenLynchModal(false);
+
+          // Forzar un doble renderizado para asegurar que el modal se abra
+          setTimeout(() => {
+            setIsOpenLynchTieBreak(true);
+          }, 50);
+
+        } else {
+          console.log("❌ NO SOY EL INTENDENTE - Cerrando modal");
+          console.log("📊 Datos completos:", {
+            mayorEstado: mayor,
+            username,
+            socketId: socket.id,
+            dataFromBackend: data
+          });
+          setIsOpenLynchModal(false);
         }
       });
 
@@ -412,7 +604,7 @@ export default function Game() {
         console.log(" Anfitrión creando sala...");
         socket.emit("crearSala", {
           code: roomCode,
-          anfitrion: userToUse,
+          host: userToUse,
           maxPlayers: parseInt(playersAmount)
         });
       } else {
@@ -515,16 +707,31 @@ export default function Game() {
 
   const decideLynchTieBreak = (chosenCandidate) => {
     if (socket && roomCode && lynchTieBreakData) {
-      console.log(` Intendente decide desempate de linchamiento: ${chosenCandidate}`);
+      console.log(`🔨 Intendente ${username} decide desempate de linchamiento: ${chosenCandidate}`);
+      console.log("📤 Enviando lynchTieBreakDecision al backend con:", {
+        code: roomCode,
+        chosenCandidate: chosenCandidate,
+        tieCandidates: lynchTieBreakData.tieCandidates
+      });
+
       socket.emit("lynchTieBreakDecision", {
         code: roomCode,
         chosenCandidate: chosenCandidate,
         tieCandidates: lynchTieBreakData.tieCandidates
       });
+
+      // Cerrar el modal después de enviar
       setIsOpenLynchTieBreak(false);
       setLynchTieBreakData(null);
+    } else {
+      console.error("❌ Error: Faltan datos para decidir desempate:", {
+        socket: !!socket,
+        roomCode: !!roomCode,
+        lynchTieBreakData: !!lynchTieBreakData
+      });
     }
   };
+
 
   const closeLynchModal = () => {
     setIsOpenLynchModal(false);
@@ -590,66 +797,83 @@ export default function Game() {
 
   return (
     <>
-      {finishGame ? (<><FindeJuego></FindeJuego></>) : (<>{lobby === true ? (
-        <Lobby
-          players={players}
-          username={username}
-          createdRoom={createdRoom}
-          errorMessage={errorMessage}
-          setLobby={setLobby}
-          setGame={setGame}
-          roomCode={roomCode}
-          closeRoom={closeRoom}
-          leaveRoom={leaveRoom}
-          socketGame={startGame}
-        />
-      ) : (
+      {finishGame ? (<FindeJuego />) : (
         <>
-          {isNight ? (
-            <Night
+          {lobby === true ? (
+            <Lobby
               players={players}
               username={username}
-              role={role}
-              isNight={isNight}
-              setIsNight={setIsNight}
-              nightVictim={nightVictim}
-              isOpenNightModal={isOpenNightModal}
-              setIsOpenNightModal={setIsOpenNightModal}
-              voteNightKill={voteNightKill}
-              hasVotedNight={hasVotedNight}
-              nightTieBreakData={nightTieBreakData}
-              isOpenNightTieBreak={isOpenNightTieBreak}
-              setIsOpenNightTieBreak={setIsOpenNightTieBreak}
-              voteNightTieBreak={voteNightTieBreak}
-              startDay={startDay}
+              createdRoom={createdRoom}
+              errorMessage={errorMessage}
+              setLobby={setLobby}
+              setGame={setGame}
+              roomCode={roomCode}
+              closeRoom={closeRoom}
+              leaveRoom={leaveRoom}
+              socketGame={startGame}
+              isHost={isHost}
+              playersAmount={playersAmount}
             />
+
           ) : (
-            <Day
-              role={role}
-              players={players}
-              username={username}
-              setUsername={setUsername}
-              voteMayor={voteMayor}
-              hasVotedForMayor={hasVotedForMayor}
-              mayor={mayor}
-              tieBreakData={tieBreakData}
-              isOpenTieBreak={isOpenTieBreak}
-              decideTieBreak={decideTieBreak}
-              voteLynch={voteLynch}
-              hasVotedForLynch={hasVotedForLynch}
-              lynchTieBreakData={lynchTieBreakData}
-              isOpenLynchTieBreak={isOpenLynchTieBreak}
-              decideLynchTieBreak={decideLynchTieBreak}
-              lynchedPlayer={lynchedPlayer}
-              setLynchedPlayer={setLynchedPlayer}
-              isOpenLynchModal={isOpenLynchModal}
-              setIsOpenLynchModal={setIsOpenLynchModal}
-              closeLynchModal={closeLynchModal}
-            />
+            <>
+              {/* Modal para elección de sucesor */}
+              {isOpenSuccessorModal && (
+                <Modal
+                  isOpen={isOpenSuccessorModal}
+                  onClose={closeSuccessorModal}
+                  type={"successor"}
+                  successorCandidates={successorCandidates}
+                  chooseSuccessor={chooseSuccessor}
+                />
+              )}
+
+              {isNight ? (
+                <Night
+                  players={players}
+                  username={username} // <- Asegúrate de pasar esta prop
+                  role={role}
+                  isNight={isNight}
+                  setIsNight={setIsNight}
+                  nightVictim={nightVictim}
+                  isOpenNightModal={isOpenNightModal}
+                  setIsOpenNightModal={setIsOpenNightModal}
+                  voteNightKill={voteNightKill}
+                  hasVotedNight={hasVotedNight}
+                  nightTieBreakData={nightTieBreakData}
+                  isOpenNightTieBreak={isOpenNightTieBreak}
+                  setIsOpenNightTieBreak={setIsOpenNightTieBreak}
+                  voteNightTieBreak={voteNightTieBreak}
+                  startDay={startDay}
+                />
+              ) : (
+                <Day
+                  role={role}
+                  players={players}
+                  username={username} // <- Asegúrate de pasar esta prop
+                  setUsername={setUsername}
+                  voteMayor={voteMayor}
+                  hasVotedForMayor={hasVotedForMayor}
+                  mayor={mayor}
+                  tieBreakData={tieBreakData}
+                  isOpenTieBreak={isOpenTieBreak}
+                  decideTieBreak={decideTieBreak}
+                  voteLynch={voteLynch}
+                  hasVotedForLynch={hasVotedForLynch}
+                  lynchTieBreakData={lynchTieBreakData}
+                  isOpenLynchTieBreak={isOpenLynchTieBreak}
+                  decideLynchTieBreak={decideLynchTieBreak}
+                  lynchedPlayer={lynchedPlayer}
+                  setLynchedPlayer={setLynchedPlayer}
+                  isOpenLynchModal={isOpenLynchModal}
+                  setIsOpenLynchModal={setIsOpenLynchModal}
+                  closeLynchModal={closeLynchModal}
+                />
+              )}
+            </>
           )}
         </>
       )}
-      </>)}
     </>
   );
 }
