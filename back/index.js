@@ -453,97 +453,97 @@ io.on("connection", (socket) => {
 
   // Unirse a sala
   socket.on("joinRoom", async ({ code, username }) => {
-  try {
-    console.log(" Socket: Intentando unirse a sala:", { code, username });
+    try {
+      console.log(" Socket: Intentando unirse a sala:", { code, username });
 
-    // Verificar en BD si la sala existe y está activa
-    const roomDB = await realizarQuery(
-      `SELECT g.code, u.username as host_username 
+      // Verificar en BD si la sala existe y está activa
+      const roomDB = await realizarQuery(
+        `SELECT g.code, u.username as host_username 
        FROM Games g 
        JOIN Users u ON g.host_id = u.id 
        WHERE g.code = ? AND g.status = true`,
-      [code]
-    );
+        [code]
+      );
 
-    if (roomDB.length === 0) {
-      socket.emit("roomError", "No existe una sala activa con ese código");
-      return;
-    }
+      if (roomDB.length === 0) {
+        socket.emit("roomError", "No existe una sala activa con ese código");
+        return;
+      }
 
-    // Buscar en memoria
-    let room = rooms.find(r => r.code === code && r.active);
+      // Buscar en memoria
+      let room = rooms.find(r => r.code === code && r.active);
 
-    if (!room) {
-      // Si no está en memoria pero sí en BD, crear en memoria
-      const hostUsername = roomDB[0].host_username;
+      if (!room) {
+        // Si no está en memoria pero sí en BD, crear en memoria
+        const hostUsername = roomDB[0].host_username;
 
-      room = {
-        code: code,
-        host: hostUsername,
-        hostSocketId: null,
-        maxPlayers: 6,
-        players: [],
-        state: gameStates.INICIO,
-        round: 1,
-        assignedRoles: false,
-        lobizonesVotes: {},
-        lynchVotes: {},
-        mayor: null,
-        lastVictim: null,
-        active: true,
-        createdInDB: true
+        room = {
+          code: code,
+          host: hostUsername,
+          hostSocketId: null,
+          maxPlayers: 6,
+          players: [],
+          state: gameStates.INICIO,
+          round: 1,
+          assignedRoles: false,
+          lobizonesVotes: {},
+          lynchVotes: {},
+          mayor: null,
+          lastVictim: null,
+          active: true,
+          createdInDB: true
+        };
+        rooms.push(room);
+      }
+
+      // VERIFICAR SI EL JUGADOR YA ESTÁ EN LA SALA
+      if (room.players.find(p => p.username === username)) {
+        socket.emit("roomError", "Ya estás en esta sala");
+        return;
+      }
+
+      // VERIFICAR SI LA SALA ESTÁ LLENA
+      if (room.players.length >= room.maxPlayers) {
+        socket.emit("roomError", "La sala está llena");
+        return;
+      }
+
+      // AGREGAR JUGADOR A LA SALA
+      const newPlayer = {
+        id: socket.id,
+        username: username,
+        socketId: socket.id,
+        isHost: (username === room.host), // Solo el host original es host
+        role: null,
+        isAlive: true,
+        votesReceived: 0,
+        wasProtected: false
       };
-      rooms.push(room);
+
+      room.players.push(newPlayer);
+
+      // Si es el host reconectándose, actualizar socketId
+      if (username === room.host && !room.hostSocketId) {
+        room.hostSocketId = socket.id;
+        newPlayer.isHost = true;
+        console.log("Host reconectado:", username);
+      }
+
+      socket.join(code);
+      socket.currentRoom = code;
+      socket.isHost = newPlayer.isHost;
+      socket.username = username;
+
+      console.log("✅ Usuario unido exitosamente:", username);
+      console.log("👥 Jugadores en sala ahora:", room.players.map(p => p.username));
+
+      io.to(code).emit("usersInRoom", room.players);
+
+    } catch (error) {
+      console.error("❌ Error uniéndose a sala:", error);
+      socket.emit("roomError", "Error interno del servidor");
     }
-
-    // VERIFICAR SI EL JUGADOR YA ESTÁ EN LA SALA
-    if (room.players.find(p => p.username === username)) {
-      socket.emit("roomError", "Ya estás en esta sala");
-      return;
-    }
-
-    // VERIFICAR SI LA SALA ESTÁ LLENA
-    if (room.players.length >= room.maxPlayers) {
-      socket.emit("roomError", "La sala está llena");
-      return;
-    }
-
-    // AGREGAR JUGADOR A LA SALA
-    const newPlayer = {
-      id: socket.id,
-      username: username,
-      socketId: socket.id,
-      isHost: (username === room.host), // Solo el host original es host
-      role: null,
-      isAlive: true,
-      votesReceived: 0,
-      wasProtected: false
-    };
-
-    room.players.push(newPlayer);
-
-    // Si es el host reconectándose, actualizar socketId
-    if (username === room.host && !room.hostSocketId) {
-      room.hostSocketId = socket.id;
-      newPlayer.isHost = true;
-      console.log("Host reconectado:", username);
-    }
-
-    socket.join(code);
-    socket.currentRoom = code;
-    socket.isHost = newPlayer.isHost;
-    socket.username = username;
-
-    console.log("✅ Usuario unido exitosamente:", username);
-    console.log("👥 Jugadores en sala ahora:", room.players.map(p => p.username));
-
-    io.to(code).emit("usersInRoom", room.players);
-
-  } catch (error) {
-    console.error("❌ Error uniéndose a sala:", error);
-    socket.emit("roomError", "Error interno del servidor");
-  }
-});
+  });
 
 
 
@@ -1170,6 +1170,12 @@ io.on("connection", (socket) => {
       player.isAlive = false;
     }
 
+    if (room.mayor === lynchedPlayer) {
+      console.log(` INTENDENTE LINCHADO: ${lynchedPlayer}`);
+      handleMayorDeath(room, lynchedPlayer);
+    }
+
+
     console.log(`🔨 Jugador linchado: ${lynchedPlayer} con ${votes} votos`);
 
     // Emitir resultado a TODA la sala
@@ -1434,10 +1440,16 @@ io.on("connection", (socket) => {
 
 
   function finalizeNightVote(room, victim, votes) {
+
     const player = room.players.find(p => p.username === victim);
     if (player) {
       player.isAlive = false;
       room.lastVictim = victim;
+    }
+
+    if (room.mayor === victim) {
+      console.log(` INTENDENTE ASESINADO: ${victim}`);
+      handleMayorDeath(room, victim);
     }
 
     console.log(` VÍCTIMA NOCTURNA: ${victim} con ${votes} votos`);

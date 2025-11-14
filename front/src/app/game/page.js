@@ -43,47 +43,52 @@ export default function Game() {
   const [isOpenNightTieBreak, setIsOpenNightTieBreak] = useState(false);
   const [winner, setWinner] = useState([]);
   const [finishGame, setFinishGame] = useState(false);
-
-  // Agregar estos estados después de los demás useState
   const [isOpenSuccessorModal, setIsOpenSuccessorModal] = useState(false);
   const [successorCandidates, setSuccessorCandidates] = useState([]);
   const [deadMayor, setDeadMayor] = useState(null);
   const [successorTimeout, setSuccessorTimeout] = useState(null);
+  const [blockOtherModals, setBlockOtherModals] = useState(false);
 
-  // Agregar este useEffect para manejar la elección de sucesor
+
+
   useEffect(() => {
     if (!socket) return;
 
-    // Escuchar cuando el intendente muerto debe elegir sucesor
     socket.on("chooseMayorSuccessor", (data) => {
-      console.log("👑 Debes elegir un sucesor como intendente muerto:", data);
+      console.log(" Debes elegir un sucesor como intendente muerto:", data);
+
+      setBlockOtherModals(true);
+      setIsOpenLynchModal(false);
+      setIsOpenLynchTieBreak(false);
+      setIsOpenNightModal(false);
+      setIsOpenNightTieBreak(false);
+      setIsOpenTieBreak(false);
 
       setSuccessorCandidates(data.alivePlayers);
       setDeadMayor(data.deadMayor);
       setIsOpenSuccessorModal(true);
 
-      // Configurar timeout de 30 segundos para elección automática
       const timeout = setTimeout(() => {
         if (isOpenSuccessorModal) {
-          console.log("⏰ Timeout alcanzado, eligiendo sucesor automáticamente");
+          console.log("Timeout alcanzado, eligiendo sucesor automáticamente");
           socket.emit("requestAutoSuccessor", {
             code: roomCode,
             deadMayor: data.deadMayor
           });
           setIsOpenSuccessorModal(false);
+          setBlockOtherModals(false);
         }
       }, 30000);
 
       setSuccessorTimeout(timeout);
     });
 
-    // Escuchar cuando se elige un nuevo intendente
     socket.on("mayorSuccessorChosen", (data) => {
-      console.log("🔄 Nuevo intendente elegido:", data);
+      console.log("Nuevo intendente elegido:", data);
 
       setMayor(data.newMayor);
 
-      // Actualizar players
+
       setPlayers(prevPlayers =>
         prevPlayers.map(player => ({
           ...player,
@@ -91,20 +96,18 @@ export default function Game() {
         }))
       );
 
-      // Cerrar modal si está abierto
       setIsOpenSuccessorModal(false);
+      setBlockOtherModals(false);
 
-      // Limpiar timeout
       if (successorTimeout) {
         clearTimeout(successorTimeout);
         setSuccessorTimeout(null);
       }
 
-      // Mostrar mensaje
       if (data.wasAutomatic) {
-        alert(`⏰ El intendente ${data.previousMayor} no eligió sucesor. ${data.newMayor} es el nuevo intendente por elección automática.`);
+        alert(`El intendente ${data.previousMayor} no eligió sucesor. ${data.newMayor} es el nuevo intendente por elección automática.`);
       } else {
-        alert(`👑 ${data.newMayor} es el nuevo intendente, elegido por ${data.chosenBy}.`);
+        alert(`${data.newMayor} es el nuevo intendente, elegido por ${data.chosenBy}.`);
       }
     });
 
@@ -115,10 +118,9 @@ export default function Game() {
     };
   }, [socket, roomCode, isOpenSuccessorModal, successorTimeout]);
 
-  // Agregar función para elegir sucesor
   const chooseSuccessor = (successorUsername) => {
     if (socket && roomCode && deadMayor) {
-      console.log(`👑 Eligiendo sucesor: ${successorUsername}`);
+      console.log(`Eligiendo sucesor: ${successorUsername}`);
 
       socket.emit("chooseSuccessor", {
         code: roomCode,
@@ -130,7 +132,6 @@ export default function Game() {
       setDeadMayor(null);
       setSuccessorCandidates([]);
 
-      // Limpiar timeout
       if (successorTimeout) {
         clearTimeout(successorTimeout);
         setSuccessorTimeout(null);
@@ -138,13 +139,12 @@ export default function Game() {
     }
   };
 
-  // Agregar función para cerrar el modal de sucesor
+
   const closeSuccessorModal = () => {
     setIsOpenSuccessorModal(false);
     setDeadMayor(null);
     setSuccessorCandidates([]);
 
-    // Solicitar elección automática
     if (socket && roomCode && deadMayor) {
       socket.emit("requestAutoSuccessor", {
         code: roomCode,
@@ -359,7 +359,7 @@ export default function Game() {
       });
 
       socket.on("mayorElected", (data) => {
-        console.log("🎯 INTENDENTE ELECTO - Actualizando estado:", data);
+        console.log("INTENDENTE ELECTO - Actualizando estado:", data);
 
         // Actualizar el estado mayor INMEDIATAMENTE
         setMayor(data.mayor);
@@ -526,8 +526,12 @@ export default function Game() {
       });
 
       socket.on("startLynchVote", () => {
-        console.log(" Iniciando votación de linchamiento...");
-        setIsOpenLynchModal(true);
+        if (!blockOtherModals && !isOpenSuccessorModal) {
+          console.log(" Iniciando votación de linchamiento...");
+          setIsOpenLynchModal(true);
+        } else {
+          console.log("Linchamiento bloqueado - Hay herencia pendiente o modal de sucesor abierto");
+        }
       });
 
       socket.on("alreadyVoted", (data) => {
@@ -779,6 +783,7 @@ export default function Game() {
       setFinishGame(true);
     } else {
       console.log("El juego continúa - Cambiando a día");
+
       setIsNight(false);
       setNightVictim(null);
       setHasVotedNight(false);
@@ -787,12 +792,19 @@ export default function Game() {
       setIsOpenNightModal(false);
 
       setTimeout(() => {
+
+
+        if (blockOtherModals || isOpenSuccessorModal) {
+          console.log(" Evitando abrir linchamiento porque hay sucesión en curso");
+          return;
+        }
+
         console.log("Abriendo modal de linchamiento desde startDay");
         setIsOpenLynchModal(true);
+
       }, 500);
     }
   }
-
 
 
   return (
@@ -814,10 +826,8 @@ export default function Game() {
               isHost={isHost}
               playersAmount={playersAmount}
             />
-
           ) : (
             <>
-              {/* Modal para elección de sucesor */}
               {isOpenSuccessorModal && (
                 <Modal
                   isOpen={isOpenSuccessorModal}
@@ -831,7 +841,7 @@ export default function Game() {
               {isNight ? (
                 <Night
                   players={players}
-                  username={username} // <- Asegúrate de pasar esta prop
+                  username={username}
                   role={role}
                   isNight={isNight}
                   setIsNight={setIsNight}
@@ -850,7 +860,7 @@ export default function Game() {
                 <Day
                   role={role}
                   players={players}
-                  username={username} // <- Asegúrate de pasar esta prop
+                  username={username}
                   setUsername={setUsername}
                   voteMayor={voteMayor}
                   hasVotedForMayor={hasVotedForMayor}
