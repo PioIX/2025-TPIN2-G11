@@ -12,7 +12,7 @@ var port = process.env.PORT || 4000;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003", "http://localhost:3004", "http://localhost:3005", "http://localhost:3006", "http://localhost:3007"],
+  origin: ["http://10.211.228.142:3000", "http://10.211.228.142:3001", "http://10.211.228.142:3002", "http://10.211.228.142:3003", "http://10.211.228.142:3004", "http://10.211.228.142:3005", "http://10.211.228.142:3006", "http://10.211.228.142:3007"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
@@ -30,7 +30,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:3003", "http://localhost:3004", "http://localhost:3005", "http://localhost:3006", "http://localhost:3007"],
+    origin: ["http://10.211.228.142:3000", "http://10.211.228.142:3001", "http://10.211.228.142:3002", "http://10.211.228.142:3003", "http://10.211.228.142:3004", "http://10.211.228.142:3005", "http://10.211.228.142:3006", "http://10.211.228.142:3007"],
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -51,6 +51,65 @@ const gameStates = {
 
 // Array para almacenar salas en memoria
 const rooms = [];
+
+// Agregar en index.js después de los otros endpoints
+app.get("/redirect", async (req, res) => {
+  const ports = [3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007, 3008, 3009, 3010, 3011, 3014, 3015];
+  const http = require('http');
+  
+  const checkPort = (port) => {
+    return new Promise((resolve) => {
+      const options = {
+        hostname: '10.211.228.142',
+        port: port,
+        path: '/',
+        method: 'GET',
+        timeout: 1000
+      };
+      
+      const req = http.request(options, (response) => {
+        // Si recibimos respuesta, el puerto está en uso
+        resolve(true);
+      });
+      
+      req.on('error', (err) => {
+        // Si hay error de conexión, el puerto está disponible
+        resolve(false);
+      });
+      
+      req.on('timeout', () => {
+        req.destroy();
+        resolve(false);
+      });
+      
+      req.end();
+    });
+  };
+
+  try {
+    console.log("🔍 Buscando puerto disponible para redirección...");
+    
+    for (const port of ports) {
+      const isInUse = await checkPort(port);
+      console.log(`Puerto ${port}: ${isInUse ? '🟢 En uso' : '🔴 Disponible'}`);
+      
+      if (!isInUse) {
+        console.log(`✅ Redirigiendo al puerto ${port}`);
+        return res.redirect(`http://10.211.228.142:${port}`);
+      }
+    }
+    
+    // Fallback al primer puerto
+    console.log("⚠️  Todos los puertos ocupados, usando 3000");
+    res.redirect(`http://10.211.228.142:3000`);
+    
+  } catch (error) {
+    console.error("❌ Error en redirect:", error);
+    res.redirect(`http://10.211.228.142:3000`);
+  }
+});
+
+
 
 function assignRandomRoles(players) {
   const shuffledArray = [...players];
@@ -1681,5 +1740,5 @@ setInterval(async () => {
 }, 5 * 60 * 1000);
 
 server.listen(port, function () {
-  console.log(` Server running at http://localhost:${port}`);
+  console.log(` Server running at http://10.211.228.142:${port}`);
 });
