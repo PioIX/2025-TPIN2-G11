@@ -106,8 +106,7 @@ export default function Modal({
         {/* Modal para ranking */}
         {type === "ranking" && (
           <>
-            <button className={styles.close} onClick={onClose}>✕</button>
-            <h2>🏆 Ranking de jugadores</h2>
+            <h2>Ranking de jugadores</h2>
             <ul className={styles.rankingList}>
               {ranking.length > 0 ? (
                 ranking.map((user, i) => (
@@ -216,7 +215,7 @@ export default function Modal({
 
               {mayor ? (
                 <div className={styles.electionResult}>
-                  <h3>🎉 ¡Intendente Electo!</h3>
+                  <h3>¡Intendente Electo!</h3>
                   <p><strong>{mayor}</strong> ha sido elegido como intendente.</p>
                   <p>El modal se cerrará automáticamente...</p>
                 </div>
@@ -290,13 +289,13 @@ export default function Modal({
           <div className={styles.lynch}>
             <Button className={styles.close} onClick={onClose} title="✕" />
             <>
-              <h2>🔨 Votación de Linchamiento</h2>
+              <h2>Votación de Linchamiento</h2>
               <p>¡El pueblo debe decidir a quién linchar! Analicen las pistas y voten democráticamente.</p>
               <br />
 
               {lynchedPlayer ? (
                 <div className={styles.lynchResult}>
-                  <h3>🔨 ¡Jugador Linchado!</h3>
+                  <h3>¡Jugador Linchado!</h3>
                   <p><strong>{lynchedPlayer}</strong> ha sido linchado por el pueblo.</p>
                   <p>El modal se cerrará automáticamente...</p>
                 </div>
@@ -304,7 +303,7 @@ export default function Modal({
                 <>
                   <p>¿A quién votas para linchar?</p>
                   {hasVotedForLynch && (
-                    <p className={styles.voteConfirmed}> ✅ Ya votaste. Esperando a los demás jugadores...</p>
+                    <p className={styles.voteConfirmed}>Ya votaste. Esperando a los demás jugadores...</p>
                   )}
 
                   <section className={styles.playersSection}>
@@ -341,7 +340,7 @@ export default function Modal({
         {type === "lynchTieBreak" && (
           <div className={styles.lynchTieBreak}>
             <div className={styles.lynchTieBreakHeader}>
-              <h2>🔨 ¡EMPATE EN LINCHAMIENTO!</h2>
+              <h2>¡EMPATE EN LINCHAMIENTO!</h2>
               <p>Como intendente, debes decidir a quién linchar</p>
             </div>
 
