@@ -414,18 +414,6 @@
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
 }
 
-.footer::before {
-  content: '🧉';
-  margin-right: 12px;
-  font-size: 1.3rem;
-}
-
-.footer::after {
-  content: '🧉';
-  margin-left: 12px;
-  font-size: 1.3rem;
-}
-
 /* ========== BUTTON STYLES - MANTENIENDO COHERENCIA CON INICIO ========== */
 .btnPrimary,
 .btnSecondary,

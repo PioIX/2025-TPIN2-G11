@@ -19,7 +19,8 @@
   cursor: pointer;
   transition: transform .14s ease, box-shadow .14s ease;
   user-select: none;
-  white-space: nowrap;
+  white-space: wrap;
+  padding: 20px;
 }
 
 .btn:hover {
@@ -35,8 +36,8 @@
     font-size: 16px;
     word-wrap: break-word;
     overflow-wrap: break-word;
-    white-space: normal;
     line-height: 1.4;
+    white-space: wrap;
   }
   .btn:hover {
   transform: translateY(-3px);

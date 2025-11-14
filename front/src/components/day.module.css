@@ -1,277 +1,421 @@
+/* ========== VARIABLES Y FONDOS COHERENTES CON EL LOBBY ========== */
+.container {
+  min-height: 100vh;
+  background: 
+    linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+    url('/background.jpg') center/cover no-repeat fixed;
+  padding: 40px 20px;
+  font-family: 'Arial', sans-serif;
+  position: relative;
+  overflow-x: hidden;
+  color: #ecd2b6;
+}
 
+/* Overlay estrellado consistente */
+.container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 4px),
+    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 3px);
+  background-size: 550px 550px, 350px 350px;
+  background-position: 0 0, 40px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ========== HEADER CON TEXTURA DE MADERA ========== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-image: url('/wood.webp');
+  background-size: 300px;
+  background-repeat: repeat;
+  padding: 25px 40px;
+  border-radius: 18px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2);
+  margin-bottom: 30px;
+  position: relative;
+  z-index: 10;
+  border: 4px solid rgba(255, 248, 235, 0.4);
+  filter: saturate(150%);
+}
+
+.phaseInfo {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.phaseInfo h1 {
+  margin: 0;
+  color: #ecd2b6;
+  font-size: 2rem;
+  font-weight: 700;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(255, 215, 0, 0.3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* ========== PLAYERS SECTION - COHERENTE CON LOBBY ========== */
 .playersSection {
-  background: rgba(255, 255, 255, 0.95);
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  background-image: url('/wood.webp');
+  background-size: 400px;
+  background-repeat: repeat;
+  filter: saturate(140%);
+  padding: 35px;
+  border-radius: 20px;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.5),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2);
+  margin-bottom: 30px;
+  border: 4px solid rgba(255, 248, 235, 0.4);
+  position: relative;
+  z-index: 10;
 }
 
 .playersSection h2 {
-  margin-bottom: 20px;
-  color: #333;
+  margin-bottom: 25px;
+  color: #ecd2b6;
   text-align: center;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 15px rgba(212, 165, 116, 0.4);
+  padding-bottom: 15px;
+  border-bottom: 3px solid rgba(212, 165, 116, 0.6);
 }
 
 .playersGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 25px;
 }
 
+/* ========== PLAYER CARDS - MANTENIENDO ESTILO LOBBY ========== */
 .playerCard {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 20px;
-  border-radius: 12px;
+  background: linear-gradient(135deg, #f5f5dc 0%, #e8dcc8 100%);
+  padding: 25px 20px;
+  border-radius: 15px;
   text-align: center;
   position: relative;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border: 2px solid transparent;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 3px solid #d4a574;
+  box-shadow: 
+    0 5px 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  overflow: hidden;
+}
+
+/* Detalles fileteados */
+.playerCard::before {
+  content: '✦';
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #d4a574;
+  font-size: 1.2rem;
+  opacity: 0.6;
+}
+
+.playerCard::after {
+  content: '◆';
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #d4a574;
+  font-size: 0.9rem;
+  opacity: 0.6;
 }
 
 .playerCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 
+    0 15px 40px rgba(0, 0, 0, 0.4),
+    0 5px 20px rgba(212, 165, 116, 0.3);
+  border-color: #c98d4f;
 }
 
 .currentPlayer {
-  border-color: #4CAF50;
-  background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+  border-color: #4a7c59;
+  background: linear-gradient(135deg, #e8f5e8 0%, #d4e8d4 100%);
+  box-shadow: 
+    0 0 25px rgba(74, 124, 89, 0.4),
+    0 5px 20px rgba(0, 0, 0, 0.3);
 }
 
 .hostPlayer {
-  border-color: #FFD700;
-  background: linear-gradient(135deg, #fff9e6 0%, #ffe082 100%);
+  border-color: #d4a574;
+  background: linear-gradient(135deg, #fff9e6 0%, #f5efd4 100%);
+  box-shadow: 
+    0 0 25px rgba(212, 165, 116, 0.5),
+    0 5px 20px rgba(0, 0, 0, 0.3);
 }
 
 .playerAvatar {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
+  font-size: 3rem;
+  margin-bottom: 15px;
+  margin-top: 10px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  transition: transform 0.3s ease;
+}
+
+.playerCard:hover .playerAvatar {
+  transform: scale(1.15) rotate(5deg);
 }
 
 .playerInfo {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
 }
 
 .playerName {
-  font-weight: bold;
-  color: #333;
+  font-weight: 700;
+  color: #2c1810;
   font-size: 1.1rem;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.9);
 }
 
-.hostBadge {
-  background: #FFD700;
-  color: #333;
-  padding: 4px 8px;
-  border-radius: 10px;
-  font-size: 0.8rem;
-  font-weight: bold;
-}
-
-.crown {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 1.2rem;
-}
-
-.emptySlot {
-  background: rgba(255, 255, 255, 0.7);
-  padding: 30px 20px;
+/* ========== BADGES COHERENTES ========== */
+.hostBadge, .mayorBadge, .deadBadge, .voteBadge {
+  background: linear-gradient(135deg, #d4a574, #c98d4f);
+  color: #2c1810;
+  padding: 4px 12px;
   border-radius: 12px;
-  text-align: center;
-  border: 2px dashed #ccc;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 120px;
-}
-
-.emptyAvatar {
-  font-size: 2rem;
-  margin-bottom: 10px;
-  opacity: 0.5;
-}
-
-.waitingText {
-  color: #666;
-  font-style: italic;
-}
-
-.mayorInfo {
-    background: linear-gradient(135deg, #ffd700, #ffed4e);
-    padding: 15px;
-    border-radius: 10px;
-    margin: 20px;
-    text-align: center;
-    border: 3px solid #b8860b;
-    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
-}
-
-.mayorPlayer {
-    border: 3px solid #ffd700 !important;
-    background: linear-gradient(135deg, #fff9c4, #ffeb3b) !important;
-    transform: scale(1.05);
-    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
-}
-
-.voteBadge {
-    background: #4CAF50;
-    color: white;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.8em;
-    margin-left: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 
+    0 3px 10px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(255, 248, 235, 0.4);
 }
 
 .mayorBadge {
-    background: #ff9800;
-    color: white;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.8em;
-    margin-left: 8px;
-    font-weight: bold;
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
 }
 
-.hostBadge {
-    background: #9c27b0;
-    color: white;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.8em;
-    margin-left: 8px;
+.deadBadge {
+  background: linear-gradient(135deg, #666, #888);
+  color: #fff;
+}
+
+.voteBadge {
+  background: linear-gradient(135deg, #4a7c59, #5d9c7a);
+  color: white;
+}
+
+/* ========== ELEMENTOS ESPECÍFICOS DEL DÍA ========== */
+.mayorInfo {
+  background-image: url('/wood.webp');
+  background-size: 300px;
+  background-repeat: repeat;
+  filter: saturate(140%);
+  padding: 20px 30px;
+  border-radius: 15px;
+  margin: 20px 0;
+  text-align: center;
+  border: 4px solid rgba(255, 248, 235, 0.4);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2);
+}
+
+.mayorInfo h2 {
+  color: #ffd700;
+  margin-bottom: 10px;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+.mayorPlayer {
+  border: 3px solid #ffd700 !important;
+  background: linear-gradient(135deg, #fff9c4, #ffeb3b) !important;
+  transform: scale(1.05);
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
 }
 
 .lynchInfo {
-    background-color: #ff6b6b;
-    color: white;
-    padding: 15px;
-    border-radius: 10px;
-    margin: 20px 0;
-    text-align: center;
+  background-image: url('/wood.webp');
+  background-size: 300px;
+  background-repeat: repeat;
+  filter: saturate(140%);
+  padding: 20px 30px;
+  border-radius: 15px;
+  margin: 20px 0;
+  text-align: center;
+  border: 4px solid rgba(231, 76, 60, 0.6);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2);
 }
 
-.deadPlayer {
-    opacity: 0.6;
-    background-color: #f8f9fa !important;
+.lynchInfo h2 {
+  color: #ff6b6b;
+  margin-bottom: 10px;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(255, 107, 107, 0.4);
 }
 
-.deadBadge {
-    background-color: #6c757d;
-    color: white;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.8em;
-    margin-left: 8px;
+/* ========== BOTONES COHERENTES ========== */
+.voteButton {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 50px !important;
+  padding: 0 25px !important;
+  border-radius: 15px !important;
+  background-image: url('/wood.webp') !important;
+  filter: saturate(150%) !important;
+  background-repeat: repeat !important;
+  background-size: auto !important;
+  color: #ecd2b6 !important;
+  font-weight: 600 !important;
+  letter-spacing: 1px !important;
+  font-size: 0.95rem !important;
+  text-transform: uppercase !important;
+  border: 3px solid rgba(255, 248, 235, 0.473) !important;
+  box-shadow: 1px -1px 15px 4px rgba(255, 238, 193, 0.315) !important;
+  cursor: pointer !important;
+  transition: transform .14s ease, box-shadow .14s ease !important;
+  margin: 5px !important;
 }
 
-/* Agregar al final de day.module.css */
+.voteButton:hover:not(:disabled) {
+  transform: translateY(-3px) !important;
+  box-shadow: 1px -1px 25px 6px rgba(255, 238, 193, 0.4) !important;
+}
 
-.nightTransition {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to bottom, #0a0a2a, #1a1a4a);
-    display: flex;
+.voteButton:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 1024px) {
+  .container {
+    padding: 30px 15px;
+  }
+  
+  .playersGrid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 20px;
+  }
+  
+  .header {
+    padding: 20px 30px;
+  }
+  
+  .phaseInfo h1 {
+    font-size: 1.7rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 20px 10px;
+  }
+  
+  .header {
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    z-index: 9999;
-    animation: fadeInOutNight 4s ease-in-out forwards;
-}
-
-.nightTransitionContent {
+    gap: 15px;
     text-align: center;
-    animation: pulse 2s infinite;
+    padding: 20px;
+  }
+  
+  .playersSection {
+    padding: 25px 20px;
+  }
+  
+  .playersGrid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 15px;
+  }
+  
+  .playerCard {
+    padding: 20px 15px;
+  }
+  
+  .playerAvatar {
+    font-size: 2.5rem;
+  }
 }
 
-.nightTransitionContent h1 {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+@media (max-width: 576px) {
+  .container {
+    padding: 15px 8px;
+  }
+  
+  .playersGrid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+  }
+  
+  .playerCard {
+    padding: 15px 10px;
+  }
+  
+  .playerAvatar {
+    font-size: 2rem;
+  }
+  
+  .playerName {
+    font-size: 0.9rem;
+  }
+  
+  .phaseInfo h1 {
+    font-size: 1.4rem;
+  }
+  
+  .playersSection h2 {
+    font-size: 1.3rem;
+  }
 }
 
-.nightTransitionContent p {
-    font-size: 1.5rem;
-    margin-bottom: 2rem;
-    opacity: 0.8;
-}
-
-.moon {
-    font-size: 4rem;
-    animation: float 3s ease-in-out infinite;
-}
-
-.deadPlayer {
-    opacity: 0.6;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
-    border: 2px solid #6c757d !important;
-}
-
-.deadBadge {
-    background: #6c757d;
-    color: white;
-    padding: 4px 8px;
-    border-radius: 10px;
-    font-size: 0.8rem;
-    font-weight: bold;
-    margin-top: 5px;
-}
-
-
-@keyframes fadeInOutNight {
-    0% { 
-        opacity: 0; 
-        background: linear-gradient(to bottom, rgba(10, 10, 42, 0), rgba(26, 26, 74, 0));
-    }
-    20% { 
-        opacity: 1; 
-        background: linear-gradient(to bottom, #0a0a2a, #1a1a4a);
-    }
-    80% { 
-        opacity: 1; 
-        background: linear-gradient(to bottom, #0a0a2a, #1a1a4a);
-    }
-    100% { 
-        opacity: 0; 
-        background: linear-gradient(to bottom, rgba(10, 10, 42, 0), rgba(26, 26, 74, 0));
-    }
-}
-@keyframes fadeInOut {
-    0% { 
-        opacity: 0; 
-        background: linear-gradient(to bottom, rgba(10, 10, 42, 0), rgba(26, 26, 74, 0));
-    }
-    20% { 
-        opacity: 1; 
-        background: linear-gradient(to bottom, #0a0a2a, #1a1a4a);
-    }
-    80% { 
-        opacity: 1; 
-        background: linear-gradient(to bottom, #0a0a2a, #1a1a4a);
-    }
-    100% { 
-        opacity: 0; 
-        background: linear-gradient(to bottom, rgba(10, 10, 42, 0), rgba(26, 26, 74, 0));
-    }
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-@keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-    100% { transform: translateY(0px); }
+/* Orientación horizontal en móviles */
+@media (max-height: 600px) and (orientation: landscape) {
+  .container {
+    padding: 10px;
+  }
+  
+  .header {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+  
+  .playersGrid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+  }
+  
+  .playerCard {
+    padding: 12px 8px;
+  }
+  
+  .playerAvatar {
+    font-size: 1.8rem;
+  }
 }
