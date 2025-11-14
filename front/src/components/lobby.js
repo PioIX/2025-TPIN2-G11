@@ -143,7 +143,7 @@ export default function Lobby({
                 </div>
                 {players.length < 2 && (
                   <p className={styles.warning}>
-                    Se necesitan al menos 2 jugadores para iniciar
+                    Se necesitan al menos 6 jugadores para iniciar
                   </p>
                 )}
               </div>
