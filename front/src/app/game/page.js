@@ -809,7 +809,7 @@ export default function Game() {
 
   return (
     <>
-      {finishGame ? (<FindeJuego />) : (
+      {finishGame ? (<FindeJuego winner={winner} players={players} />) : (
         <>
           {lobby === true ? (
             <Lobby
