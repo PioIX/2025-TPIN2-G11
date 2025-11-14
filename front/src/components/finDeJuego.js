@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./finDeJuego.module.css";
 
-export default function FinDeJuego({ winner, players }) {
+export default function FinDeJuego({ winner, players, playAgain }) {
   const [revealedPlayers, setRevealedPlayers] = useState([]);
   const [showWinner, setShowWinner] = useState(false);
   const [confettiActive, setConfettiActive] = useState(false);
@@ -17,7 +17,7 @@ export default function FinDeJuego({ winner, players }) {
         await new Promise(resolve => setTimeout(resolve, 800));
         setRevealedPlayers(prev => [...prev, players[i]]);
       }
-      
+
       await new Promise(resolve => setTimeout(resolve, 1000));
       setShowWinner(true);
       setConfettiActive(true);
@@ -36,8 +36,8 @@ export default function FinDeJuego({ winner, players }) {
     const confettiContainer = confettiRef.current;
     if (!confettiContainer) return;
 
-    const colors = winner.winner === "Lobizones" 
-      ? ['#8B0000', '#DC143C', '#FF4500', '#B22222'] 
+    const colors = winner.winner === "Lobizones"
+      ? ['#8B0000', '#DC143C', '#FF4500', '#B22222']
       : ['#228B22', '#32CD32', '#00FF00', '#90EE90'];
 
     for (let i = 0; i < 150; i++) {
@@ -73,13 +73,15 @@ export default function FinDeJuego({ winner, players }) {
     }
   };
 
-  const handleReturnToLobby = () => {
+  const handleReturnToHome = () => {
     router.push("/");
   };
 
+
   const handlePlayAgain = () => {
-    window.location.reload();
-  };
+    console.log("🔄 Solicitando nueva partida...");
+    playAgain();
+  }
 
   if (!winner) {
     return (
@@ -92,7 +94,7 @@ export default function FinDeJuego({ winner, players }) {
 
   return (
     <div className={styles.container}>
-      <div 
+      <div
         ref={confettiRef}
         className={`${styles.confettiContainer} ${confettiActive ? styles.active : ''}`}
       ></div>
@@ -109,7 +111,7 @@ export default function FinDeJuego({ winner, players }) {
                 {winner.winner === "Lobizones" ? "🐺👑" : "👨‍🌾👑"}
               </div>
             </div>
-            
+
             <div className={styles.winnerMessage}>
               <p>{winner.message}</p>
               {winner.details && (
@@ -133,26 +135,25 @@ export default function FinDeJuego({ winner, players }) {
           <h2 className={styles.rolesTitle}>Revelación de Roles</h2>
           <div className={styles.playersGrid}>
             {players.map((player, index) => (
-              <div 
-                key={player.username} 
-                className={`${styles.playerCard} ${
-                  revealedPlayers.includes(player) ? styles.revealed : styles.hidden
-                }`}
+              <div
+                key={player.username}
+                className={`${styles.playerCard} ${revealedPlayers.includes(player) ? styles.revealed : styles.hidden
+                  }`}
                 style={{ animationDelay: `${index * 0.2}s` }}
               >
                 <div className={styles.playerHeader}>
                   <span className={styles.playerName}>{player.username}</span>
                   {!player.isAlive && <span className={styles.deadBadge}>💀</span>}
                 </div>
-                
+
                 <div className={styles.roleReveal}>
-                  <div 
+                  <div
                     className={styles.roleIcon}
                     style={{ backgroundColor: getRoleColor(player.role) }}
                   >
                     {getRoleIcon(player.role)}
                   </div>
-                  <span 
+                  <span
                     className={styles.roleName}
                     style={{ color: getRoleColor(player.role) }}
                   >
@@ -173,22 +174,22 @@ export default function FinDeJuego({ winner, players }) {
 
         {showWinner && (
           <div className={`${styles.actionsSection} ${styles.fadeIn}`}>
-            <button 
+            <button
               className={styles.playAgainButton}
               onClick={handlePlayAgain}
             >
               Jugar Otra Vez
             </button>
-            <button 
+            <button
               className={styles.lobbyButton}
-              onClick={handleReturnToLobby}
+              onClick={handleReturnToHome}
             >
-              Volver al Lobby
+              Volver al Home
             </button>
           </div>
         )}
 
-    
+
         {showWinner && (
           <div className={styles.statsSection}>
             <div className={styles.statCard}>
