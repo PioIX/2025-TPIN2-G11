@@ -19,11 +19,20 @@ export default function Night({
     isOpenNightTieBreak,
     setIsOpenNightTieBreak,
     voteNightTieBreak,
-    startDay
+    startDay,
+    setIsOpenNightModaltarotista,
+    handleShowTarotistaResult,
+    isOpenNightModaltarotista,
+    voteNightQuestion,
+    hasVotedQuestion,
+    tarotistaResult
 }) {
     const [showDayTransition, setShowDayTransition] = useState(false);
     const [alivePlayers, setAlivePlayers] = useState([]);
+    const [showTarotistaResultLocal, setShowTarotistaResultLocal] = useState(false);
     const transitionTimeoutRef = useRef(null);
+
+
 
     useEffect(() => {
         console.log("  Actualizando jugadores vivos en Night:",
@@ -36,14 +45,15 @@ export default function Night({
         setAlivePlayers(alive);
     }, [players]);
 
-
     const isLobizon = role === 'Lobizón';
-    const canVote = isLobizon && players.find(p => p.username === username)?.isAlive;
+    const isTarotista = role === 'Tarotista'; // Agregar esta verificación
+    const canVote = (isLobizon || isTarotista) && players.find(p => p.username === username)?.isAlive;
 
     console.log("Night - Estado del jugador:", {
         username,
         role,
         isLobizon,
+        isTarotista,
         canVote,
         isAlive: players.find(p => p.username === username)?.isAlive
     });
@@ -57,6 +67,7 @@ export default function Night({
             }
 
             setIsOpenNightModal(false);
+            setIsOpenNightModaltarotista(false);
             setIsOpenNightTieBreak(false);
 
             transitionTimeoutRef.current = setTimeout(() => {
@@ -71,7 +82,7 @@ export default function Night({
                         setShowDayTransition(false);
 
                         if (startDay && typeof startDay === 'function') {
-                            startDay(); 
+                            startDay();
                         } else {
                             console.error(" startDay no es una función válida");
                             setIsNight(false);
@@ -86,20 +97,22 @@ export default function Night({
                 clearTimeout(transitionTimeoutRef.current);
             }
         };
-    }, [nightVictim, isNight, startDay, setIsNight, setIsOpenNightModal, setIsOpenNightTieBreak]);
+    }, [nightVictim, isNight, startDay, setIsNight, setIsOpenNightModal, setIsOpenNightModaltarotista, setIsOpenNightTieBreak]);
 
     useEffect(() => {
         if (!isNight) {
             console.log(" Limpiando estados de Night - Día activo");
             setShowDayTransition(false);
             setIsOpenNightModal(false);
+            setIsOpenNightModaltarotista(false);
             setIsOpenNightTieBreak(false);
+            setShowTarotistaResultLocal(false);
 
             if (transitionTimeoutRef.current) {
                 clearTimeout(transitionTimeoutRef.current);
             }
         }
-    }, [isNight]);
+    }, [isNight, setIsOpenNightModaltarotista]);
 
     const getAttackablePlayers = () => {
         return alivePlayers.filter(player => {
@@ -116,7 +129,9 @@ export default function Night({
 
     console.log("Night Render - estado actual:", {
         isOpenNightModal,
+        isOpenNightModaltarotista,
         isLobizon,
+        isTarotista,
         canVote,
         role,
         username,
@@ -125,6 +140,13 @@ export default function Night({
         showDayTransition,
         attackablePlayers: getAttackablePlayers().length
     });
+
+    const handleCloseTarotistaResult = () => {
+        setShowTarotistaResultLocal(false);
+        if (handleShowTarotistaResult && typeof handleShowTarotistaResult === 'function') {
+            handleShowTarotistaResult(null);
+        }
+    };
 
     return (
         <>
@@ -162,6 +184,14 @@ export default function Night({
                                 <h3>Tu rol: {role}</h3>
                                 {isLobizon ? (
                                     <p>Eres un lobizón. Debes elegir a quién atacar esta noche.</p>
+                                ) : isTarotista ? (
+                                    <>< div className={styles.tarotistaResult}>
+                                        <p>Eres el tarotista. Puedes consultar el rol de un jugador.</p>
+                                        <h3> Consulta de Tarotista</h3>
+                                        <p>{tarotistaResult?.message || "El tarotista ha consultado las cartas..."}</p>
+    
+                                        <button onClick={handleCloseTarotistaResult}>Cerrar</button>
+                                    </div></>
                                 ) : (
                                     <p>Descansa mientras los lobizones toman su decisión.</p>
                                 )}
@@ -214,7 +244,16 @@ export default function Night({
                             </div>
                         )}
 
-                        {isLobizon && !canVote && (
+                        {isTarotista && canVote && (
+                            <div className={styles.actionInfo}>
+                                <p>Como tarotista, puedes consultar el rol de un jugador.</p>
+                                {!isOpenNightModaltarotista && (
+                                    <p className={styles.waitingModal}>El modal de consulta se abrirá automáticamente...</p>
+                                )}
+                            </div>
+                        )}
+
+                        {(isLobizon || isTarotista) && !canVote && (
                             <div className={styles.deadInfo}>
                                 <p>Estás muerto. No puedes participar en las votaciones nocturnas.</p>
                             </div>
@@ -222,6 +261,18 @@ export default function Night({
                     </div>
                 )}
             </div>
+
+            {isOpenNightModaltarotista && isTarotista && canVote && (
+                <Modal
+                    isOpen={isOpenNightModaltarotista}
+                    onClose={() => { }}
+                    type={"nightQuestion"}
+                    players={getAttackablePlayers()}
+                    voteNightQuestion={voteNightQuestion}
+                    nightVictim={nightVictim}
+                    hasVotedQuestion={hasVotedQuestion}
+                />
+            )}
 
             {isOpenNightModal && isLobizon && canVote && (
                 <Modal
@@ -244,6 +295,8 @@ export default function Night({
                     voteNightTieBreak={voteNightTieBreak}
                 />
             )}
+
+
         </>
     );
 }

@@ -39,6 +39,7 @@ export default function Game() {
   const [nightVictim, setNightVictim] = useState(null);
   const [isOpenNightModal, setIsOpenNightModal] = useState(false);
   const [hasVotedNight, setHasVotedNight] = useState(false);
+  const [hasVotedQuestion, setHasVotedQuestion] = useState(false);
   const [nightTieBreakData, setNightTieBreakData] = useState(null);
   const [isOpenNightTieBreak, setIsOpenNightTieBreak] = useState(false);
   const [winner, setWinner] = useState([]);
@@ -48,7 +49,10 @@ export default function Game() {
   const [deadMayor, setDeadMayor] = useState(null);
   const [successorTimeout, setSuccessorTimeout] = useState(null);
   const [blockOtherModals, setBlockOtherModals] = useState(false);
-
+  const [isTarotista, setIsTarotista] = useState(true)
+  const [isOpenNightModaltarotista, setIsOpenNightModaltarotista] = useState(false)
+  const [tarotistaResult, setTarotistaResult] = useState(false)
+  const [showTarotistaResult, setShowTarotistaResult] = useState(false)
 
 
   useEffect(() => {
@@ -61,6 +65,7 @@ export default function Game() {
       setIsOpenLynchModal(false);
       setIsOpenLynchTieBreak(false);
       setIsOpenNightModal(false);
+      setIsOpenNightModaltarotista(false);
       setIsOpenNightTieBreak(false);
       setIsOpenTieBreak(false);
 
@@ -319,6 +324,17 @@ export default function Game() {
         setIsOpenNightModal(true);
       });
 
+      socket.on("openNightModalTarotista", () => {
+        console.log(" Abriendo modal de votación nocturna desde backend para tarotista");
+        console.log(" Estado del jugador:", {
+          username,
+          role,
+          isTarotista: role === 'Tarotista',
+          isAlive: players.find(p => p.username === username)?.isAlive
+        });
+        setIsOpenNightModaltarotista(true);
+      });
+
       socket.on("gameStarted", (data) => {
         console.log("Juego iniciado recibido:", data);
         setGameStarted(true);
@@ -339,6 +355,10 @@ export default function Game() {
           if (currentPlayer) {
             setRole(currentPlayer.role);
             alert(`Tu rol es: ${currentPlayer.role}`);
+            if (currentPlayer.role == "Lobizón") {
+              setRole("Lobizón")
+              console.log("Sos Lobizón")
+            }
           }
         }
       });
@@ -499,6 +519,7 @@ export default function Game() {
             setNightTieBreakData(null);
             setIsOpenNightTieBreak(false);
             setIsOpenNightModal(false);
+            setIsOpenNightModaltarotista(false);
             console.log("¡Hay un ganador!", winner);
             setWinner(winner);
             setFinishGame(true);
@@ -565,6 +586,7 @@ export default function Game() {
         setNightTieBreakData(data);
         setIsOpenNightTieBreak(true);
         setIsOpenNightModal(false);
+        setIsOpenNightModaltarotista(false)
       });
 
       socket.on("nightTieBreakUpdate", (data) => {
@@ -596,7 +618,29 @@ export default function Game() {
       socket.on("alreadyVotedNight", (data) => {
         alert("Ya has votado en la noche");
       });
+
+      socket.on("tarotistaResult", (data) => {
+        console.log("🔮 Resultado de tarotista recibido:", data);
+
+        const tarotistaResultData = {
+          message: data.message || "El tarotista ha consultado las cartas...",
+          revealedPlayer: data.target ,
+          roleRevealed: data.role 
+        };
+
+        setTarotistaResult(tarotistaResultData);
+        setShowTarotistaResult(true);
+        setHasVotedQuestion(true);
+        setIsOpenNightModaltarotista(false);
+
+        setTimeout(() => {
+          setShowTarotistaResult(false);
+          setTarotistaResult(null);
+        }, 5000);
+      });
     };
+
+
 
     setupSocketListeners();
 
@@ -622,6 +666,8 @@ export default function Game() {
     }, 1000);
 
     return () => clearTimeout(timeoutId);
+
+
   }, [socket, roomCode, isHost, playersAmount, router, usernameFromParams, checkWinner, mayor, username]);
 
   const startGame = () => {
@@ -753,6 +799,18 @@ export default function Game() {
     }
   };
 
+  const voteNightQuestion = (candidateUsername) => {
+    if (socket && roomCode && !hasVotedNight) {
+      console.log(` la tarotista voto`);
+      socket.emit("voteNightQuestion", {
+        code: roomCode,
+        voter: username,
+        candidate: candidateUsername
+      });
+      setHasVotedQuestion(true);
+    }
+  };
+
   const voteNightTieBreak = (candidateUsername) => {
     if (socket && roomCode && nightTieBreakData) {
       console.log(` 🐺 ${username} votando en desempate nocturno por ${candidateUsername}`);
@@ -775,9 +833,11 @@ export default function Game() {
       setIsNight(false);
       setNightVictim(null);
       setHasVotedNight(false);
+      setHasVotedQuestion(false);
       setNightTieBreakData(null);
       setIsOpenNightTieBreak(false);
       setIsOpenNightModal(false);
+      setIsOpenNightModaltarotista(false);
       console.log("¡Hay un ganador!", winner);
       setWinner(winner);
       setFinishGame(true);
@@ -787,9 +847,11 @@ export default function Game() {
       setIsNight(false);
       setNightVictim(null);
       setHasVotedNight(false);
+      setHasVotedQuestion(false);
       setNightTieBreakData(null);
       setIsOpenNightTieBreak(false);
       setIsOpenNightModal(false);
+      setIsOpenNightModaltarotista(false);
 
       setTimeout(() => {
 
@@ -807,12 +869,12 @@ export default function Game() {
   }
 
 
- 
+
   const playAgain = () => {
     console.log("Reiniciando juego...");
 
     if (socket && isHost) {
-  
+
       socket.emit("resetGame", {
         code: roomCode,
         host: username
@@ -846,7 +908,9 @@ export default function Game() {
       setIsNight(false);
       setNightVictim(null);
       setIsOpenNightModal(false);
+      setIsOpenNightModaltarotista(false);
       setHasVotedNight(false);
+      setHasVotedQuestion(false);
       setNightTieBreakData(null);
       setIsOpenNightTieBreak(false);
       setWinner([]);
@@ -860,13 +924,28 @@ export default function Game() {
         setSuccessorTimeout(null);
       }
 
-      console.log("✅ Estados del juego reseteados completamente");
+      console.log("Estados del juego reseteados completamente");
     });
 
     return () => {
       socket.off("gameReset");
     };
   }, [socket, successorTimeout]);
+
+  const handleShowTarotistaResult = (resultData = null) => {
+    console.log("Mostrando resultado del tarotista:", resultData);
+    if (resultData) {
+      setTarotistaResult(resultData);
+    } else {
+      const defaultResult = {
+        message: "El tarotista ha consultado las cartas...",
+        revealedPlayer: null,
+        roleRevealed: null
+      };
+      setTarotistaResult(defaultResult);
+    }
+    setShowTarotistaResult(true);
+  };
 
 
   return (
@@ -910,6 +989,7 @@ export default function Game() {
                   nightVictim={nightVictim}
                   isOpenNightModal={isOpenNightModal}
                   setIsOpenNightModal={setIsOpenNightModal}
+                  setIsOpenNightModaltarotista={setIsOpenNightModaltarotista}
                   voteNightKill={voteNightKill}
                   hasVotedNight={hasVotedNight}
                   nightTieBreakData={nightTieBreakData}
@@ -917,6 +997,10 @@ export default function Game() {
                   setIsOpenNightTieBreak={setIsOpenNightTieBreak}
                   voteNightTieBreak={voteNightTieBreak}
                   startDay={startDay}
+                  isOpenNightModaltarotista={isOpenNightModaltarotista}
+                  voteNightQuestion={voteNightQuestion}
+                  hasVotedQuestion={hasVotedQuestion}
+                  tarotistaResult={tarotistaResult}
                 />
               ) : (
                 <Day

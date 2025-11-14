@@ -50,12 +50,14 @@ export default function Modal({
   isOpenLynchModal,
   closeLynchModal,
   voteNightKill,
+  voteNightQuestion,
   hasVotedNight,
   nightVictim,
   nightTieBreakData,
   voteNightTieBreak,
   successorCandidates,
-  chooseSuccessor
+  chooseSuccessor,
+  hasVotedQuestion
 }) {
   const mouseDownTarget = useRef(null);
 
@@ -83,12 +85,11 @@ export default function Modal({
       onMouseDown={handleOverlayMouseDown}
       onClick={handleOverlayClick}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.close} onClick={onClose}>✕</button>
-
 
         {/* Modal para unirse a sala */}
         {type === "join" && (
           <>
+            <button className={styles.close} onClick={onClose}>✕</button>
             <h2>Ingrese el código de sala</h2>
             <input
               type="text"
@@ -105,7 +106,8 @@ export default function Modal({
         {/* Modal para ranking */}
         {type === "ranking" && (
           <>
-            <h2>Ranking de jugadores</h2>
+            <button className={styles.close} onClick={onClose}>✕</button>
+            <h2>🏆 Ranking de jugadores</h2>
             <ul className={styles.rankingList}>
               {ranking.length > 0 ? (
                 ranking.map((user, i) => (
@@ -123,6 +125,7 @@ export default function Modal({
         {/* Modal para crear sala */}
         {type === "createRoom" && (
           <div className={styles.createRoom}>
+            <button className={styles.close} onClick={onClose}>✕</button>
             <h2>Crear nueva sala</h2>
             <label>Código personalizado:</label>
             <input
@@ -151,9 +154,10 @@ export default function Modal({
         {/* Modal para configuraciones */}
         {type === "settings" && (
           <div className={styles.settings}>
-                <Button title="INICIAR SESIÓN" onClick={onOpenLogin} />
-                <Button className={styles.btn} onClick={onSubmitModifyAccount} title="Modificar cuenta" />
-                <Button className={styles.btn} onClick={onSubmitCloseSession} title="Cerrar sesión" />
+                    <button className={styles.close} onClick={onClose}>✕</button>
+            <Button title="INICIAR SESIÓN" onClick={onOpenLogin} />
+            <Button className={styles.btn} onClick={onSubmitModifyAccount} title="Modificar cuenta" />
+            <Button className={styles.btn} onClick={onSubmitCloseSession} title="Cerrar sesión" />
           </div>
         )}
 
@@ -161,6 +165,7 @@ export default function Modal({
         {/* Modal para login/registro */}
         {type === "login" && (
           <div className={styles.loginContainer}>
+                    <button className={styles.close} onClick={onClose}>✕</button>
             <h2>{registered ? "Iniciar sesión" : "Registrarse"}</h2>
 
             <input
@@ -190,6 +195,7 @@ export default function Modal({
 
         {type === "startGame" && (
           <div className={styles.startGame}>
+                    <button className={styles.close} onClick={onClose}>✕</button>
             <>
               <h2>Bienvenido a Castro Barros</h2>
               <p>usted vino en busca de la paz que la ciudad no puede darte. Pero hnay un problema...¡Una invasion de lobizones! Encuentrenlos y linchenlos antes que se deboren todo el pueblo</p>
@@ -210,7 +216,7 @@ export default function Modal({
 
               {mayor ? (
                 <div className={styles.electionResult}>
-                  <h3>¡Intendente Electo!</h3>
+                  <h3>🎉 ¡Intendente Electo!</h3>
                   <p><strong>{mayor}</strong> ha sido elegido como intendente.</p>
                   <p>El modal se cerrará automáticamente...</p>
                 </div>
@@ -284,13 +290,13 @@ export default function Modal({
           <div className={styles.lynch}>
             <Button className={styles.close} onClick={onClose} title="✕" />
             <>
-              <h2>Votación de Linchamiento</h2>
+              <h2>🔨 Votación de Linchamiento</h2>
               <p>¡El pueblo debe decidir a quién linchar! Analicen las pistas y voten democráticamente.</p>
               <br />
 
               {lynchedPlayer ? (
                 <div className={styles.lynchResult}>
-                  <h3>¡Jugador Linchado!</h3>
+                  <h3>🔨 ¡Jugador Linchado!</h3>
                   <p><strong>{lynchedPlayer}</strong> ha sido linchado por el pueblo.</p>
                   <p>El modal se cerrará automáticamente...</p>
                 </div>
@@ -298,7 +304,7 @@ export default function Modal({
                 <>
                   <p>¿A quién votas para linchar?</p>
                   {hasVotedForLynch && (
-                    <p className={styles.voteConfirmed}>Ya votaste. Esperando a los demás jugadores...</p>
+                    <p className={styles.voteConfirmed}> ✅ Ya votaste. Esperando a los demás jugadores...</p>
                   )}
 
                   <section className={styles.playersSection}>
@@ -335,7 +341,7 @@ export default function Modal({
         {type === "lynchTieBreak" && (
           <div className={styles.lynchTieBreak}>
             <div className={styles.lynchTieBreakHeader}>
-              <h2>¡EMPATE EN LINCHAMIENTO!</h2>
+              <h2>🔨 ¡EMPATE EN LINCHAMIENTO!</h2>
               <p>Como intendente, debes decidir a quién linchar</p>
             </div>
 
@@ -500,6 +506,43 @@ export default function Modal({
             <div className={styles.nightTieBreakNote}>
               <p>En caso de nuevo empate, se elegirá al primero alfabéticamente.</p>
             </div>
+          </div>
+        )}
+
+        {type === "nightQuestion" && (
+          <div className={styles.nightKill}>
+            <h2>Pregunta Nocturna</h2>
+            <p>Como tarotista,puedes preguntar el role de un jugador.</p>
+            <br />
+
+            {hasVotedQuestion ? (
+              <div className={styles.nightResult}>
+                <h3>Sospechoso Elegido</h3>
+                <p><strong>{nightVictim}</strong> será cuestionada su aura.</p>
+                <p>Esperando a que amanezca...</p>
+              </div>
+            ) : (
+              <>
+                <p>¿A quién quieres cuestionar?</p>
+                {hasVotedNight && (
+                  <p className={styles.voteConfirmed}>Ya votaste. Esperando a que amanezca...</p>
+                )}
+                <section className={styles.playersSection}>
+                  <ul>
+                    {players.map((player, index) => (
+                      <li className={styles.playerItem} key={index}>
+                        <Button
+                          onClick={() => voteNightQuestion(player.username)}
+                          title={`${player.username} ${player.nightVotes ? `(${player.nightVotes} votos)` : ''}`}
+                          disabled={hasVotedNight || nightVictim || !player.isAlive}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+
+              </>
+            )}
           </div>
         )}
 

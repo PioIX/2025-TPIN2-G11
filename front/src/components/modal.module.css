@@ -9,7 +9,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 100000;
   backdrop-filter: blur(2px);
 }
 
@@ -17,7 +17,7 @@
 .modal {
   background: rgba(0, 0, 31, 0.603);
   backdrop-filter: blur(3px);
-  padding: 24px 28px;
+  padding: 50px 50px;
   max-width: 480px;
   width: 80%;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
@@ -28,7 +28,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  max-height: 600px;
+  max-height: 850px;
   height: 85%;
   border-radius: 30px;
   background: rgba(0, 0, 17, 0.753);
@@ -108,12 +108,36 @@
 }
 
 .rankingList li {
-  background: #e4ddcf;
-  padding: 8px 12px;
-  margin-bottom: 8px;
-  border-radius: 8px;
+  border-radius: 12px;
+  background-image: url('/wood.webp');
+  filter: saturate(150%);
+  background-repeat: repeat;
+  background-size: auto;
+  padding: 8px 30px;
+  margin-bottom: 15px;
   font-weight: 500;
+  border: 3px solid rgba(255, 248, 235, 0.473);
+  box-shadow: 1px 1px 8px 2px rgba(255, 238, 193, 0.315);
 }
+
+.playerSelection {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 30px;
+  gap: 50px;
+}
+
 
 .settings {
     background: #00000000;
@@ -183,21 +207,23 @@
 }
 
 .voteConfirmed {
-  color: #4CAF50;
+  color: #050118;
   font-weight: bold;
   text-align: center;
   padding: 10px;
-  background-color: #e8f5e8;
+  background-color: #ecd2b6;
   border-radius: 5px;
 }
 
 .voteStatus {
   margin-top: 15px;
   padding: 10px;
-  background-color: #f5f5f5;
   border-radius: 5px;
   text-align: center;
-  font-size: 0.9em;
+  font-size: 1em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Estilo para botones deshabilitados */
@@ -276,6 +302,7 @@
   border: 1px solid #ffeaa7;
   color: #856404;
 }
+
 
 @keyframes appear-left {
   0% {
