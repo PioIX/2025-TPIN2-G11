@@ -1579,7 +1579,7 @@ io.on("connection", (socket) => {
         newMayor = alivePlayers[randomIndex].username;
       }
 
-      console.log(`🤖 Sucesor automático: ${newMayor}`);
+      console.log(`Sucesor automático: ${newMayor}`);
 
       room.mayor = newMayor;
       room.players.forEach(player => {
@@ -1594,7 +1594,71 @@ io.on("connection", (socket) => {
       });
 
     } catch (error) {
-      console.error("❌ Error en requestAutoSuccessor:", error);
+      console.error("Error en requestAutoSuccessor:", error);
+    }
+  });
+
+  socket.on("resetGame", ({ code, host }) => {
+    try {
+      console.log("Solicitando reset del juego para sala:", code);
+
+      const room = rooms.find(r => r.code === code && r.active);
+      if (!room) {
+        socket.emit("roomError", "La sala no existe");
+        return;
+      }
+
+      if (socket.username !== room.host) {
+        socket.emit("roomError", "Solo el anfitrión puede reiniciar el juego");
+        return;
+      }
+
+      console.log("Reiniciando juego en sala:", code);
+
+      room.state = gameStates.INICIO;
+      room.round = 1;
+      room.assignedRoles = false;
+      room.lobizonesVotes = {};
+      room.lynchVotes = {};
+      room.mayor = null;
+      room.lastVictim = null;
+      room.nightVotes = {};
+      room.nightTieBreakVotes = {};
+      room.nightTieBreakCandidates = null;
+      room.wasTieBreak = false;
+      room.mayorVotes = {};
+
+      room.players = room.players.map(player => ({
+        ...player,
+        role: null,                  
+        isAlive: true,                
+        votesReceived: 0,            
+        wasProtected: false,          
+        isMayor: false,                
+        mayorVotes: 0,              
+        lynchVotes: 0,                 
+        nightVotes: 0                  
+      }));
+
+      console.log(" Sala reiniciada completamente. Jugadores:",
+        room.players.map(p => ({
+          username: p.username,
+          isAlive: p.isAlive,
+          role: p.role
+        }))
+      );
+
+      io.to(code).emit("gameReset", {
+        players: room.players,
+        message: "El juego ha sido reiniciado. Volviendo al lobby.",
+        host: host
+      });
+
+      console.log(`${host} ha reiniciado el juego. Volviendo al lobby...`);
+
+    } catch (error) {
+      console.error(" Error en resetGame:", error);
+      socket.emit("roomError", "Error al reiniciar el juego");
     }
   });
 });

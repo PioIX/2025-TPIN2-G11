@@ -807,9 +807,71 @@ export default function Game() {
   }
 
 
+ 
+  const playAgain = () => {
+    console.log("Reiniciando juego...");
+
+    if (socket && isHost) {
+  
+      socket.emit("resetGame", {
+        code: roomCode,
+        host: username
+      });
+    } else {
+      console.log("Esperando a que el anfitrión reinicie el juego...");
+      setFinishGame(false);
+      setLobby(true);
+      setGame(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("gameReset", (data) => {
+      console.log("🔄 Juego reiniciado recibido:", data);
+
+      setPlayers(data.players);
+      setGameStarted(false);
+      setLobby(true);
+      setGame(false);
+      setRole("");
+      setMayor(null);
+      setHasVotedForMayor(false);
+      setHasVotedForLynch(false);
+      setLynchTieBreakData(null);
+      setIsOpenLynchTieBreak(false);
+      setLynchedPlayer(null);
+      setIsOpenLynchModal(false);
+      setIsNight(false);
+      setNightVictim(null);
+      setIsOpenNightModal(false);
+      setHasVotedNight(false);
+      setNightTieBreakData(null);
+      setIsOpenNightTieBreak(false);
+      setWinner([]);
+      setFinishGame(false);
+      setIsOpenSuccessorModal(false);
+      setSuccessorCandidates([]);
+      setDeadMayor(null);
+      setBlockOtherModals(false);
+      if (successorTimeout) {
+        clearTimeout(successorTimeout);
+        setSuccessorTimeout(null);
+      }
+
+      console.log("✅ Estados del juego reseteados completamente");
+    });
+
+    return () => {
+      socket.off("gameReset");
+    };
+  }, [socket, successorTimeout]);
+
+
   return (
     <>
-      {finishGame ? (<FindeJuego />) : (
+      {finishGame ? (<FindeJuego winner={winner} players={players} playAgain={playAgain} />) : (
         <>
           {lobby === true ? (
             <Lobby
