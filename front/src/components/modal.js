@@ -84,137 +84,93 @@ export default function Modal({
       onMouseDown={handleOverlayMouseDown}
       onClick={handleOverlayClick}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.close} onClick={onClose}>✕</button>
-        
-        <div className={styles.modalContent}>
-          <div className={styles.modalHeader}>
-            <h2>
-              {type === "join" && "Unirse a Sala"}
-              {type === "ranking" && "Ranking de Jugadores"}
-              {type === "createRoom" && "Crear Nueva Sala"}
-              {type === "settings" && "Configuraciones"}
-              {type === "login" && (registered ? "Iniciar Sesión" : "Registrarse")}
-              {type === "startGame" && "Bienvenido a Castro Barros"}
-              {type === "mayor" && "Elección de Intendente"}
-              {type === "tieBreak" && "¡Empate Detectado!"}
-              {type === "lynch" && "Votación de Linchamiento"}
-              {type === "lynchTieBreak" && "¡Empate en Linchamiento!"}
-              {type === "successor" && "Elección de Sucesor"}
-              {type === "nightKill" && "Votación Nocturna"}
-              {type === "nightTieBreak" && "¡Empate Nocturno!"}
-            </h2>
+
+        {/* Modal para unirse a sala */}
+        {type === "join" && (
+          <>
+            <button className={styles.close} onClick={onClose}>✕</button>
+            <h2>Ingrese el código de sala</h2>
+            <input
+              type="text"
+              placeholder="Ej: 12345"
+              value={joinCode}
+              onChange={onChangeJoinCode}
+            />
+            <br />
+            <br />
+            <Button className={styles.btn} onClick={onSubmitJoinning} title="Unirse" />
+          </>
+        )}
+
+        {/* Modal para ranking */}
+        {type === "ranking" && (
+          <>
+            <button className={styles.close} onClick={onClose}>✕</button>
+            <h2>🏆 Ranking de jugadores</h2>
+            <ul className={styles.rankingList}>
+              {ranking.length > 0 ? (
+                ranking.map((user, i) => (
+                  <li key={i}>
+                    <strong>{i + 1}. {user.username}</strong> — {user.score} pts
+                  </li>
+                ))
+              ) : (
+                <p>No hay jugadores aún</p>
+              )}
+            </ul>
+          </>
+        )}
+
+        {/* Modal para crear sala */}
+        {type === "createRoom" && (
+          <div className={styles.createRoom}>
+            <button className={styles.close} onClick={onClose}>✕</button>
+            <h2>Crear nueva sala</h2>
+            <label>Código personalizado:</label>
+            <input
+              type="text"
+              value={roomCode}
+              onChange={onChangeRoomCode}
+              placeholder="amigos2025"
+            />
+            <label>Cantidad de jugadores:</label>
+            <input
+              type="number"
+              min="6"
+              max="16"
+              value={playersAmount}
+              onChange={onChangePlayersAmount}
+            />
+            <br /><br />
+            <Button
+              className={styles.btn}
+              onClick={onSubmitCreate}
+              title="Crear sala"
+            />
           </div>
 
           {/* Modal para unirse a sala */}
           {type === "join" && (
             <>
-              <p>Ingrese el código de sala</p>
-              <input
-                type="text"
-                placeholder="Ej: 12345"
-                value={joinCode}
-                onChange={onChangeJoinCode}
-              />
+              <h2>Bienvenido a Castro Barros</h2>
+              <p>usted vino en busca de la paz que la ciudad no puede darte. Pero hnay un problema...¡Una invasion de lobizones! Encuentrenlos y linchenlos antes que se deboren todo el pueblo</p>
               <br />
-              <Button className={styles.btn} onClick={onSubmitJoinning} title="Unirse" />
+              <br />
             </>
           )}
 
-          {/* Modal para ranking */}
-          {type === "ranking" && (
+        {type === "mayor" && (
+          <div className={styles.mayor}>
+            <Button className={styles.close} onClick={onCloseMayor} title="✕" />
             <>
-              <ul className={styles.rankingList}>
-                {ranking.length > 0 ? (
-                  ranking.map((user, i) => (
-                    <li key={i}>
-                      <strong>{i + 1}. {user.username}</strong> — {user.score} pts
-                    </li>
-                  ))
-                ) : (
-                  <p>No hay jugadores aún</p>
-                )}
-              </ul>
-            </>
-          )}
-
-          {/* Modal para crear sala */}
-          {type === "createRoom" && (
-            <div className={styles.createRoom}>
-              <label>Código personalizado:</label>
-              <input
-                type="text"
-                value={roomCode}
-                onChange={onChangeRoomCode}
-                placeholder="amigos2025"
-              />
-              <label>Cantidad de jugadores:</label>
-              <input
-                type="number"
-                min="6"
-                max="16"
-                value={playersAmount}
-                onChange={onChangePlayersAmount}
-              />
+              <h2>Lo primero que tenemos que hacer es votar un <strong>intendente</strong></h2>
+              <p>quien sea intendente desempatará en los linchamientos y tendra una gran habilidad especial...<strong>el "Plan Platita"</strong></p>
               <br />
-              <Button
-                className={styles.btn}
-                onClick={onSubmitCreate}
-                title="Crear sala"
-              />
-            </div>
-          )}
-
-          {/* Modal para configuraciones */}
-          {type === "settings" && (
-            <div className={styles.settings}>
-              <Button title="INICIAR SESIÓN" onClick={onOpenLogin} />
-              <Button className={styles.btn} onClick={onSubmitModifyAccount} title="Modificar cuenta" />
-              <Button className={styles.btn} onClick={onSubmitCloseSession} title="Cerrar sesión" />
-            </div>
-          )}
-
-          {/* Modal para login/registro */}
-          {type === "login" && (
-            <div className={styles.loginContainer}>
-              <input
-                placeholder="Nombre de usuario"
-                value={username}
-                onChange={onChangeUsername}
-              />
               <br />
-              <input
-                type="password"
-                placeholder="Contraseña"
-                value={password}
-                onChange={onChangePassword}
-              />
-              <br />
-              <Button
-                className={styles.btn}
-                onClick={onSubmitLogin}
-                title={registered ? "Iniciar sesión" : "Registrarse"}
-              />
-              <p>{registered ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}</p>
-              <a onClick={onToggleRegister} className={styles.toggleLink}>
-                {registered ? "¡Regístrate!" : "¡Inicia sesión!"}
-              </a>
-            </div>
-          )}
 
-          {type === "startGame" && (
-            <div className={styles.startGame}>
-              <p>Usted vino en busca de la paz que la ciudad no puede darle. Pero hay un problema...</p>
-              <p>¡Una invasión de <b>lobizones</b>! Encuéntrenlos y línchenlos antes que se deboren todo el pueblo.</p>
-            </div>
-          )}
-
-          {type === "mayor" && (
-            <div className={styles.mayor}>
-              <p>Lo primero que tenemos que hacer es votar un <strong>intendente</strong></p>
-              <p>Quien sea intendente desempatará en los linchamientos y tendra una gran habilidad especial...<strong>el "Plan Platita"</strong></p>
               {mayor ? (
                 <div className={styles.electionResult}>
-                  <h3>¡Intendente Electo!</h3>
+                  <h3>🎉 ¡Intendente Electo!</h3>
                   <p><strong>{mayor}</strong> ha sido elegido como intendente.</p>
                   <p>El modal se cerrará automáticamente...</p>
                 </div>
@@ -222,7 +178,7 @@ export default function Modal({
                 <>
                   <p>¿A quién votas para intendente?</p>
                   {hasVotedForMayor && (
-                    <p className={styles.voteConfirmed}>Ya votaste. Esperando a los demás jugadores...</p>
+                    <p className={styles.voteConfirmed}> Ya votaste. Esperando a los demás jugadores...</p>
                   )}
                   <section className={styles.playersSection}>
                     <ul>
@@ -283,14 +239,17 @@ export default function Modal({
             </div>
           )}
 
-          {type === "lynch" && (
-            <div className={styles.lynch}>
+        {type === "lynch" && (
+          <div className={styles.lynch}>
+            <Button className={styles.close} onClick={onClose} title="✕" />
+            <>
+              <h2>🔨 Votación de Linchamiento</h2>
               <p>¡El pueblo debe decidir a quién linchar! Analicen las pistas y voten democráticamente.</p>
               <br />
 
               {lynchedPlayer ? (
                 <div className={styles.lynchResult}>
-                  <h3>¡Jugador Linchado!</h3>
+                  <h3>🔨 ¡Jugador Linchado!</h3>
                   <p><strong>{lynchedPlayer}</strong> ha sido linchado por el pueblo.</p>
                   <p>El modal se cerrará automáticamente...</p>
                 </div>
@@ -298,7 +257,7 @@ export default function Modal({
                 <>
                   <p>¿A quién votas para linchar?</p>
                   {hasVotedForLynch && (
-                    <p className={styles.voteConfirmed}>Ya votaste. Esperando a los demás jugadores...</p>
+                    <p className={styles.voteConfirmed}> ✅ Ya votaste. Esperando a los demás jugadores...</p>
                   )}
 
                   <section className={styles.playersSection}>
@@ -328,6 +287,15 @@ export default function Modal({
                   </div>
                 </>
               )}
+            </>
+          </div>
+        )}
+
+        {type === "lynchTieBreak" && (
+          <div className={styles.lynchTieBreak}>
+            <div className={styles.lynchTieBreakHeader}>
+              <h2>🔨 ¡EMPATE EN LINCHAMIENTO!</h2>
+              <p>Como intendente, debes decidir a quién linchar</p>
             </div>
           )}
 

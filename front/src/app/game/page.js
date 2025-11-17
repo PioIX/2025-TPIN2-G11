@@ -355,6 +355,10 @@ export default function Game() {
           if (currentPlayer) {
             setRole(currentPlayer.role);
             alert(`Tu rol es: ${currentPlayer.role}`);
+            if (currentPlayer.role == "Lobizón") {
+              setRole("Lobizón")
+              console.log("Sos Lobizón")
+            }
           }
         }
       });

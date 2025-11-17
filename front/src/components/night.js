@@ -185,7 +185,13 @@ export default function Night({
                                 {isLobizon ? (
                                     <p>Eres un lobizón. Debes elegir a quién atacar esta noche.</p>
                                 ) : isTarotista ? (
-                                    <p>Eres el tarotista. Puedes consultar el rol de un jugador.</p>
+                                    <>< div className={styles.tarotistaResult}>
+                                        <p>Eres el tarotista. Puedes consultar el rol de un jugador.</p>
+                                        <h3> Consulta de Tarotista</h3>
+                                        <p>{tarotistaResult?.message || "El tarotista ha consultado las cartas..."}</p>
+    
+                                        <button onClick={handleCloseTarotistaResult}>Cerrar</button>
+                                    </div></>
                                 ) : (
                                     <p>Descansa mientras los lobizones toman su decisión.</p>
                                 )}
@@ -290,14 +296,7 @@ export default function Night({
                 />
             )}
 
-            {(showTarotistaResultLocal || tarotistaResult) && (
-                <div className={styles.tarotistaResult}>
-                    <h3>🔮 Consulta de Tarotista</h3>
-                    <p>{tarotistaResult?.message || "El tarotista ha consultado las cartas..."}</p>
-                    <p>El rol de <strong>{tarotistaResult.revealedPlayer}</strong> es: <strong>{tarotistaResult.roleRevealed}</strong></p>
-                    <button onClick={handleCloseTarotistaResult}>Cerrar</button>
-                </div>
-            )}
+
         </>
     );
 }
