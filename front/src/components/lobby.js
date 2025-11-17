@@ -1,26 +1,37 @@
 "use client";
 import { useSocket } from "../hooks/useSocket.js";
 import React, { useState, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation"; // Cambiar useSearchParams por useRouter
 import styles from "../components/lobby.module.css";
 import Button from "../components/button.js";
 
 export default function Lobby({
-        players,
-        username,
-        createdRoom, 
-        errorMessage,
-        setLobby,
-        setGame,
-        roomCode,
-        closeRoom,
-        leaveRoom,
-        socketGame
+    players,
+    username,
+    createdRoom, 
+    errorMessage,
+    setLobby,
+    setGame,
+    roomCode,
+    closeRoom,
+    leaveRoom,
+    socketGame,
+    isHost, // Recibir isHost como prop desde page.js
+    playersAmount // Recibir playersAmount como prop desde page.js
 }) {
 
-  const isHost = useSearchParams().get("host") === "true";
-  const playersAmount = useSearchParams().get("PlayersAmount") || 6;
-  
+  const router = useRouter(); // Para la navegación en caso de error
+
+  // Añade este useEffect para debuggear
+  useEffect(() => {
+    console.log("🔍 Lobby - Estado actual:", {
+      username,
+      players: players.map(p => p.username),
+      isHost,
+      playersAmount,
+      roomCode
+    });
+  }, [username, players, isHost, playersAmount, roomCode]);
 
   const copyCode = () => {
     navigator.clipboard.writeText(roomCode);
@@ -46,7 +57,6 @@ export default function Lobby({
   }
 
   return (
-
       <div className={styles.container}>
         {/* Header */}
         <header className={styles.header}>
@@ -88,9 +98,9 @@ export default function Lobby({
               {players.map((player, index) => (
                 <div
                   key={player.id || player.socketId || index}
-                  className={`${styles.playerCard} ${player.username === username ? styles.currentPlayer : ""
-                    } ${player.isHost ? styles.hostPlayer : ""
-                    }`}
+                  className={`${styles.playerCard} 
+                    ${player.username === username ? styles.currentPlayer : ""}
+                    ${player.isHost ? styles.hostPlayer : ""}`}
                 >
                   <div className={styles.playerAvatar}>
                     {player.username === username ? "👤" :
@@ -133,7 +143,7 @@ export default function Lobby({
                 </div>
                 {players.length < 2 && (
                   <p className={styles.warning}>
-                    Se necesitan al menos 2 jugadores para iniciar
+                    Se necesitan al menos 6 jugadores para iniciar
                   </p>
                 )}
               </div>
@@ -147,7 +157,7 @@ export default function Lobby({
                 <p><strong>Anfitrión:</strong> {players.find(p => p.isHost)?.username || "Cargando..."}</p>
                 <p><strong>Jugadores:</strong> {players.length}/{playersAmount}</p>
                 <p><strong>Estado:</strong> {createdRoom ? " Activa" : " Creando..."}</p>
-                <p><strong>Tu username:</strong> {username}</p>
+                <p><strong>Tu username:</strong> {username || "No definido"}</p>
               </div>
 
               {!isHost && (
@@ -163,7 +173,6 @@ export default function Lobby({
         <footer className={styles.footer}>
           <p>Comparte el código de sala con tus amigos para que se unan</p>
         </footer>
-        </div>);
-
-
+      </div>
+  );
 }

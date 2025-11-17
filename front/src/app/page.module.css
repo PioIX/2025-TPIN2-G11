@@ -1,4 +1,3 @@
-
 .hero {
   width: 100%;
   max-width: 1400px;
@@ -46,11 +45,14 @@
   background-color: rgba(0, 0, 0, 0);
   border: 0px solid rgba(0, 0, 0, 0);
   opacity: 0.8;
+  transition: transform 0.5s ease-in-out;
+  z-index: 100;
 }
 
 .btnSettings:hover {
   opacity: 1;
   cursor: pointer;
+  transform: scale(1.1);
 }
 
 .btnNormal {
@@ -87,29 +89,202 @@
   position: absolute;
   top: 80px;
   left: calc(50vw - 250px);
+  animation: levitate 10s ease-in-out infinite;
 }
 
 .bottomFrame {
   position: fixed;
   bottom: -10px;
   left: -60px;
+  animation: hang-bottom 7s ease-in-out infinite;
 }
 
 .topFrame {
   position: fixed;
   top: -20px;
   right: 0px;
+  animation: hang-top 8s ease-in-out infinite;
 }
 
-@media (max-width: 640px) {
-  .actions {
-    gap: 16px;
-    bottom: 22px;
-    flex-wrap: wrap;
+@keyframes levitate {
+  0%, 100% {
+    transform: translateY(8px) translateX(10px) rotate(-3deg);
   }
+  50% {
+    transform: translateY(-5px) translateX(0px) rotate(3deg);
+  }
+}
+
+@keyframes hang-top {
+  0%, 100% {
+    transform: translateY(-20px) translateX(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-5px) translateX(12px) rotate(1deg);
+  }
+}
+
+@keyframes hang-bottom {
+  0%, 100% {
+    transform: translateY(10px) translateX(5px) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(35px) translateX(-20px) rotate(-8deg);
+  }
+}
+
+/* ========== MEDIA QUERIES PARA RESPONSIVIDAD ========== */
+
+/* Tablets grandes y laptops pequeñas */
+@media (max-width: 1200px) {
+  .logo {
+    width: 400px;
+    height: auto;
+    left: calc(50vw - 200px);
+  }
+  
+  .topFrame {
+    width: 500px;
+    height: auto;
+  }
+  
+  .bottomFrame {
+    width: 450px;
+    height: auto;
+  }
+  
+  .actions {
+    padding-top: 500px;
+  }
+}
+
+/* Tablets */
+@media (max-width: 768px) {
+  .logo {
+    width: 350px;
+    left: calc(50vw - 175px);
+    top: 60px;
+  }
+  
+  .topFrame {
+    width: 400px;
+    right: -50px;
+  }
+  
+  .bottomFrame {
+    width: 350px;
+    left: -50px;
+  }
+  
+  .actions {
+    padding-top: 450px;
+    padding-bottom: 50px;
+  }
+  
   .btnNormal {
+    width: 240px;
+    height: 50px;
+    font-size: 18px;
+  }
+}
+
+/* Móviles grandes */
+@media (max-width: 576px) {
+  .logo {
+    width: 280px;
+    left: calc(50vw - 140px);
+    top: 50px;
+  }
+  
+  .topFrame, .bottomFrame {
+    display: none; /* Ocultamos elementos decorativos en móviles pequeños */
+  }
+  
+  .actions {
+    padding-top: 380px;
+    padding-bottom: 30px;
+    gap: 20px;
+  }
+  
+  .btnNormal {
+    width: 220px;
     height: 48px;
-    padding: 0 20px;
     font-size: 16px;
+  }
+  
+  .btnSettings {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Móviles pequeños */
+@media (max-width: 400px) {
+  .logo {
+    width: 240px;
+    left: calc(50vw - 120px);
+    top: 40px;
+  }
+  
+  .actions {
+    padding-top: 340px;
+  }
+  
+  .btnNormal {
+    width: 200px;
+    height: 44px;
+    font-size: 15px;
+  }
+}
+
+/* Alturas pequeñas (pantallas cortas) */
+@media (max-height: 700px) {
+  .logo {
+    width: 200px;
+    top: 30px;
+    left: calc(50vw - 100px);
+  }
+  
+  .actions {
+    padding-top: 320px;
+    padding-bottom: 20px;
+  }
+  
+  .btnNormal {
+    height: 44px;
+    font-size: 16px;
+  }
+}
+
+@media (max-height: 600px) {
+  .logo {
+    width: 180px;
+    top: 20px;
+  }
+  
+  .actions {
+    padding-top: 280px;
+  }
+}
+
+/* Orientación horizontal en móviles */
+@media (max-height: 500px) and (orientation: landscape) {
+  .logo {
+    width: 150px;
+    top: 10px;
+    left: calc(50vw - 75px);
+  }
+  
+  .actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding-top: 200px;
+    gap: 15px;
+  }
+  
+  .btnNormal {
+    width: 180px;
+    height: 40px;
+    font-size: 14px;
   }
 }

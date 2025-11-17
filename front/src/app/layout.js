@@ -1,3 +1,4 @@
+// src/app/layout.js
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -18,8 +19,11 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="es" suppressHydrationWarning>
+      <body 
+        className={`${geistSans.variable} ${geistMono.variable}`}
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>
