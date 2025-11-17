@@ -380,7 +380,7 @@ export default function Modal({
             </div>
 
             <div className={styles.lynchTieBreakNote}>
-              <p>⚠️ Tu decisión es final y determinará a quién se lincha.</p>
+              <p> Tu decisión es final y determinará a quién se lincha.</p>
             </div>
           </div>
         )}

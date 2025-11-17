@@ -344,6 +344,36 @@ app.post("/regUser", async (req, res) => {
   }
 });
 
+app.post("/updateScore", async (req, res) => {
+  try {
+    const { username } = req.body;
+    if (!username) {
+      console.error("Username es undefined en updateScore");
+      return res.status(400).json({ 
+        success: false, 
+        message: "Username es requerido" 
+      });
+    }
+    console.log("Actualizando score para:", username);
+    const result = await realizarQuery(
+      "UPDATE Users SET score = score + 15 WHERE username = ?", 
+      [username]
+    );
+    console.log("Resultado de actualización de score:", result);
+    res.json({ 
+      success: true, 
+      message: `Score actualizado para ${username}` 
+    });
+    
+  } catch (error) {
+    console.error("Error en /updateScore:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
 app.get('/getRanking', async function (req, res) {
   try {
     let response = await realizarQuery(`SELECT username, score FROM Users `)

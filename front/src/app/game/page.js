@@ -203,30 +203,6 @@ export default function Game() {
       aldeanos: aliveVillagers.map(p => p.username)
     });
 
-    if (aliveLobizones.length === 0 && aliveVillagers.length > 0) {
-      console.log(" ¡Ganan los aldeanos! No quedan lobizones");
-      return {
-        winner: "Aldeanos",
-        message: "¡Los aldeanos han eliminado a todos los lobizones!",
-        details: {
-          lobizonesRestantes: 0,
-          aldeanosRestantes: aliveVillagers.length
-        }
-      };
-    }
-
-    if (aliveLobizones.length >= aliveVillagers.length && aliveLobizones.length > 0) {
-      console.log("¡Ganan los lobizones! Superan a los aldeanos");
-      return {
-        winner: "Lobizones",
-        message: "¡Los lobizones han devorado a la aldea!",
-        details: {
-          lobizonesRestantes: aliveLobizones.length,
-          aldeanosRestantes: aliveVillagers.length
-        }
-      };
-    }
-
     if (alivePlayers.length === 1) {
       const lastPlayer = alivePlayers[0];
       const isLobizon = lastPlayer.role === 'Lobizón';
@@ -353,7 +329,6 @@ export default function Game() {
           const currentPlayer = data.players.find(p => p.username === userToUse);
           if (currentPlayer) {
             setRole(currentPlayer.role);
-            alert(`Tu rol es: ${currentPlayer.role}`);
             if (currentPlayer.role == "Lobizón") {
               setRole("Lobizón")
               console.log("Sos Lobizón")
@@ -399,12 +374,9 @@ export default function Game() {
         setIsOpenTieBreak(false);
         setTieBreakData(null);
 
-        setTimeout(() => {
-          alert(`¡${data.mayor} ha sido electo como intendente con ${data.votes} votos!`);
-        }, 500);
 
         setTimeout(() => {
-          console.log("🌙 Iniciando la primera noche...");
+          console.log("Iniciando la primera noche...");
           socket.emit("startNight", { code: roomCode });
         }, 2000);
       });
@@ -414,7 +386,6 @@ export default function Game() {
         if (isHost) {
           setTieBreakData(data);
           setIsOpenTieBreak(true);
-          alert("¡Hay un empate! Debes elegir al intendente.");
         }
       });
 
@@ -459,7 +430,7 @@ export default function Game() {
         const amIMayor = amIMayorBySocket || amIMayorByUsername;
 
         if (amIMayor) {
-          console.log("✅ VERIFICADO COMO INTENDENTE - Abriendo modal");
+          console.log("VERIFICADO COMO INTENDENTE - Abriendo modal");
 
           setPlayers(prevPlayers =>
             prevPlayers.map(player => ({
@@ -527,7 +498,7 @@ export default function Game() {
         });
 
         if (data.lynched) {
-          alert(`¡${data.lynched} ha sido linchado!`);
+          console.log(`¡${data.lynched} ha sido linchado!`);
         } else {
           alert("No se linchó a nadie.");
         }
@@ -611,12 +582,12 @@ export default function Game() {
       });
 
       socket.on("tarotistaResult", (data) => {
-        console.log("🔮 Resultado de tarotista recibido:", data);
+        console.log("Resultado de tarotista recibido:", data);
 
         const tarotistaResultData = {
           message: data.message || "El tarotista ha consultado las cartas...",
-          revealedPlayer: data.target ,
-          roleRevealed: data.role 
+          revealedPlayer: data.target,
+          roleRevealed: data.role
         };
 
         setTarotistaResult(tarotistaResultData);

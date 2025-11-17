@@ -163,7 +163,7 @@ export default function Home() {
   async function joinConfirm() {
     let user = localStorage.getItem("username");
     if (!user) {
-      const guestId = Math.random().toString(36).substring(2, 8); // id único de 6 caracteres para invitados
+      const guestId = Math.random().toString(36).substring(2, 8);
       user = `Invitado-${guestId}`;
     }
 

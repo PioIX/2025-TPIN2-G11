@@ -128,7 +128,7 @@ export default function Lobby({
                     className={styles.btnPrimary}
                   />
                 </div>
-                {players.length < 2 && (
+                {players.length < 6 && (
                   <p className={styles.warning}>
                     Se necesitan al menos 6 jugadores para iniciar
                   </p>
