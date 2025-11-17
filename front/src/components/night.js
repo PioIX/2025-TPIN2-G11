@@ -46,7 +46,7 @@ export default function Night({
     }, [players]);
 
     const isLobizon = role === 'Lobizón';
-    const isTarotista = role === 'Tarotista'; // Agregar esta verificación
+    const isTarotista = role === 'Tarotista';
     const canVote = (isLobizon || isTarotista) && players.find(p => p.username === username)?.isAlive;
 
     console.log("Night - Estado del jugador:", {

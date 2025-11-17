@@ -154,7 +154,7 @@ export default function Modal({
         {/* Modal para configuraciones */}
         {type === "settings" && (
           <div className={styles.settings}>
-                    <button className={styles.close} onClick={onClose}>✕</button>
+            <button className={styles.close} onClick={onClose}>✕</button>
             <Button title="INICIAR SESIÓN" onClick={onOpenLogin} />
             <Button className={styles.btn} onClick={onSubmitModifyAccount} title="Modificar cuenta" />
             <Button className={styles.btn} onClick={onSubmitCloseSession} title="Cerrar sesión" />
@@ -165,7 +165,7 @@ export default function Modal({
         {/* Modal para login/registro */}
         {type === "login" && (
           <div className={styles.loginContainer}>
-                    <button className={styles.close} onClick={onClose}>✕</button>
+            <button className={styles.close} onClick={onClose}>✕</button>
             <h2>{registered ? "Iniciar sesión" : "Registrarse"}</h2>
 
             <input
@@ -193,9 +193,10 @@ export default function Modal({
           </div>
         )}
 
+        {/* Modal para comenzar juego */}
         {type === "startGame" && (
           <div className={styles.startGame}>
-                    <button className={styles.close} onClick={onClose}>✕</button>
+            <button className={styles.close} onClick={onClose}>✕</button>
             <>
               <h2>Bienvenido a Castro Barros</h2>
               <p>usted vino en busca de la paz que la ciudad no puede darte. Pero hnay un problema...¡Una invasion de lobizones! Encuentrenlos y linchenlos antes que se deboren todo el pueblo</p>
@@ -205,9 +206,9 @@ export default function Modal({
           </div>
         )}
 
+        {/* Modal para votar intendente */}
         {type === "mayor" && (
           <div className={styles.mayor}>
-            <Button className={styles.close} onClick={onCloseMayor} title="✕" />
             <>
               <h2>Lo primero que tenemos que hacer es votar un <strong>intendente</strong></h2>
               <p>quien sea intendente desempatará en los linchamientos y tendra una gran habilidad especial...<strong>el "Plan Platita"</strong></p>
@@ -248,6 +249,7 @@ export default function Modal({
           </div>
         )}
 
+        {/* Modal para desempatar intendente */}
         {type === "tieBreak" && (
           <div className={styles.tieBreak}>
             <div className={styles.tieBreakHeader}>
@@ -288,7 +290,6 @@ export default function Modal({
 
         {type === "lynch" && (
           <div className={styles.lynch}>
-            <Button className={styles.close} onClick={onClose} title="✕" />
             <>
               <h2>🔨 Votación de Linchamiento</h2>
               <p>¡El pueblo debe decidir a quién linchar! Analicen las pistas y voten democráticamente.</p>
@@ -338,6 +339,7 @@ export default function Modal({
           </div>
         )}
 
+        {/* Modal para desempatar linchamiento */}
         {type === "lynchTieBreak" && (
           <div className={styles.lynchTieBreak}>
             <div className={styles.lynchTieBreakHeader}>
@@ -383,6 +385,7 @@ export default function Modal({
           </div>
         )}
 
+        {/* Modal para elegir la herencia del intendente */}
         {type === "successor" && (
           <div
             className={styles.overlaySuccessor}
@@ -428,6 +431,7 @@ export default function Modal({
           </div>
         )}
 
+        {/* Modal para lobizones */}
         {type === "nightKill" && (
           <div className={styles.nightKill}>
             <h2>Votación Nocturna</h2>
@@ -471,6 +475,7 @@ export default function Modal({
           </div>
         )}
 
+        {/* Modal para desempatar asesinatos de lobizones */}
         {type === "nightTieBreak" && (
           <div className={styles.nightTieBreak}>
             <div className={styles.nightTieBreakHeader}>
@@ -509,6 +514,7 @@ export default function Modal({
           </div>
         )}
 
+        {/* Modal para tarotista */}
         {type === "nightQuestion" && (
           <div className={styles.nightKill}>
             <h2>Pregunta Nocturna</h2>

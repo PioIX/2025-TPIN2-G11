@@ -100,7 +100,7 @@ export default function Day({
 
     return (
         <>
-            {/* Transición de Anochecer */}
+            {/* trancision de anochecer */}
             {showNightTransition && (
                 <div className={styles.nightTransition}>
                     <div className={styles.nightTransitionContent}>
@@ -149,7 +149,7 @@ export default function Day({
                 />
             )}
 
-            {/* Modal de votación de linchamiento normal */}
+            {/* Modal de votación para el linchamiento normal */}
             {isOpenLynchModal && (
                 <Modal
                     isOpen={isOpenLynchModal}
