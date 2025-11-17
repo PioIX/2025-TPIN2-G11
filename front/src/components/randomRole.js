@@ -2,7 +2,7 @@ export default function RandomRole({ array }) {
     const shuffledArray = [...array];
     let currentIndex = shuffledArray.length;
 
-    // algoritmo Fisher-Yates
+    // algoritmo Fisher-Yates (lo busqué en Google y lo copié y pegué qwertyuiop)
     while (currentIndex !== 0) {
         const randomIndex = Math.floor(Math.random() * currentIndex);
         currentIndex--;

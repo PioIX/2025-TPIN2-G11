@@ -160,6 +160,7 @@ export default function Modal({
           </>
         )}
 
+        {/* Modal para votar intendente */}
         {type === "mayor" && (
           <div className={styles.mayor}>
 
@@ -241,7 +242,6 @@ export default function Modal({
 
         {type === "lynch" && (
           <div className={styles.lynch}>
-            <Button className={styles.close} onClick={onClose} title="✕" />
             <>
               <h2>🔨 Votación de Linchamiento</h2>
               <p>¡El pueblo debe decidir a quién linchar! Analicen las pistas y voten democráticamente.</p>
@@ -291,6 +291,7 @@ export default function Modal({
           </div>
         )}
 
+        {/* Modal para desempatar linchamiento */}
         {type === "lynchTieBreak" && (
           <div className={styles.lynchTieBreak}>
             <div className={styles.lynchTieBreakHeader}>

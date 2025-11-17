@@ -16,22 +16,11 @@ export default function Lobby({
     closeRoom,
     leaveRoom,
     socketGame,
-    isHost, // Recibir isHost como prop desde page.js
-    playersAmount // Recibir playersAmount como prop desde page.js
+    isHost, 
+    playersAmount
 }) {
 
   const router = useRouter(); // Para la navegación en caso de error
-
-  // Añade este useEffect para debuggear
-  useEffect(() => {
-    console.log("🔍 Lobby - Estado actual:", {
-      username,
-      players: players.map(p => p.username),
-      isHost,
-      playersAmount,
-      roomCode
-    });
-  }, [username, players, isHost, playersAmount, roomCode]);
 
   const copyCode = () => {
     navigator.clipboard.writeText(roomCode);
@@ -89,9 +78,8 @@ export default function Lobby({
           </div>
         </header>
 
-        {/* Contenido Principal */}
         <main className={styles.main}>
-          {/* Panel de Jugadores */}
+          {/* jugadores */}
           <section className={styles.playersSection}>
             <h2>Jugadores en la Sala ({players.length}/{playersAmount})</h2>
             <div className={styles.playersGrid}>
@@ -119,7 +107,6 @@ export default function Lobby({
                 </div>
               ))}
 
-              {/* Espacios vacíos */}
               {Array.from({ length: parseInt(playersAmount) - players.length }).map((_, index) => (
                 <div key={`empty-${index}`} className={styles.emptySlot}>
                   <div className={styles.emptyAvatar}>➕</div>
@@ -129,7 +116,7 @@ export default function Lobby({
             </div>
           </section>
 
-          {/* Panel de Control */}
+          {/* comenzar juego */}
           <section className={styles.controlSection}>
             {isHost && (
               <div className={styles.hostControls}>
@@ -137,7 +124,7 @@ export default function Lobby({
                   <Button
                     title=" Iniciar Juego"
                     onClick={goToGame}
-                    disabled={players.length < 2}
+                    disabled={players.length < 6}
                     className={styles.btnPrimary}
                   />
                 </div>
@@ -149,7 +136,7 @@ export default function Lobby({
               </div>
             )}
 
-            {/* Información de Sala */}
+            {/* información */}
             <div className={styles.infoPanel}>
               <h3>Información de la Sala</h3>
               <div className={styles.infoContent}>
@@ -169,9 +156,9 @@ export default function Lobby({
           </section>
         </main>
 
-        {/* Footer */}
+        {/* mensajito repiola anashei */}
         <footer className={styles.footer}>
-          <p>Comparte el código de sala con tus amigos para que se unan</p>
+          <p>Compartí el código de sala con tus amigos para que se unan</p>
         </footer>
       </div>
   );

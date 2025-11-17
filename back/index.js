@@ -269,7 +269,7 @@ app.post("/crearSalaBD", async (req, res) => {
 
     const usuario = await realizarQuery(
       `SELECT id FROM Users WHERE username = ?`,
-      [host] 
+      [host]
     );
 
     if (usuario.length === 0) {
@@ -296,7 +296,7 @@ app.post("/crearSalaBD", async (req, res) => {
     const result = await realizarQuery(
       `INSERT INTO Games (code, host_id, village_won, status, players_amount) 
        VALUES (?, ?, false, true, ?)`,
-      [code, userId, maxPlayers] 
+      [code, userId, maxPlayers]
     );
 
     console.log("Sala creada exitosamente en BD, ID:", result.insertId);
@@ -452,12 +452,12 @@ io.on("connection", (socket) => {
 
       const newRoom = {
         code: code,
-        host: hostUsername, 
+        host: hostUsername,
         hostSocketId: socket.id,
         maxPlayers: parseInt(maxPlayers) || 6,
         players: [{
           id: socket.id,
-          username: hostUsername, 
+          username: hostUsername,
           socketId: socket.id,
           isHost: true,
           role: null,
@@ -549,7 +549,7 @@ io.on("connection", (socket) => {
         id: socket.id,
         username: username,
         socketId: socket.id,
-        isHost: (username === room.host), 
+        isHost: (username === room.host),
         role: null,
         isAlive: true,
         votesReceived: 0,
@@ -1140,7 +1140,7 @@ io.on("connection", (socket) => {
     io.to(room.code).emit("lynchResult", {
       lynched: lynchedPlayer,
       votes: votes,
-      totalVoters: room.players.filter(p => p.isAlive).length + 1, 
+      totalVoters: room.players.filter(p => p.isAlive).length + 1,
       wasTieBreak: room.wasTieBreak || false
     });
 
@@ -1491,15 +1491,12 @@ io.on("connection", (socket) => {
   }
 
   function handleMayorDeath(room, deadMayorUsername) {
-    console.log(`Intendente ${deadMayorUsername} ha muerto. Eligiendo sucesor...`);
 
     const deadMayor = room.players.find(p => p.username === deadMayorUsername);
     if (!deadMayor) return;
 
     if (deadMayor.socketId) {
       const alivePlayers = room.players.filter(p => p.isAlive && p.username !== deadMayorUsername);
-
-      console.log(`Candidatos para sucesor: ${alivePlayers.map(p => p.username).join(', ')}`);
 
       io.to(deadMayor.socketId).emit("chooseMayorSuccessor", {
         roomCode: room.code,
@@ -1511,7 +1508,6 @@ io.on("connection", (socket) => {
 
   socket.on("chooseSuccessor", ({ code, successor, deadMayor }) => {
     try {
-      console.log(`Intendente ${deadMayor} elige sucesor: ${successor}`);
 
       const room = rooms.find(r => r.code === code && r.active);
       if (!room) {
@@ -1535,7 +1531,6 @@ io.on("connection", (socket) => {
         player.isMayor = player.username === successor;
       });
 
-      console.log(` Nuevo intendente: ${successor}`);
 
       io.to(code).emit("mayorSuccessorChosen", {
         newMayor: successor,
@@ -1551,7 +1546,7 @@ io.on("connection", (socket) => {
 
   socket.on("requestAutoSuccessor", ({ code, deadMayor }) => {
     try {
-      console.log(`Solicitando sucesor automático para intendente ${deadMayor}`);
+
 
       const room = rooms.find(r => r.code === code && r.active);
       if (!room) return;
@@ -1559,7 +1554,6 @@ io.on("connection", (socket) => {
       const alivePlayers = room.players.filter(p => p.isAlive);
 
       if (alivePlayers.length === 0) {
-        console.log("No hay jugadores vivos para elegir sucesor");
         return;
       }
 
@@ -1574,8 +1568,6 @@ io.on("connection", (socket) => {
         const randomIndex = Math.floor(Math.random() * alivePlayers.length);
         newMayor = alivePlayers[randomIndex].username;
       }
-
-      console.log(`Sucesor automático: ${newMayor}`);
 
       room.mayor = newMayor;
       room.players.forEach(player => {
@@ -1596,7 +1588,6 @@ io.on("connection", (socket) => {
 
   socket.on("resetGame", ({ code, host }) => {
     try {
-      console.log("Solicitando reset del juego para sala:", code);
 
       const room = rooms.find(r => r.code === code && r.active);
       if (!room) {
@@ -1608,8 +1599,6 @@ io.on("connection", (socket) => {
         socket.emit("roomError", "Solo el anfitrión puede reiniciar el juego");
         return;
       }
-
-      console.log("Reiniciando juego en sala:", code);
 
       room.state = gameStates.INICIO;
       room.round = 1;
@@ -1635,14 +1624,6 @@ io.on("connection", (socket) => {
         lynchVotes: 0,
         nightVotes: 0
       }));
-
-      console.log(" Sala reiniciada completamente. Jugadores:",
-        room.players.map(p => ({
-          username: p.username,
-          isAlive: p.isAlive,
-          role: p.role
-        }))
-      );
 
       io.to(code).emit("gameReset", {
         players: room.players,

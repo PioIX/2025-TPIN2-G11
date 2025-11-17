@@ -100,7 +100,7 @@ export default function FinDeJuego({ winner, players, playAgain }) {
       ></div>
 
       <div className={styles.content}>
-        {/* Sección del Ganador */}
+        {/* ganador */}
         {showWinner && (
           <div className={`${styles.winnerSection} ${styles.slideIn}`}>
             <div className={styles.winnerHeader}>
