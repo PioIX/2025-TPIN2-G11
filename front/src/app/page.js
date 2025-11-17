@@ -21,33 +21,6 @@ export default function Home() {
   const [registered, setRegistered] = useState(true);
   const [playersAmount, setPlayersAmount] = useState(6);
 
-  // Agregar en page.js (dentro del componente Home, después de los estados)
-useEffect(() => {
-  const redirectToAvailablePort = async () => {
-    try {
-      const response = await fetch("http://10.211.228.142:4000/getAvailablePort");
-      const data = await response.json();
-      
-      if (data.availablePort) {
-        const currentPort = window.location.port;
-        const targetPort = data.availablePort.toString();
-        
-        // Solo redirigir si no estamos ya en el puerto correcto
-        if (currentPort !== targetPort) {
-          const newUrl = `http://10.211.228.142:${targetPort}`;
-          console.log(`🔀 Redirigiendo a puerto ${targetPort}`);
-          window.location.href = newUrl;
-        }
-      }
-    } catch (error) {
-      console.error("Error al obtener puerto disponible:", error);
-    }
-  };
-
-  // Verificar y redirigir al cargar la página
-  redirectToAvailablePort();
-}, []);
-
   async function SignUp() {
     if (!username || !password) {
       alert("Por favor complete todos los campos");
@@ -55,7 +28,7 @@ useEffect(() => {
     }
 
     try {
-      const response = await fetch("http://10.211.228.142:4000/regUser", {
+      const response = await fetch("http://localhost:4000/regUser", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -94,7 +67,7 @@ useEffect(() => {
     }
 
     try {
-      const response = await fetch(`http://10.211.228.142:4000/verifyUser?username=${username}&password=${password}&alreadyLogged=${alreadyLogged}`);
+      const response = await fetch(`http://localhost:4000/verifyUser?username=${username}&password=${password}&alreadyLogged=${alreadyLogged}`);
       const result = await response.json();
       console.log(result);
 
@@ -144,7 +117,7 @@ useEffect(() => {
         maxPlayers: playersAmount
       });
 
-      const response = await fetch("http://10.211.228.142:4000/crearSalaBD", {
+      const response = await fetch("http://localhost:4000/crearSalaBD", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -177,7 +150,7 @@ useEffect(() => {
 
   async function seeRanking() {
     try {
-      const players = await fetch("http://10.211.228.142:4000/getRanking");
+      const players = await fetch("http://localhost:4000/getRanking");
       const result = await players.json();
       setRanking(result.response || []);
       setTypeModal("ranking");
@@ -201,7 +174,7 @@ useEffect(() => {
     console.log(joinCode);
 
     try {
-      const response = await fetch(`http://10.211.228.142:4000/verifyRoom/${joinCode}`);
+      const response = await fetch(`http://localhost:4000/verifyRoom/${joinCode}`);
       const result = await response.json();
       console.log(result)
       if (result.success && result.exists) {
