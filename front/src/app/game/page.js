@@ -158,7 +158,6 @@ export default function Game() {
     }
   };
 
-  // Debug específico para la elección del intendente
   useEffect(() => {
     console.log("🎯 ELECCIÓN DE INTENDENTE - Estado actual:", {
       mayor,
@@ -381,10 +380,8 @@ export default function Game() {
       socket.on("mayorElected", (data) => {
         console.log("INTENDENTE ELECTO - Actualizando estado:", data);
 
-        // Actualizar el estado mayor INMEDIATAMENTE
         setMayor(data.mayor);
 
-        // Actualizar players para que isMayor sea correcto
         setPlayers(prevPlayers => {
           const updatedPlayers = prevPlayers.map(player => ({
             ...player,
@@ -437,37 +434,33 @@ export default function Game() {
       });
 
       socket.on("lynchTieBreak", (data) => {
-        console.log("🔨 EMPATE en linchamiento - Se requiere desempate:", data);
+        console.log("¡¡¡Empate en linchamiento!!!!! - Se requiere desempate:", data);
 
-        // VERIFICACIÓN DIRECTA POR SOCKET ID - método más confiable
         const amIMayorBySocket = data.mayorSocketId === socket.id;
         const amIMayorByUsername = data.mayorUsername === username;
 
-        console.log("🔍 VERIFICACIÓN POR SOCKET:", {
+        console.log("VERIFICACIÓN POR SOCKET:", {
           socketIdLocal: socket.id,
           socketIdBackend: data.mayorSocketId,
           coincide: amIMayorBySocket
         });
 
-        console.log("🔍 VERIFICACIÓN POR USERNAME:", {
+        console.log("VERIFICACIÓN POR USERNAME:", {
           usernameLocal: username,
           usernameBackend: data.mayorUsername,
           coincide: amIMayorByUsername
         });
 
-        // FORZAR la actualización del estado mayor si es necesario
         if (data.mayorUsername && mayor !== data.mayorUsername) {
           console.log("🔄 Actualizando estado mayor desde backend:", data.mayorUsername);
           setMayor(data.mayorUsername);
         }
 
-        // USAR cualquiera de las verificaciones
         const amIMayor = amIMayorBySocket || amIMayorByUsername;
 
         if (amIMayor) {
           console.log("✅ VERIFICADO COMO INTENDENTE - Abriendo modal");
 
-          // Actualizar el estado de players para asegurar que isMayor esté correcto
           setPlayers(prevPlayers =>
             prevPlayers.map(player => ({
               ...player,
@@ -479,14 +472,13 @@ export default function Game() {
           setIsOpenLynchTieBreak(true);
           setIsOpenLynchModal(false);
 
-          // Forzar un doble renderizado para asegurar que el modal se abra
           setTimeout(() => {
             setIsOpenLynchTieBreak(true);
           }, 50);
 
         } else {
-          console.log("❌ NO SOY EL INTENDENTE - Cerrando modal");
-          console.log("📊 Datos completos:", {
+          console.log("NO SOY EL INTENDENTE!!!!!");
+          console.log("datos:", {
             mayorEstado: mayor,
             username,
             socketId: socket.id,
@@ -503,7 +495,6 @@ export default function Game() {
         setLynchTieBreakData(null);
         setHasVotedForLynch(false);
 
-        // Actualizar players y verificar ganador con los datos actualizados
         setPlayers(prevPlayers => {
           const updatedPlayers = prevPlayers.map(player => ({
             ...player,
@@ -604,7 +595,7 @@ export default function Game() {
             ...player,
             nightVotes: 0,
             lynchVotes: 0,
-            // Marcar víctima nocturna como muerta
+            // Marcar jugador como muerto
             ...(player.username === data.victim && { isAlive: false })
           }));
 
@@ -698,7 +689,7 @@ export default function Game() {
 
   const decideTieBreak = (chosenCandidate) => {
     if (socket && roomCode && tieBreakData) {
-      console.log(`👑 Anfitrión decide desempate: ${chosenCandidate}`);
+      console.log(`Anfitrión decide desempate: ${chosenCandidate}`);
       socket.emit("mayorTieBreakDecision", {
         code: roomCode,
         chosenCandidate: chosenCandidate,
@@ -891,7 +882,7 @@ export default function Game() {
     if (!socket) return;
 
     socket.on("gameReset", (data) => {
-      console.log("🔄 Juego reiniciado recibido:", data);
+      console.log("juego reiniciado recibido:", data);
 
       setPlayers(data.players);
       setGameStarted(false);

@@ -148,9 +148,54 @@ export default function Modal({
               title="Crear sala"
             />
           </div>
+        )}
 
-          {/* Modal para unirse a sala */}
-          {type === "join" && (
+        {/* Modal para configuraciones */}
+        {type === "settings" && (
+          <div className={styles.settings}>
+            <button className={styles.close} onClick={onClose}>✕</button>
+            <Button title="INICIAR SESIÓN" onClick={onOpenLogin} />
+            <Button className={styles.btn} onClick={onSubmitModifyAccount} title="Modificar cuenta" />
+            <Button className={styles.btn} onClick={onSubmitCloseSession} title="Cerrar sesión" />
+          </div>
+        )}
+
+
+        {/* Modal para login/registro */}
+        {type === "login" && (
+          <div className={styles.loginContainer}>
+            <button className={styles.close} onClick={onClose}>✕</button>
+            <h2>{registered ? "Iniciar sesión" : "Registrarse"}</h2>
+
+            <input
+              placeholder="Nombre de usuario"
+              value={username}
+              onChange={onChangeUsername}
+            />
+            <br />
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onChange={onChangePassword}
+            />
+            <br />
+            <Button
+              className={styles.btn}
+              onClick={onSubmitLogin}
+              title={registered ? "Iniciar sesión" : "Registrarse"}
+            />
+            <p>{registered ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}</p>
+            <a onClick={onToggleRegister} className={styles.toggleLink}>
+              {registered ? "¡Regístrate!" : "¡Inicia sesión!"}
+            </a>
+          </div>
+        )}
+
+        {/* Modal para comenzar juego */}
+        {type === "startGame" && (
+          <div className={styles.startGame}>
+            <button className={styles.close} onClick={onClose}>✕</button>
             <>
               <h2>Bienvenido a Castro Barros</h2>
               <p>usted vino en busca de la paz que la ciudad no puede darte. Pero hnay un problema...¡Una invasion de lobizones! Encuentrenlos y linchenlos antes que se deboren todo el pueblo</p>
@@ -159,9 +204,9 @@ export default function Modal({
             </>
           )}
 
+        {/* Modal para votar intendente */}
         {type === "mayor" && (
           <div className={styles.mayor}>
-            <Button className={styles.close} onClick={onCloseMayor} title="✕" />
             <>
               <h2>Lo primero que tenemos que hacer es votar un <strong>intendente</strong></h2>
               <p>quien sea intendente desempatará en los linchamientos y tendra una gran habilidad especial...<strong>el "Plan Platita"</strong></p>
@@ -198,6 +243,16 @@ export default function Modal({
                   </div>
                 </>
               )}
+            </>
+          </div>
+        )}
+
+        {/* Modal para desempatar intendente */}
+        {type === "tieBreak" && (
+          <div className={styles.tieBreak}>
+            <div className={styles.tieBreakHeader}>
+              <h2>¡EMPATE!</h2>
+              <p>Como anfitrión, debes decidir quién será el intendente</p>
             </div>
           )}
 
@@ -241,7 +296,6 @@ export default function Modal({
 
         {type === "lynch" && (
           <div className={styles.lynch}>
-            <Button className={styles.close} onClick={onClose} title="✕" />
             <>
               <h2>🔨 Votación de Linchamiento</h2>
               <p>¡El pueblo debe decidir a quién linchar! Analicen las pistas y voten democráticamente.</p>
@@ -291,6 +345,7 @@ export default function Modal({
           </div>
         )}
 
+        {/* Modal para desempatar linchamiento */}
         {type === "lynchTieBreak" && (
           <div className={styles.lynchTieBreak}>
             <div className={styles.lynchTieBreakHeader}>
@@ -305,6 +360,29 @@ export default function Modal({
                 <h2>¡EMPATE EN LINCHAMIENTO!</h2>
                 <p>Como intendente, debes decidir a quién linchar</p>
               </div>
+            </div>
+
+            <div className={styles.lynchTieBreakNote}>
+            </div>
+          </div>
+        )}
+
+        {/* Modal para elegir la herencia del intendente */}
+        {type === "successor" && (
+          <div
+            className={styles.overlaySuccessor}
+            style={{ zIndex: 10000 }}
+            onMouseDown={handleOverlayMouseDown}
+            onClick={handleOverlayClick}
+          >
+            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+              <button className={styles.close} onClick={onClose}>✕</button>
+
+              <div className={styles.successor}>
+                <div className={styles.successorHeader}>
+                  <h2>¡Has Muerto como Intendente!</h2>
+                  <p>Tienes el honor de elegir a tu sucesor</p>
+                </div>
 
               <div className={styles.lynchTieBreakInfo}>
                 <p>Los siguientes jugadores tienen la misma cantidad de votos:</p>
@@ -339,17 +417,16 @@ export default function Modal({
               </div>
 
               <div className={styles.lynchTieBreakNote}>
-                <p>⚠️ Tu decisión es final y determinará a quién se lincha.</p>
               </div>
             </div>
           )}
 
-          {type === "successor" && (
-            <div className={styles.successor}>
-              <div className={styles.successorHeader}>
-                <h2>¡Has Muerto como Intendente!</h2>
-                <p>Tienes el honor de elegir a tu sucesor</p>
-              </div>
+        {/* Modal para lobizones */}
+        {type === "nightKill" && (
+          <div className={styles.nightKill}>
+            <h2>Votación Nocturna</h2>
+            <p>Como lobizón, debes elegir a quién atacar esta noche.</p>
+            <br />
 
               <div className={styles.successorInfo}>
                 <p>Como intendente caído en servicio, debes elegir quién tomará tu puesto:</p>
@@ -372,9 +449,12 @@ export default function Modal({
                 </div>
               </div>
 
-              <div className={styles.successorNote}>
-                <p>Tu elección es final. El nuevo intendente tendrá el poder del Plan Platita.</p>
-              </div>
+        {/* Modal para desempatar asesinatos de lobizones */}
+        {type === "nightTieBreak" && (
+          <div className={styles.nightTieBreak}>
+            <div className={styles.nightTieBreakHeader}>
+              <h2>¡EMPATE NOCTURNO!</h2>
+              <p>Debes revotar entre los jugadores empatados</p>
             </div>
           )}
 
@@ -427,16 +507,12 @@ export default function Modal({
                 <p>Debes revotar entre los jugadores empatados</p>
               </div>
 
-              <div className={styles.nightTieBreakInfo}>
-                <p>Los siguientes jugadores tienen la misma cantidad de votos:</p>
-                <ul className={styles.nightTieCandidatesList}>
-                  {nightTieBreakData.tieCandidates.map((candidate, index) => (
-                    <li key={index} className={styles.nightTieCandidate}>
-                      <strong>{candidate}</strong> - {nightTieBreakData.votes[candidate]} votos
-                    </li>
-                  ))}
-                </ul>
-              </div>
+        {/* Modal para tarotista */}
+        {type === "nightQuestion" && (
+          <div className={styles.nightKill}>
+            <h2>Pregunta Nocturna</h2>
+            <p>Como tarotista,puedes preguntar el role de un jugador.</p>
+            <br />
 
               <div className={styles.nightTieBreakDecision}>
                 <h3>¿A quién eliges atacar?</h3>
