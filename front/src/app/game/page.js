@@ -158,7 +158,6 @@ export default function Game() {
     }
   };
 
-  // Debug específico para la elección del intendente
   useEffect(() => {
     console.log("🎯 ELECCIÓN DE INTENDENTE - Estado actual:", {
       mayor,
@@ -203,30 +202,6 @@ export default function Game() {
       lobizones: aliveLobizones.map(p => p.username),
       aldeanos: aliveVillagers.map(p => p.username)
     });
-
-    if (aliveLobizones.length === 0 && aliveVillagers.length > 0) {
-      console.log(" ¡Ganan los aldeanos! No quedan lobizones");
-      return {
-        winner: "Aldeanos",
-        message: "¡Los aldeanos han eliminado a todos los lobizones!",
-        details: {
-          lobizonesRestantes: 0,
-          aldeanosRestantes: aliveVillagers.length
-        }
-      };
-    }
-
-    if (aliveLobizones.length >= aliveVillagers.length && aliveLobizones.length > 0) {
-      console.log("¡Ganan los lobizones! Superan a los aldeanos");
-      return {
-        winner: "Lobizones",
-        message: "¡Los lobizones han devorado a la aldea!",
-        details: {
-          lobizonesRestantes: aliveLobizones.length,
-          aldeanosRestantes: aliveVillagers.length
-        }
-      };
-    }
 
     if (alivePlayers.length === 1) {
       const lastPlayer = alivePlayers[0];
@@ -354,7 +329,6 @@ export default function Game() {
           const currentPlayer = data.players.find(p => p.username === userToUse);
           if (currentPlayer) {
             setRole(currentPlayer.role);
-            alert(`Tu rol es: ${currentPlayer.role}`);
             if (currentPlayer.role == "Lobizón") {
               setRole("Lobizón")
               console.log("Sos Lobizón")
@@ -381,10 +355,8 @@ export default function Game() {
       socket.on("mayorElected", (data) => {
         console.log("INTENDENTE ELECTO - Actualizando estado:", data);
 
-        // Actualizar el estado mayor INMEDIATAMENTE
         setMayor(data.mayor);
 
-        // Actualizar players para que isMayor sea correcto
         setPlayers(prevPlayers => {
           const updatedPlayers = prevPlayers.map(player => ({
             ...player,
@@ -402,12 +374,9 @@ export default function Game() {
         setIsOpenTieBreak(false);
         setTieBreakData(null);
 
-        setTimeout(() => {
-          alert(`¡${data.mayor} ha sido electo como intendente con ${data.votes} votos!`);
-        }, 500);
 
         setTimeout(() => {
-          console.log("🌙 Iniciando la primera noche...");
+          console.log("Iniciando la primera noche...");
           socket.emit("startNight", { code: roomCode });
         }, 2000);
       });
@@ -417,7 +386,6 @@ export default function Game() {
         if (isHost) {
           setTieBreakData(data);
           setIsOpenTieBreak(true);
-          alert("¡Hay un empate! Debes elegir al intendente.");
         }
       });
 
@@ -437,37 +405,33 @@ export default function Game() {
       });
 
       socket.on("lynchTieBreak", (data) => {
-        console.log("🔨 EMPATE en linchamiento - Se requiere desempate:", data);
+        console.log("¡¡¡Empate en linchamiento!!!!! - Se requiere desempate:", data);
 
-        // VERIFICACIÓN DIRECTA POR SOCKET ID - método más confiable
         const amIMayorBySocket = data.mayorSocketId === socket.id;
         const amIMayorByUsername = data.mayorUsername === username;
 
-        console.log("🔍 VERIFICACIÓN POR SOCKET:", {
+        console.log("VERIFICACIÓN POR SOCKET:", {
           socketIdLocal: socket.id,
           socketIdBackend: data.mayorSocketId,
           coincide: amIMayorBySocket
         });
 
-        console.log("🔍 VERIFICACIÓN POR USERNAME:", {
+        console.log("VERIFICACIÓN POR USERNAME:", {
           usernameLocal: username,
           usernameBackend: data.mayorUsername,
           coincide: amIMayorByUsername
         });
 
-        // FORZAR la actualización del estado mayor si es necesario
         if (data.mayorUsername && mayor !== data.mayorUsername) {
           console.log("🔄 Actualizando estado mayor desde backend:", data.mayorUsername);
           setMayor(data.mayorUsername);
         }
 
-        // USAR cualquiera de las verificaciones
         const amIMayor = amIMayorBySocket || amIMayorByUsername;
 
         if (amIMayor) {
-          console.log("✅ VERIFICADO COMO INTENDENTE - Abriendo modal");
+          console.log("VERIFICADO COMO INTENDENTE - Abriendo modal");
 
-          // Actualizar el estado de players para asegurar que isMayor esté correcto
           setPlayers(prevPlayers =>
             prevPlayers.map(player => ({
               ...player,
@@ -479,14 +443,13 @@ export default function Game() {
           setIsOpenLynchTieBreak(true);
           setIsOpenLynchModal(false);
 
-          // Forzar un doble renderizado para asegurar que el modal se abra
           setTimeout(() => {
             setIsOpenLynchTieBreak(true);
           }, 50);
 
         } else {
-          console.log("❌ NO SOY EL INTENDENTE - Cerrando modal");
-          console.log("📊 Datos completos:", {
+          console.log("NO SOY EL INTENDENTE!!!!!");
+          console.log("datos:", {
             mayorEstado: mayor,
             username,
             socketId: socket.id,
@@ -503,7 +466,6 @@ export default function Game() {
         setLynchTieBreakData(null);
         setHasVotedForLynch(false);
 
-        // Actualizar players y verificar ganador con los datos actualizados
         setPlayers(prevPlayers => {
           const updatedPlayers = prevPlayers.map(player => ({
             ...player,
@@ -536,7 +498,7 @@ export default function Game() {
         });
 
         if (data.lynched) {
-          alert(`¡${data.lynched} ha sido linchado!`);
+          console.log(`¡${data.lynched} ha sido linchado!`);
         } else {
           alert("No se linchó a nadie.");
         }
@@ -604,7 +566,7 @@ export default function Game() {
             ...player,
             nightVotes: 0,
             lynchVotes: 0,
-            // Marcar víctima nocturna como muerta
+            // Marcar jugador como muerto
             ...(player.username === data.victim && { isAlive: false })
           }));
 
@@ -620,12 +582,12 @@ export default function Game() {
       });
 
       socket.on("tarotistaResult", (data) => {
-        console.log("🔮 Resultado de tarotista recibido:", data);
+        console.log("Resultado de tarotista recibido:", data);
 
         const tarotistaResultData = {
           message: data.message || "El tarotista ha consultado las cartas...",
-          revealedPlayer: data.target ,
-          roleRevealed: data.role 
+          revealedPlayer: data.target,
+          roleRevealed: data.role
         };
 
         setTarotistaResult(tarotistaResultData);
@@ -698,7 +660,7 @@ export default function Game() {
 
   const decideTieBreak = (chosenCandidate) => {
     if (socket && roomCode && tieBreakData) {
-      console.log(`👑 Anfitrión decide desempate: ${chosenCandidate}`);
+      console.log(`Anfitrión decide desempate: ${chosenCandidate}`);
       socket.emit("mayorTieBreakDecision", {
         code: roomCode,
         chosenCandidate: chosenCandidate,
@@ -891,7 +853,7 @@ export default function Game() {
     if (!socket) return;
 
     socket.on("gameReset", (data) => {
-      console.log("🔄 Juego reiniciado recibido:", data);
+      console.log("juego reiniciado recibido:", data);
 
       setPlayers(data.players);
       setGameStarted(false);

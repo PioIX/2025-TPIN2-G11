@@ -163,7 +163,7 @@ export default function Home() {
   async function joinConfirm() {
     let user = localStorage.getItem("username");
     if (!user) {
-      const guestId = Math.random().toString(36).substring(2, 8); // ID único de 6 caracteres
+      const guestId = Math.random().toString(36).substring(2, 8);
       user = `Invitado-${guestId}`;
     }
 
@@ -213,7 +213,7 @@ export default function Home() {
 
   const handleCloseModal = () => {
     setOpen(false);
-    // Limpiar todos los estados de inputs
+    // Limpiamos todos los estados de inputs NO LO SAQUEN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     setJoinCode("");
     setRoomCode("");
     setUsername("");

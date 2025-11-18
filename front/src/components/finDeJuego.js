@@ -12,6 +12,69 @@ export default function FinDeJuego({ winner, players, playAgain }) {
   const confettiRef = useRef(null);
 
   useEffect(() => {
+    if (winner == null) return;
+    if (winner.winner === "Aldeanos") {
+      console.log(" ¡Ganan los aldeanos! No quedan lobizones");
+      aliveVillagers.map(p =>
+        fetch('http://localhost:4000/updateScore', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username: p.username })
+        }).then(response => {
+          if (!response.ok) {
+            console.error("Error actualizando score para:", p.username);
+          } else {
+            console.log("Score actualizado para aldeano:", p.username);
+          }
+        }).catch(error => {
+          console.error("Error en fetch:", error);
+        })
+      );
+
+      return {
+        winner: "Aldeanos",
+        message: "¡Los aldeanos han eliminado a todos los lobizones!",
+        details: {
+          lobizonesRestantes: 0,
+          aldeanosRestantes: aliveVillagers.length
+        }
+      };
+    } else {
+      if (aliveLobizones.length >= aliveVillagers.length && aliveLobizones.length > 0) {
+        console.log("¡Ganan los lobizones! Superan a los aldeanos");
+        aliveLobizones.map(p =>
+          fetch('http://localhost:4000/updateScore', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username: p.username })
+          }).then(response => {
+            if (!response.ok) {
+              console.error("Error actualizando score para:", p.username);
+            } else {
+              console.log("Score actualizado para lobizón:", p.username);
+            }
+          }).catch(error => {
+            console.error("Error en fetch:", error);
+          })
+        )
+        return {
+          winner: "Lobizones",
+          message: "¡Los lobizones han devorado a la aldea!",
+          details: {
+            lobizonesRestantes: aliveLobizones.length,
+            aldeanosRestantes: aliveVillagers.length
+          }
+        };
+      }
+    }
+
+  }, []);
+
+  useEffect(() => {
     const revealPlayers = async () => {
       for (let i = 0; i < players.length; i++) {
         await new Promise(resolve => setTimeout(resolve, 800));
@@ -100,7 +163,7 @@ export default function FinDeJuego({ winner, players, playAgain }) {
       ></div>
 
       <div className={styles.content}>
-        {/* Sección del Ganador */}
+        {/* ganador */}
         {showWinner && (
           <div className={`${styles.winnerSection} ${styles.slideIn}`}>
             <div className={styles.winnerHeader}>

@@ -46,7 +46,7 @@ export default function Night({
     }, [players]);
 
     const isLobizon = role === 'Lobizón';
-    const isTarotista = role === 'Tarotista'; // Agregar esta verificación
+    const isTarotista = role === 'Tarotista';
     const canVote = (isLobizon || isTarotista) && players.find(p => p.username === username)?.isAlive;
 
     console.log("Night - Estado del jugador:", {
@@ -189,8 +189,6 @@ export default function Night({
                                         <p>Eres el tarotista. Puedes consultar el rol de un jugador.</p>
                                         <h3> Consulta de Tarotista</h3>
                                         <p>{tarotistaResult?.message || "El tarotista ha consultado las cartas..."}</p>
-    
-                                        <button onClick={handleCloseTarotistaResult}>Cerrar</button>
                                     </div></>
                                 ) : (
                                     <p>Descansa mientras los lobizones toman su decisión.</p>

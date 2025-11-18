@@ -33,19 +33,6 @@ export default function Day({
     const [showNightTransition, setShowNightTransition] = useState(false);
     const isInitialMount = useRef(true);
 
-    // Define las funciones ANTES del return
-    function onClose() {
-        setIsOpen(false);
-        setIsOpenMayor(true);
-        console.log(isOpenMayor)
-    }
-
-    function onCloseMayor() {
-        setIsOpen(false);
-        setIsOpenMayor(false);
-    }
-
-    // Tus useEffect aquí...
     useEffect(() => {
         console.log("🔍 Day - Estado actual:", {
             username,
@@ -64,9 +51,12 @@ export default function Day({
         });
     }, [isOpen, isOpenMayor, isOpenTieBreak, tieBreakData]);
 
+
     useEffect(() => {
         if (lynchedPlayer && !isOpenLynchModal) {
             console.log("🌙 Linchamiento completado - Mostrando transición a noche...");
+
+
             setShowNightTransition(true);
 
             const timer = setTimeout(() => {
@@ -89,18 +79,28 @@ export default function Day({
         }
     }, [role, hasShownWelcome, mayor]);
 
+    function onClose() {
+        setIsOpen(false);
+        setIsOpenMayor(true);
+        console.log(isOpenMayor)
+    }
+
     useEffect(() => {
         console.log('Después:', { isOpen, isOpenMayor });
     }, [isOpen, isOpenMayor]);
 
-    // Esta lógica también debe ir antes del return
+    function onCloseMayor() {
+        setIsOpen(false);
+        setIsOpenMayor(false);
+    }
+
     if (mayor && isOpen) {
         setIsOpen(false);
     }
 
     return (
-        <div className={styles.container}>
-            {/* Transición de Anochecer */}
+        <>
+            {/* trancision de anochecer */}
             {showNightTransition && (
                 <div className={styles.nightTransition}>
                     <div className={styles.nightTransitionContent}>
@@ -111,28 +111,25 @@ export default function Day({
                 </div>
             )}
 
-            {isOpen == true &&
+            {isOpen == true ?
                 <Modal
                     isOpen={isOpen}
                     onClose={onClose}
                     type={"startGame"}
                     role={role}
                 ></Modal>
-            }
+                : <></>}
 
-            {isOpenMayor == true && 
-                <Modal
-                    isOpenMayor={isOpenMayor}
-                    onCloseMayor={onCloseMayor}
-                    type={"mayor"}
-                    players={players}
-                    voteMayor={voteMayor}
-                    hasVotedForMayor={hasVotedForMayor}
-                    mayor={mayor}
-                ></Modal>
-            }
+            {isOpenMayor == true ? <Modal
+                isOpenMayor={isOpenMayor}
+                onCloseMayor={onCloseMayor}
+                type={"mayor"}
+                players={players}
+                voteMayor={voteMayor}
+                hasVotedForMayor={hasVotedForMayor}
+                mayor={mayor}
+            ></Modal> : <></>}
 
-            {/* ... el resto de tu JSX permanece igual ... */}
             {mayor && (
                 <div className={styles.mayorInfo}>
                     <h2> Intendente Electo: {mayor}</h2>
@@ -152,7 +149,7 @@ export default function Day({
                 />
             )}
 
-            {/* Modal de votación de linchamiento normal */}
+            {/* Modal de votación para el linchamiento normal */}
             {isOpenLynchModal && (
                 <Modal
                     isOpen={isOpenLynchModal}
@@ -217,6 +214,6 @@ export default function Day({
                     ))}
                 </div>
             </section>
-        </div>
+        </>
     );
 }
