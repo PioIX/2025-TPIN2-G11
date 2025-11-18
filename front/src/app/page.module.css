@@ -106,6 +106,7 @@
   animation: hang-top 8s ease-in-out infinite;
 }
 
+
 @keyframes levitate {
   0%, 100% {
     transform: translateY(8px) translateX(10px) rotate(-3deg);

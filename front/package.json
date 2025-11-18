@@ -2,7 +2,7 @@
   "name": "2025-tpin2-g11",
   "version": "0.1.0",
   "private": true,
- "scripts": {
+  "scripts": {
     "start-all": "node start-servers.js",
     "dev": "next dev -p 3000",
     "dev-3001": "next dev -p 3001",
