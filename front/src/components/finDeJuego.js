@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./finDeJuego.module.css";
 
-export default function FinDeJuego({ winner, players, playAgain }) {
+export default function FinDeJuego({ winner, players, playAgain, aliveLobizones, aliveVillagers }) {
   const [revealedPlayers, setRevealedPlayers] = useState([]);
   const [showWinner, setShowWinner] = useState(false);
   const [confettiActive, setConfettiActive] = useState(false);
@@ -12,39 +12,36 @@ export default function FinDeJuego({ winner, players, playAgain }) {
   const confettiRef = useRef(null);
 
   useEffect(() => {
-    if (winner == null) return;
-    if (winner.winner === "Aldeanos") {
-      console.log(" ¡Ganan los aldeanos! No quedan lobizones");
-      aliveVillagers.map(p =>
-        fetch('http://localhost:4000/updateScore', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ username: p.username })
-        }).then(response => {
-          if (!response.ok) {
-            console.error("Error actualizando score para:", p.username);
-          } else {
-            console.log("Score actualizado para aldeano:", p.username);
-          }
-        }).catch(error => {
-          console.error("Error en fetch:", error);
-        })
-      );
 
-      return {
-        winner: "Aldeanos",
-        message: "¡Los aldeanos han eliminado a todos los lobizones!",
-        details: {
-          lobizonesRestantes: 0,
-          aldeanosRestantes: aliveVillagers.length
-        }
-      };
-    } else {
-      if (aliveLobizones.length >= aliveVillagers.length && aliveLobizones.length > 0) {
-        console.log("¡Ganan los lobizones! Superan a los aldeanos");
-        aliveLobizones.map(p =>
+    if (winner && winner.winner) {
+      if (winner.winner === "Aldeanos") {
+        console.log(" ¡Ganan los aldeanos! Actualizando scores...");
+
+        const aliveVillagerPlayers = players.filter(p => p.isAlive && p.role !== 'Lobizón');
+
+        aliveVillagerPlayers.forEach(p => {
+          fetch('http://localhost:4000/updateScore', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username: p.username })
+          }).then(response => {
+            if (!response.ok) {
+              console.error("Error actualizando score para:", p.username);
+            } else {
+              console.log("Score actualizado para aldeano:", p.username);
+            }
+          }).catch(error => {
+            console.error("Error en fetch:", error);
+          });
+        });
+      } else if (winner.winner === "Lobizones") {
+        console.log("¡Ganan los lobizones! Actualizando scores...");
+
+        const aliveLobizonPlayers = players.filter(p => p.isAlive && p.role === 'Lobizón');
+
+        aliveLobizonPlayers.forEach(p => {
           fetch('http://localhost:4000/updateScore', {
             method: 'POST',
             headers: {
@@ -59,20 +56,11 @@ export default function FinDeJuego({ winner, players, playAgain }) {
             }
           }).catch(error => {
             console.error("Error en fetch:", error);
-          })
-        )
-        return {
-          winner: "Lobizones",
-          message: "¡Los lobizones han devorado a la aldea!",
-          details: {
-            lobizonesRestantes: aliveLobizones.length,
-            aldeanosRestantes: aliveVillagers.length
-          }
-        };
+          });
+        });
       }
     }
-
-  }, []);
+  }, [winner, players]);
 
   useEffect(() => {
     const revealPlayers = async () => {

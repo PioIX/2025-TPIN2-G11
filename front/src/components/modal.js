@@ -31,7 +31,7 @@ export default function Modal({
   onChangePassword,
   onSubmitLogin,
   onToggleRegister,
-  rol,
+  role,
   players,
   isOpenMayor,
   onCloseMayor,
@@ -202,6 +202,7 @@ export default function Modal({
               <p>usted vino en busca de la paz que la ciudad no puede darte. Pero hnay un problema...¡Una invasion de lobizones! Encuentrenlos y linchenlos antes que se deboren todo el pueblo</p>
               <br />
               <br />
+              <p>tu rol es: {role}</p>
             </>
           </div>
         )}
@@ -217,7 +218,7 @@ export default function Modal({
 
               {mayor ? (
                 <div className={styles.electionResult}>
-                  <h3>🎉 ¡Intendente Electo!</h3>
+                  <h3>¡Intendente Electo!</h3>
                   <p><strong>{mayor}</strong> ha sido elegido como intendente.</p>
                   <p>El modal se cerrará automáticamente...</p>
                 </div>
