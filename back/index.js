@@ -1154,9 +1154,6 @@ io.on("connection", (socket) => {
         io.to(tarotista.socketId).emit("openNightModalTarotista");
       });
 
-      if (lobizones.length === 0) {
-        console.log(" ADVERTENCIA: No hay lobizones vivos para votar");
-      }
 
       if (tarotistas.length === 0) {
         console.log(" ADVERTENCIA: No hay tarotista viva para preguntar");

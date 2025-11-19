@@ -340,12 +340,11 @@ export default function Game() {
       });
 
       socket.on("openNightModalTarotista", () => {
-        console.log(" Abriendo modal de votación nocturna desde backend para tarotista");
-        console.log(" Estado del jugador:", {
-          username,
-          role,
-          isTarotista: role === 'Tarotista',
-          isAlive: players.find(p => p.username === username)?.isAlive
+        console.log("Abriendo modal para tarotista");
+        console.log("Jugadores disponibles para investigar:", {
+          todos: players.map(p => ({ username: p.username, role: p.role, isAlive: p.isAlive })),
+          vivos: players.filter(p => p.isAlive).map(p => p.username),
+          lobizonesVivos: players.filter(p => p.isAlive && p.role === 'Lobizón').map(p => p.username)
         });
         setIsOpenNightModaltarotista(true);
       });
