@@ -58,6 +58,9 @@ export default function Game() {
   const [alivePlayers, setAlivePlayers] = useState([]);
 
 
+
+
+
   useEffect(() => {
     if (!socket) return;
 
@@ -692,6 +695,7 @@ export default function Game() {
     if (socket && isHost) {
       console.log("Cerrando sala...");
       socket.emit("closeRoom", { code: roomCode });
+      router.push("/");
     }
   };
 
