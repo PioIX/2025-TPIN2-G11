@@ -261,16 +261,16 @@ export default function Night({
             </div>
 
             {isOpenNightModaltarotista && isTarotista && canVote && (
-                <Modal
-                    isOpen={isOpenNightModaltarotista}
-                    onClose={() => { }}
-                    type={"nightQuestion"}
-                    players={getAttackablePlayers()}
-                    voteNightQuestion={voteNightQuestion}
-                    nightVictim={nightVictim}
-                    hasVotedQuestion={hasVotedQuestion}
-                />
-            )}
+  <Modal
+    isOpen={isOpenNightModaltarotista}
+    onClose={() => { }}
+    type={"nightQuestion"}
+    players={alivePlayers}
+    voteNightQuestion={voteNightQuestion}
+    nightVictim={nightVictim}
+    hasVotedQuestion={hasVotedQuestion}
+  />
+)}
 
             {isOpenNightModal && isLobizon && canVote && (
                 <Modal
