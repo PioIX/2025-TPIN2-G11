@@ -107,7 +107,7 @@ export default function Modal({
         {type === "ranking" && (
           <>
             <button className={styles.close} onClick={onClose}>✕</button>
-            <h2>🏆 Ranking de jugadores</h2>
+            <h2>🏆 Ranking 🏆<br></br> de jugadores</h2>
             <ul className={styles.rankingList}>
               {ranking.length > 0 ? (
                 ranking.map((user, i) => (
