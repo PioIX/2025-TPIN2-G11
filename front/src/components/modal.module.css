@@ -345,3 +345,100 @@
       0 0 70px rgba(255, 214, 30, 0.65);
   }
 }
+
+/* Estilos para el Plan Platita */
+.planPlatita {
+  max-width: 500px;
+  text-align: center;
+}
+
+.planPlatitaHeader {
+  background: linear-gradient(135deg, #ffd700, #ffa500);
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.planPlatitaHeader h2 {
+  margin: 0;
+  color: #8b4513;
+  font-size: 1.8em;
+}
+
+.planPlatitaInfo {
+  margin-bottom: 20px;
+}
+
+.warning {
+  color: #ff4444;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+
+.planPlatitaSelection {
+  margin: 20px 0;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.voteManipulation {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.select, .numberInput {
+  padding: 8px 12px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-size: 1em;
+}
+
+.select:focus, .numberInput:focus {
+  border-color: #ffa500;
+  outline: none;
+}
+
+.planPlatitaActions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.planPlatitaBtn {
+  background: linear-gradient(135deg, #ffd700, #ffa500);
+  color: #8b4513;
+  border: none;
+  padding: 12px 24px;
+  font-weight: bold;
+}
+
+.planPlatitaBtn:hover {
+  background: linear-gradient(135deg, #ffa500, #ff8c00);
+}
+
+.cancelBtn {
+  background: #6c757d;
+  color: white;
+}
+
+.cancelBtn:hover {
+  background: #5a6268;
+}
+
+.planPlatitaNote {
+  margin-top: 20px;
+  padding: 15px;
+  background: #fff3cd;
+  border-radius: 5px;
+  border-left: 4px solid #ffa500;
+}
+
+.planPlatitaNote p {
+  margin: 5px 0;
+  font-size: 0.9em;
+  color: #856404;
+}

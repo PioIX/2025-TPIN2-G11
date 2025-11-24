@@ -57,8 +57,11 @@ export default function Modal({
   voteNightTieBreak,
   successorCandidates,
   chooseSuccessor,
-  hasVotedQuestion
-}) {
+  hasVotedQuestion,
+  usePlanPlatita,
+  planPlatitaUsed,
+  submitPlanPlatita,
+  planPlatitaPlayers }) {
   const mouseDownTarget = useRef(null);
 
   const handleOverlayMouseDown = (e) => {
@@ -515,7 +518,6 @@ export default function Modal({
           </div>
         )}
 
-        {/* Modal para tarotista */}
         {type === "nightQuestion" && (
           <div className={styles.nightKill}>
             <h2>Consulta del Tarotista</h2>
@@ -536,7 +538,7 @@ export default function Modal({
                   <h4>Jugadores Vivos ({players.filter(p => p.isAlive).length}):</h4>
                   <ul>
                     {players
-                      .filter(player => player.isAlive) 
+                      .filter(player => player.isAlive)
                       .map((player, index) => (
                         <li className={styles.playerItem} key={index}>
                           <Button
@@ -562,6 +564,32 @@ export default function Modal({
               </>
             )}
           </div>
+        )}
+
+        {type === "planPlatita" && (
+          <>
+            <button className={styles.close} onClick={onClose}>✕</button>
+            <h2>🪙 Plan Platita</h2>
+            <p>¡El poder de la corrupción! Elige a quién linchar:</p>
+
+            <div className={styles.playersSection}>
+              <ul>
+                {planPlatitaPlayers.map((player, index) => (
+                  <li className={styles.playerItem} key={index}>
+                    <Button
+                      onClick={() => {
+                        console.log(`🪙 Plan Platita: linchar a ${player}`);
+                        submitPlanPlatita(player);
+                      }}
+                      title={`Linchar a ${player}`}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <p className={styles.note}>Solo puedes usar esta habilidad UNA vez por partida</p>
+          </>
         )}
       </div>
     </div>

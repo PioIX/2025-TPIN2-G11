@@ -25,7 +25,13 @@ export default function Day({
     isOpenLynchModal,
     setIsOpenLynchModal,
     closeLynchModal,
-    setLynchedPlayer
+    setLynchedPlayer,
+    planPlatitaUsed, 
+    usePlanPlatita,
+    isOpenPlanPlatita,
+    setIsOpenPlanPlatita,
+    planPlatitaPlayers,
+    submitPlanPlatita
 }) {
     const [isOpenMayor, setIsOpenMayor] = useState(false);
     const [isOpen, setIsOpen] = useState(true);
@@ -100,7 +106,7 @@ export default function Day({
 
     return (
         <>
-            {/* trancision de anochecer */}
+
             {showNightTransition && (
                 <div className={styles.nightTransition}>
                     <div className={styles.nightTransitionContent}>
@@ -149,7 +155,6 @@ export default function Day({
                 />
             )}
 
-            {/* Modal de votación para el linchamiento normal */}
             {isOpenLynchModal && (
                 <Modal
                     isOpen={isOpenLynchModal}
@@ -214,6 +219,48 @@ export default function Day({
                     ))}
                 </div>
             </section>
+
+            {mayor === username && !planPlatitaUsed && (
+                <div className={styles.planPlatitaContainer}>
+                    <Button
+                        className={styles.planPlatitaButton}
+                        onClick={usePlanPlatita}
+                        title="🪙 Usar Plan Platita"
+                    />
+                    <p className={styles.planPlatitaHint}>Una vez por partida</p>
+                </div>
+            )}
+
+            {mayor === username && !planPlatitaUsed && (
+                <div style={{
+                    position: 'absolute',
+                    top: '20px',
+                    right: '20px',
+                    textAlign: 'center'
+                }}>
+                    <Button
+                        onClick={usePlanPlatita}
+                        title="🪙 Usar Plan Platita"
+                        style={{
+                            background: 'linear-gradient(135deg, #ffd700, #ffa500)',
+                            color: '#8b4513',
+                            fontWeight: 'bold'
+                        }}
+                    />
+                    <p style={{ fontSize: '0.8em', color: '#666', marginTop: '5px' }}>
+                        Una vez por partida
+                    </p>
+                </div>
+            )}
+
+            <Modal
+                isOpen={isOpenPlanPlatita}
+                onClose={() => setIsOpenPlanPlatita(false)}
+                type={"planPlatita"}
+                planPlatitaPlayers={planPlatitaPlayers}
+                submitPlanPlatita={submitPlanPlatita}
+            />
+
         </>
     );
 }

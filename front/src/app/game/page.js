@@ -56,8 +56,9 @@ export default function Game() {
   const [aliveLobizones, setAliveLobizones] = useState([]);
   const [aliveVillagers, setAliveVillagers] = useState([]);
   const [alivePlayers, setAlivePlayers] = useState([]);
-
-
+  const [isOpenPlanPlatita, setIsOpenPlanPlatita] = useState(false);
+  const [planPlatitaPlayers, setPlanPlatitaPlayers] = useState([]);
+  const [planPlatitaUsed, setPlanPlatitaUsed] = useState(false);
 
 
 
@@ -330,6 +331,13 @@ export default function Game() {
           setTimeout(() => router.push("/"), 3000);
         }
       });
+
+      socket.on("closedRoom", (message) => {
+        console.log("Sala cerrada:", message);
+        alert(message);
+        router.push("/");
+      });
+
 
       socket.on("openNightModal", () => {
         console.log(" Abriendo modal de votación nocturna desde backend");
@@ -648,9 +656,22 @@ export default function Game() {
           setTarotistaResult(null);
         }, 5000);
       });
+
+      socket.on("planPlatitaPlayers", (data) => {
+        console.log("🪙 Jugadores para Plan Platita:", data.players);
+        setPlanPlatitaPlayers(data.players);
+        setIsOpenPlanPlatita(true);
+      });
+
+      socket.on("planPlatitaSuccess", (data) => {
+        console.log("🪙 Plan Platita exitoso:", data.message);
+        alert(data.message);
+        setIsOpenPlanPlatita(false);
+        setPlanPlatitaUsed(true);
+      });
+
+
     };
-
-
 
     setupSocketListeners();
 
@@ -693,11 +714,16 @@ export default function Game() {
 
   const closeRoom = () => {
     if (socket && isHost) {
-      console.log("Cerrando sala...");
-      socket.emit("closeRoom", { code: roomCode });
-      router.push("/");
+      console.log("Cerrando sala...", roomCode);
+
+      const confirmClose = window.confirm("¿Estás seguro de que quieres cerrar la sala? Todos los jugadores serán expulsados.");
+
+      if (confirmClose) {
+        socket.emit("closeRoom", { code: roomCode });
+      }
     }
   };
+
 
   const leaveRoom = () => {
     if (socket) {
@@ -768,8 +794,8 @@ export default function Game() {
 
   const decideLynchTieBreak = (chosenCandidate) => {
     if (socket && roomCode && lynchTieBreakData) {
-      console.log(`🔨 Intendente ${username} decide desempate de linchamiento: ${chosenCandidate}`);
-      console.log("📤 Enviando lynchTieBreakDecision al backend con:", {
+      console.log(` Intendente ${username} decide desempate de linchamiento: ${chosenCandidate}`);
+      console.log(" Enviando lynchTieBreakDecision al backend con:", {
         code: roomCode,
         chosenCandidate: chosenCandidate,
         tieCandidates: lynchTieBreakData.tieCandidates
@@ -781,11 +807,10 @@ export default function Game() {
         tieCandidates: lynchTieBreakData.tieCandidates
       });
 
-      // Cerrar el modal después de enviar
       setIsOpenLynchTieBreak(false);
       setLynchTieBreakData(null);
     } else {
-      console.error("❌ Error: Faltan datos para decidir desempate:", {
+      console.error(" Error: Faltan datos para decidir desempate:", {
         socket: !!socket,
         roomCode: !!roomCode,
         lynchTieBreakData: !!lynchTieBreakData
@@ -932,6 +957,9 @@ export default function Game() {
         clearTimeout(successorTimeout);
         setSuccessorTimeout(null);
       }
+      setPlanPlatitaUsed(false);
+      setIsOpenPlanPlatita(false);
+      setPlanPlatitaPlayers([]);
 
       console.log("Estados del juego reseteados completamente");
     });
@@ -975,6 +1003,28 @@ export default function Game() {
     }
     setShowTarotistaResult(true);
   };
+
+  const usePlanPlatita = () => {
+    if (socket && roomCode && mayor === username) {
+      console.log("🪙 Usando Plan Platita");
+      socket.emit("usePlanPlatita", {
+        code: roomCode,
+        mayor: username
+      });
+    }
+  };
+
+  const submitPlanPlatita = (targetPlayer) => {
+    if (socket && roomCode) {
+      console.log("🪙 Enviando objetivo del Plan Platita:", targetPlayer);
+      socket.emit("submitPlanPlatita", {
+        code: roomCode,
+        mayor: username,
+        targetPlayer: targetPlayer
+      });
+    }
+  };
+
 
 
   return (
@@ -1053,6 +1103,12 @@ export default function Game() {
                   isOpenLynchModal={isOpenLynchModal}
                   setIsOpenLynchModal={setIsOpenLynchModal}
                   closeLynchModal={closeLynchModal}
+                  usePlanPlatita={usePlanPlatita}
+                  planPlatitaUsed={planPlatitaUsed}
+                  isOpenPlanPlatita={isOpenPlanPlatita}
+                  setIsOpenPlanPlatita={setIsOpenPlanPlatita}
+                  planPlatitaPlayers={planPlatitaPlayers}
+                  submitPlanPlatita={submitPlanPlatita}
                 />
               )}
             </>
