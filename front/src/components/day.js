@@ -133,7 +133,7 @@ export default function Day({
     }
 
     return (
-        <div className={styles.all}>
+        <div className={`${styles.all} ${styles.container}`}>
 
             {showNightTransition && (
                 <div className={styles.nightTransition}>
