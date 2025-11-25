@@ -20,8 +20,8 @@
 }
 
 .actions {
-  padding-top: 570px;
-  padding-bottom: 70px;
+  padding-top: calc(230px + 17vw);
+  padding-bottom: 35px;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -85,10 +85,14 @@
 }
 
 .logo {
-  margin-bottom: 50px;
+  margin-bottom: 40px;
   position: absolute;
-  top: 80px;
-  left: calc(50vw - 250px);
+  top: 6vh;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: calc(19vw + 150px);
+  height: auto;
   animation: levitate 10s ease-in-out infinite;
 }
 
@@ -105,6 +109,7 @@
   right: 0px;
   animation: hang-top 8s ease-in-out infinite;
 }
+
 
 @keyframes levitate {
   0%, 100% {
@@ -137,12 +142,7 @@
 
 /* Tablets grandes y laptops pequeñas */
 @media (max-width: 1200px) {
-  .logo {
-    width: 400px;
-    height: auto;
-    left: calc(50vw - 200px);
-  }
-  
+
   .topFrame {
     width: 500px;
     height: auto;
@@ -153,18 +153,10 @@
     height: auto;
   }
   
-  .actions {
-    padding-top: 500px;
-  }
 }
 
 /* Tablets */
 @media (max-width: 768px) {
-  .logo {
-    width: 350px;
-    left: calc(50vw - 175px);
-    top: 60px;
-  }
   
   .topFrame {
     width: 400px;
@@ -177,7 +169,6 @@
   }
   
   .actions {
-    padding-top: 450px;
     padding-bottom: 50px;
   }
   
@@ -190,18 +181,12 @@
 
 /* Móviles grandes */
 @media (max-width: 576px) {
-  .logo {
-    width: 280px;
-    left: calc(50vw - 140px);
-    top: 50px;
-  }
   
   .topFrame, .bottomFrame {
     display: none; /* Ocultamos elementos decorativos en móviles pequeños */
   }
   
   .actions {
-    padding-top: 380px;
     padding-bottom: 30px;
     gap: 20px;
   }
@@ -220,16 +205,7 @@
 
 /* Móviles pequeños */
 @media (max-width: 400px) {
-  .logo {
-    width: 240px;
-    left: calc(50vw - 120px);
-    top: 40px;
-  }
-  
-  .actions {
-    padding-top: 340px;
-  }
-  
+
   .btnNormal {
     width: 200px;
     height: 44px;
@@ -239,14 +215,8 @@
 
 /* Alturas pequeñas (pantallas cortas) */
 @media (max-height: 700px) {
-  .logo {
-    width: 200px;
-    top: 30px;
-    left: calc(50vw - 100px);
-  }
-  
+
   .actions {
-    padding-top: 320px;
     padding-bottom: 20px;
   }
   
@@ -256,29 +226,12 @@
   }
 }
 
-@media (max-height: 600px) {
-  .logo {
-    width: 180px;
-    top: 20px;
-  }
-  
-  .actions {
-    padding-top: 280px;
-  }
-}
-
 /* Orientación horizontal en móviles */
 @media (max-height: 500px) and (orientation: landscape) {
-  .logo {
-    width: 150px;
-    top: 10px;
-    left: calc(50vw - 75px);
-  }
   
   .actions {
     flex-direction: row;
     flex-wrap: wrap;
-    padding-top: 200px;
     gap: 15px;
   }
   
