@@ -53,7 +53,22 @@ export default function Game() {
   const [isOpenNightModaltarotista, setIsOpenNightModaltarotista] = useState(false)
   const [tarotistaResult, setTarotistaResult] = useState(false)
   const [showTarotistaResult, setShowTarotistaResult] = useState(false)
+  const [aliveLobizones, setAliveLobizones] = useState([]);
+  const [aliveVillagers, setAliveVillagers] = useState([]);
+  const [alivePlayers, setAlivePlayers] = useState([]);
+ 
 
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("updatePlayerStatus", (data) => {
+      const { players } = data;
+      setAliveLobizones(players.filter(p => p.role === 'Lobizón' && p.isAlive).length);
+      setAliveVillagers(players.filter(p => p.role === 'Aldeano' && p.isAlive).length);
+      setAlivePlayers(players.filter(p => p.isAlive).length);
+    });
+  }, [socket]);
 
   useEffect(() => {
     if (!socket) return;
@@ -185,26 +200,29 @@ export default function Game() {
       return null;
     }
 
-    const alivePlayers = playersToCheck.filter(p => p.isAlive);
-    console.log("Jugadores vivos:", alivePlayers.map(p => ({ username: p.username, role: p.role, isAlive: p.isAlive })));
+    const currentAlivePlayers = playersToCheck.filter(p => p.isAlive);
+    const currentAliveLobizones = currentAlivePlayers.filter(p => p.role === 'Lobizón');
+    const currentAliveVillagers = currentAlivePlayers.filter(p => p.role !== 'Lobizón');
 
-    const aliveLobizones = alivePlayers.filter(p => p.role === 'Lobizón');
-    console.log("lobizones vivos:", aliveLobizones.map(p => p.username));
-
-    const aliveVillagers = alivePlayers.filter(p => p.role !== 'Lobizón');
-    console.log("aldeanos vivos:", aliveVillagers.map(p => p.username));
+    console.log("Jugadores vivos:", currentAlivePlayers.map(p => ({ username: p.username, role: p.role, isAlive: p.isAlive })));
+    console.log("lobizones vivos:", currentAliveLobizones.map(p => p.username));
+    console.log("aldeanos vivos:", currentAliveVillagers.map(p => p.username));
 
     console.log("  Verificando ganador:", {
       totalJugadores: playersToCheck.length,
-      jugadoresVivos: alivePlayers.length,
-      lobizonesVivos: aliveLobizones.length,
-      aldeanosVivos: aliveVillagers.length,
-      lobizones: aliveLobizones.map(p => p.username),
-      aldeanos: aliveVillagers.map(p => p.username)
+      jugadoresVivos: currentAlivePlayers.length,
+      lobizonesVivos: currentAliveLobizones.length,
+      aldeanosVivos: currentAliveVillagers.length,
+      lobizones: currentAliveLobizones.map(p => p.username),
+      aldeanos: currentAliveVillagers.map(p => p.username)
     });
 
-    if (alivePlayers.length === 1) {
-      const lastPlayer = alivePlayers[0];
+    setAlivePlayers(currentAlivePlayers);
+    setAliveLobizones(currentAliveLobizones);
+    setAliveVillagers(currentAliveVillagers);
+
+    if (currentAlivePlayers.length === 1) {
+      const lastPlayer = currentAlivePlayers[0];
       const isLobizon = lastPlayer.role === 'Lobizón';
       console.log(`¡Solo queda 1 jugador! ${lastPlayer.username} (${isLobizon ? 'Lobizón' : 'Aldeano'})`);
 
@@ -216,6 +234,29 @@ export default function Game() {
         details: {
           jugadorFinal: lastPlayer.username,
           rolFinal: lastPlayer.role
+        }
+      };
+    }
+
+    if (currentAliveLobizones.length === 0) {
+      console.log("¡No quedan lobizones! Ganan los aldeanos");
+      return {
+        winner: "Aldeanos",
+        message: "¡Los aldeanos han eliminado a todos los lobizones!",
+        details: {
+          aldeanosRestantes: currentAliveVillagers.length
+        }
+      };
+    }
+
+    if (currentAliveLobizones.length >= currentAliveVillagers.length) {
+      console.log("¡Los lobizones superan o igualan a los aldeanos! Ganan los lobizones");
+      return {
+        winner: "Lobizones",
+        message: "¡Los lobizones han devorado a la aldea!",
+        details: {
+          lobizonesRestantes: currentAliveLobizones.length,
+          aldeanosRestantes: currentAliveVillagers.length
         }
       };
     }
@@ -288,6 +329,13 @@ export default function Game() {
         }
       });
 
+      socket.on("closedRoom", (message) => {
+        console.log("Sala cerrada:", message);
+        alert(message);
+        router.push("/");
+      });
+
+
       socket.on("openNightModal", () => {
         console.log(" Abriendo modal de votación nocturna desde backend");
         console.log(" Estado del jugador:", {
@@ -300,12 +348,11 @@ export default function Game() {
       });
 
       socket.on("openNightModalTarotista", () => {
-        console.log(" Abriendo modal de votación nocturna desde backend para tarotista");
-        console.log(" Estado del jugador:", {
-          username,
-          role,
-          isTarotista: role === 'Tarotista',
-          isAlive: players.find(p => p.username === username)?.isAlive
+        console.log("Abriendo modal para tarotista");
+        console.log("Jugadores disponibles para investigar:", {
+          todos: players.map(p => ({ username: p.username, role: p.role, isAlive: p.isAlive })),
+          vivos: players.filter(p => p.isAlive).map(p => p.username),
+          lobizonesVivos: players.filter(p => p.isAlive && p.role === 'Lobizón').map(p => p.username)
         });
         setIsOpenNightModaltarotista(true);
       });
@@ -566,12 +613,18 @@ export default function Game() {
             ...player,
             nightVotes: 0,
             lynchVotes: 0,
-            // Marcar jugador como muerto
             ...(player.username === data.victim && { isAlive: false })
           }));
 
           console.log(" Estado después de noche - Vivos:",
             updatedPlayers.filter(p => p.isAlive).map(p => p.username));
+
+          const winnerAfterNight = checkWinner(updatedPlayers);
+          if (winnerAfterNight) {
+            console.log("¡GANADOR DESPUÉS DE LA NOCHE!", winnerAfterNight);
+            setWinner(winnerAfterNight);
+            setFinishGame(true);
+          }
 
           return updatedPlayers;
         });
@@ -601,8 +654,6 @@ export default function Game() {
         }, 5000);
       });
     };
-
-
 
     setupSocketListeners();
 
@@ -645,10 +696,16 @@ export default function Game() {
 
   const closeRoom = () => {
     if (socket && isHost) {
-      console.log("Cerrando sala...");
-      socket.emit("closeRoom", { code: roomCode });
+      console.log("Cerrando sala...", roomCode);
+
+      const confirmClose = window.confirm("¿Estás seguro de que quieres cerrar la sala? Todos los jugadores serán expulsados.");
+
+      if (confirmClose) {
+        socket.emit("closeRoom", { code: roomCode });
+      }
     }
   };
+
 
   const leaveRoom = () => {
     if (socket) {
@@ -719,8 +776,8 @@ export default function Game() {
 
   const decideLynchTieBreak = (chosenCandidate) => {
     if (socket && roomCode && lynchTieBreakData) {
-      console.log(`🔨 Intendente ${username} decide desempate de linchamiento: ${chosenCandidate}`);
-      console.log("📤 Enviando lynchTieBreakDecision al backend con:", {
+      console.log(` Intendente ${username} decide desempate de linchamiento: ${chosenCandidate}`);
+      console.log(" Enviando lynchTieBreakDecision al backend con:", {
         code: roomCode,
         chosenCandidate: chosenCandidate,
         tieCandidates: lynchTieBreakData.tieCandidates
@@ -732,11 +789,10 @@ export default function Game() {
         tieCandidates: lynchTieBreakData.tieCandidates
       });
 
-      // Cerrar el modal después de enviar
       setIsOpenLynchTieBreak(false);
       setLynchTieBreakData(null);
     } else {
-      console.error("❌ Error: Faltan datos para decidir desempate:", {
+      console.error(" Error: Faltan datos para decidir desempate:", {
         socket: !!socket,
         roomCode: !!roomCode,
         lynchTieBreakData: !!lynchTieBreakData
@@ -792,6 +848,10 @@ export default function Game() {
     const winner = checkWinner();
 
     if (winner) {
+      console.log("¡Hay un ganador en startDay!", winner);
+      setWinner(winner);
+      setFinishGame(true);
+
       setIsNight(false);
       setNightVictim(null);
       setHasVotedNight(false);
@@ -800,9 +860,6 @@ export default function Game() {
       setIsOpenNightTieBreak(false);
       setIsOpenNightModal(false);
       setIsOpenNightModaltarotista(false);
-      console.log("¡Hay un ganador!", winner);
-      setWinner(winner);
-      setFinishGame(true);
     } else {
       console.log("El juego continúa - Cambiando a día");
 
@@ -816,8 +873,6 @@ export default function Game() {
       setIsOpenNightModaltarotista(false);
 
       setTimeout(() => {
-
-
         if (blockOtherModals || isOpenSuccessorModal) {
           console.log(" Evitando abrir linchamiento porque hay sucesión en curso");
           return;
@@ -825,7 +880,6 @@ export default function Game() {
 
         console.log("Abriendo modal de linchamiento desde startDay");
         setIsOpenLynchModal(true);
-
       }, 500);
     }
   }
@@ -894,6 +948,26 @@ export default function Game() {
     };
   }, [socket, successorTimeout]);
 
+  useEffect(() => {
+    if (players.length > 0 && gameStarted && !finishGame) {
+      const detectedWinner = checkWinner();
+      if (detectedWinner) {
+        console.log("¡GANADOR DETECTADO AUTOMÁTICAMENTE!", detectedWinner);
+        setWinner(detectedWinner);
+        setFinishGame(true);
+
+        setIsOpenLynchModal(false);
+        setIsOpenLynchTieBreak(false);
+        setIsOpenNightModal(false);
+        setIsOpenNightModaltarotista(false);
+        setIsOpenNightTieBreak(false);
+        setIsOpenTieBreak(false);
+        setIsOpenSuccessorModal(false);
+        setIsNight(false);
+      }
+    }
+  }, [players, gameStarted, finishGame]);
+
   const handleShowTarotistaResult = (resultData = null) => {
     console.log("Mostrando resultado del tarotista:", resultData);
     if (resultData) {
@@ -912,7 +986,7 @@ export default function Game() {
 
   return (
     <>
-      {finishGame ? (<FindeJuego winner={winner} players={players} playAgain={playAgain} />) : (
+      {finishGame ? (<FindeJuego winner={winner} players={players} playAgain={playAgain} aliveLobizones={aliveLobizones} aliveVillagers={aliveVillagers} />) : (
         <>
           {lobby === true ? (
             <Lobby

@@ -31,7 +31,7 @@ export default function Modal({
   onChangePassword,
   onSubmitLogin,
   onToggleRegister,
-  rol,
+  role,
   players,
   isOpenMayor,
   onCloseMayor,
@@ -57,8 +57,8 @@ export default function Modal({
   voteNightTieBreak,
   successorCandidates,
   chooseSuccessor,
-  hasVotedQuestion
-}) {
+  hasVotedQuestion,
+  }) {
   const mouseDownTarget = useRef(null);
 
   const handleOverlayMouseDown = (e) => {
@@ -202,6 +202,7 @@ export default function Modal({
               <p>usted vino en busca de la paz que la ciudad no puede darte. Pero hnay un problema...¡Una invasion de lobizones! Encuentrenlos y linchenlos antes que se deboren todo el pueblo</p>
               <br />
               <br />
+              <p>tu rol es: {role}</p>
             </>
           </div>
         )}
@@ -211,13 +212,13 @@ export default function Modal({
           <div className={styles.mayor}>
             <>
               <h2>Lo primero que tenemos que hacer es votar un <strong>intendente</strong></h2>
-              <p>quien sea intendente desempatará en los linchamientos y tendra una gran habilidad especial...<strong>el "Plan Platita"</strong></p>
+              <p>quien sea intendente desempatará en los linchamientos</p>
               <br />
               <br />
 
               {mayor ? (
                 <div className={styles.electionResult}>
-                  <h3>🎉 ¡Intendente Electo!</h3>
+                  <h3>¡Intendente Electo!</h3>
                   <p><strong>{mayor}</strong> ha sido elegido como intendente.</p>
                   <p>El modal se cerrará automáticamente...</p>
                 </div>
@@ -424,7 +425,7 @@ export default function Modal({
                 </div>
 
                 <div className={styles.successorNote}>
-                  <p>Tu elección es final. El nuevo intendente tendrá el poder del Plan Platita.</p>
+                  <p>Tu elección es final. El nuevo intendente tendrá el poder de desempatar.</p>
                 </div>
               </div>
             </div>
@@ -514,39 +515,49 @@ export default function Modal({
           </div>
         )}
 
-        {/* Modal para tarotista */}
         {type === "nightQuestion" && (
           <div className={styles.nightKill}>
-            <h2>Pregunta Nocturna</h2>
-            <p>Como tarotista,puedes preguntar el role de un jugador.</p>
+            <h2>Consulta del Tarotista</h2>
+            <p>Como tarotista, puedes revelar el rol de un jugador vivo.</p>
             <br />
 
             {hasVotedQuestion ? (
               <div className={styles.nightResult}>
-                <h3>Sospechoso Elegido</h3>
-                <p><strong>{nightVictim}</strong> será cuestionada su aura.</p>
-                <p>Esperando a que amanezca...</p>
+                <h3>Voto Registrado</h3>
+                <p>Has elegido cuestionar a un jugador.</p>
+                <p>Esperando el resultado...</p>
               </div>
             ) : (
               <>
-                <p>¿A quién quieres cuestionar?</p>
-                {hasVotedNight && (
-                  <p className={styles.voteConfirmed}>Ya votaste. Esperando a que amanezca...</p>
-                )}
+                <p>¿A qué jugador quieres investigar esta noche?</p>
+
                 <section className={styles.playersSection}>
+                  <h4>Jugadores Vivos ({players.filter(p => p.isAlive).length}):</h4>
                   <ul>
-                    {players.map((player, index) => (
-                      <li className={styles.playerItem} key={index}>
-                        <Button
-                          onClick={() => voteNightQuestion(player.username)}
-                          title={`${player.username} ${player.nightVotes ? `(${player.nightVotes} votos)` : ''}`}
-                          disabled={hasVotedNight || nightVictim || !player.isAlive}
-                        />
-                      </li>
-                    ))}
+                    {players
+                      .filter(player => player.isAlive)
+                      .map((player, index) => (
+                        <li className={styles.playerItem} key={index}>
+                          <Button
+                            onClick={() => {
+                              console.log(`Tarotista seleccionó a: ${player.username}`);
+                              voteNightQuestion(player.username);
+                            }}
+                            title={`Investigar a ${player.username}`}
+                            disabled={hasVotedQuestion}
+                          />
+                        </li>
+                      ))
+                    }
                   </ul>
                 </section>
 
+                <div className={styles.voteStatus}>
+                  <p>Jugadores vivos disponibles: {players.filter(p => p.isAlive).length}</p>
+                  {hasVotedQuestion && (
+                    <p className={styles.voteConfirmed}>Ya has realizado tu consulta.</p>
+                  )}
+                </div>
               </>
             )}
           </div>
