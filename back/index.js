@@ -349,27 +349,27 @@ app.post("/updateScore", async (req, res) => {
     const { username } = req.body;
     if (!username) {
       console.error("Username es undefined en updateScore");
-      return res.status(400).json({ 
-        success: false, 
-        message: "Username es requerido" 
+      return res.status(400).json({
+        success: false,
+        message: "Username es requerido"
       });
     }
     console.log("Actualizando score para:", username);
     const result = await realizarQuery(
-      "UPDATE Users SET score = score + 15 WHERE username = ?", 
+      "UPDATE Users SET score = score + 15 WHERE username = ?",
       [username]
     );
     console.log("Resultado de actualización de score:", result);
-    res.json({ 
-      success: true, 
-      message: `Score actualizado para ${username}` 
+    res.json({
+      success: true,
+      message: `Score actualizado para ${username}`
     });
-    
+
   } catch (error) {
     console.error("Error en /updateScore:", error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
@@ -1141,22 +1141,23 @@ io.on("connection", (socket) => {
 
       const lobizones = room.players.filter(p => p.role === 'Lobizón' && p.isAlive);
       const tarotistas = room.players.filter(p => p.role === 'Tarotista' && p.isAlive);
+
       console.log(` Lobizones que deben votar: ${lobizones.map(l => l.username).join(', ')}`);
       console.log(` Tarotistas que pueden preguntar: ${tarotistas.map(t => t.username).join(', ')}`);
 
       lobizones.forEach(lobizon => {
         console.log(` Enviando openNightModal a: ${lobizon.username} (socket: ${lobizon.socketId})`);
-        io.to(lobizon.socketId).emit("openNightModal");
+        io.to(lobizon.socketId).emit("openNightModal", {
+          players: room.players
+        });
       });
 
       tarotistas.forEach(tarotista => {
         console.log(` Enviando openNightModalTarotista a: ${tarotista.username} (socket: ${tarotista.socketId})`);
-        io.to(tarotista.socketId).emit("openNightModalTarotista");
+        io.to(tarotista.socketId).emit("openNightModalTarotista", {
+          players: room.players
+        });
       });
-
-      if (lobizones.length === 0) {
-        console.log(" ADVERTENCIA: No hay lobizones vivos para votar");
-      }
 
       if (tarotistas.length === 0) {
         console.log(" ADVERTENCIA: No hay tarotista viva para preguntar");
@@ -1166,6 +1167,7 @@ io.on("connection", (socket) => {
       socket.emit("roomError", "Error al iniciar la noche");
     }
   });
+
 
   socket.on("tarotistaQuestionResult", ({ code, tarotista, target, targetRole }) => {
     try {
@@ -1455,7 +1457,7 @@ io.on("connection", (socket) => {
     const mayorPlayer = room.players.find(p => p.username === electedMayor);
     if (mayorPlayer) {
       console.log(` ${electedMayor} (${mayorPlayer.role}) es ahora el Intendente`);
-      console.log(" Habilidades disponibles: Plan Platita y romper empates");
+      console.log(" Habilidades disponibles: romper empates");
     }
 
     delete room.wasTieBreak;

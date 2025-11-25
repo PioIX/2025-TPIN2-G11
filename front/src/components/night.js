@@ -265,7 +265,7 @@ export default function Night({
                     isOpen={isOpenNightModaltarotista}
                     onClose={() => { }}
                     type={"nightQuestion"}
-                    players={getAttackablePlayers()}
+                    players={alivePlayers}
                     voteNightQuestion={voteNightQuestion}
                     nightVictim={nightVictim}
                     hasVotedQuestion={hasVotedQuestion}
@@ -293,6 +293,7 @@ export default function Night({
                     voteNightTieBreak={voteNightTieBreak}
                 />
             )}
+
 
 
         </>

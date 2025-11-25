@@ -25,7 +25,7 @@ export default function Day({
     isOpenLynchModal,
     setIsOpenLynchModal,
     closeLynchModal,
-    setLynchedPlayer
+    setLynchedPlayer,
 }) {
     const [isOpenMayor, setIsOpenMayor] = useState(false);
     const [isOpen, setIsOpen] = useState(true);
@@ -100,7 +100,7 @@ export default function Day({
 
     return (
         <>
-            {/* trancision de anochecer */}
+
             {showNightTransition && (
                 <div className={styles.nightTransition}>
                     <div className={styles.nightTransitionContent}>
@@ -134,7 +134,7 @@ export default function Day({
                 <div className={styles.mayorInfo}>
                     <h2> Intendente Electo: {mayor}</h2>
                     {mayor === username && (
-                        <p>¡Eres el intendente! Tienes el poder del Plan Platita.</p>
+                        <p>¡Eres el intendente! Tienes el poder de desempatar.</p>
                     )}
                 </div>
             )}
@@ -149,7 +149,6 @@ export default function Day({
                 />
             )}
 
-            {/* Modal de votación para el linchamiento normal */}
             {isOpenLynchModal && (
                 <Modal
                     isOpen={isOpenLynchModal}
@@ -214,6 +213,7 @@ export default function Day({
                     ))}
                 </div>
             </section>
+
         </>
     );
 }
