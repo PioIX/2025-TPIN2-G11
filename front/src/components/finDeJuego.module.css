@@ -1,11 +1,29 @@
 
 .container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  color: white;
+  background: 
+    linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+    url('/background.jpg') center/cover no-repeat fixed;
+  color: #ecd2b6;
   position: relative;
   overflow: hidden;
   font-family: 'Arial', sans-serif;
+}
+
+.container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(#f5e8c8, rgba(245, 232, 200, .2) 2px, transparent 4px),
+    radial-gradient(#ecd2b6, rgba(236, 210, 182, .15) 1px, transparent 3px);
+  background-size: 550px 550px, 350px 350px;
+  background-position: 0 0, 40px 60px;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .confettiContainer {
@@ -41,19 +59,25 @@
   position: relative;
   z-index: 2;
   padding: 2rem;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
-/* Sección del Ganador */
 .winnerSection {
   text-align: center;
   margin-bottom: 3rem;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 2rem;
+  background-image: url('/wood.webp');
+  background-size: 400px;
+  background-repeat: repeat;
+  filter: saturate(150%);
+  padding: 2.5rem;
   border-radius: 20px;
   backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 4px solid rgba(255, 248, 235, 0.5);
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.5),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2),
+    0 0 30px rgba(255, 238, 193, 0.3);
 }
 
 .winnerHeader {
@@ -63,43 +87,83 @@
 .winnerTitle {
   font-size: 3rem;
   margin-bottom: 1rem;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-  background: linear-gradient(45deg, #ffd700, #ffed4e);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #ffd700;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 20px rgba(255, 215, 0, 0.5),
+    0 0 30px rgba(255, 215, 0, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 3px;
   animation: glow 2s ease-in-out infinite alternate;
 }
 
 @keyframes glow {
   from {
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    text-shadow: 
+      2px 2px 4px rgba(0, 0, 0, 0.8),
+      0 0 15px rgba(255, 215, 0, 0.4);
   }
   to {
-    text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.6);
+    text-shadow: 
+      2px 2px 4px rgba(0, 0, 0, 0.8),
+      0 0 30px rgba(255, 215, 0, 0.8),
+      0 0 40px rgba(255, 215, 0, 0.6);
   }
 }
 
 .winnerIcon {
   font-size: 4rem;
   margin: 1rem 0;
+  filter: drop-shadow(0 4px 15px rgba(255, 215, 0, 0.4));
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(-5deg);
+  }
+  50% {
+    transform: translateY(-15px) rotate(5deg);
+  }
 }
 
 .winnerMessage {
   font-size: 1.3rem;
   margin-bottom: 1rem;
+  color: #ecd2b6;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  line-height: 1.6;
 }
 
 .winnerDetails {
   margin-top: 1rem;
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 10px;
+  padding: 1.2rem;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
   display: inline-block;
+  border: 2px solid rgba(212, 165, 116, 0.5);
+  backdrop-filter: blur(5px);
 }
 
-/* Sección de Roles */
+.winnerDetails p {
+  color: #f5e8c8;
+  margin: 0.5rem 0;
+  font-weight: 600;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
 .rolesSection {
   margin-bottom: 3rem;
+  background-image: url('/wood.webp');
+  background-size: 400px;
+  background-repeat: repeat;
+  filter: saturate(140%);
+  padding: 2.5rem;
+  border-radius: 20px;
+  border: 4px solid rgba(255, 248, 235, 0.4);
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.5),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2);
 }
 
 .rolesTitle {
@@ -107,6 +171,13 @@
   font-size: 2.5rem;
   margin-bottom: 2rem;
   color: #ffd700;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 15px rgba(255, 215, 0, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-bottom: 3px solid rgba(212, 165, 116, 0.6);
+  padding-bottom: 1rem;
 }
 
 .playersGrid {
@@ -117,15 +188,42 @@
 }
 
 .playerCard {
-  background: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #f5f5dc 0%, #e8dcc8 100%);
   border-radius: 15px;
   padding: 1.5rem;
   text-align: center;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 3px solid #d4a574;
   transition: all 0.3s ease;
   opacity: 0;
   transform: translateY(20px);
+  box-shadow: 
+    0 5px 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  position: relative;
+  overflow: hidden;
+}
+
+.playerCard::before {
+  content: '✦';
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #d4a574;
+  font-size: 1.2rem;
+  opacity: 0.6;
+}
+
+.playerCard::after {
+  content: '◆';
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #d4a574;
+  font-size: 0.9rem;
+  opacity: 0.6;
 }
 
 .playerCard.revealed {
@@ -137,20 +235,28 @@
 @keyframes revealCard {
   0% {
     opacity: 0;
-    transform: scale(0.8) translateY(20px);
+    transform: scale(0.8) translateY(20px) rotate(-5deg);
   }
   50% {
-    transform: scale(1.05);
+    transform: scale(1.05) rotate(2deg);
   }
   100% {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: scale(1) translateY(0) rotate(0deg);
   }
 }
 
 .playerCard.hidden {
   opacity: 0.3;
   filter: blur(2px);
+}
+
+.playerCard:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 
+    0 15px 40px rgba(0, 0, 0, 0.4),
+    0 5px 20px rgba(212, 165, 116, 0.4);
+  border-color: #c98d4f;
 }
 
 .playerHeader {
@@ -163,11 +269,13 @@
 .playerName {
   font-size: 1.2rem;
   font-weight: bold;
-  color: white;
+  color: #2c1810;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.9);
 }
 
 .deadBadge {
   font-size: 1.5rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .roleReveal {
@@ -183,7 +291,15 @@
   justify-content: center;
   font-size: 2.5rem;
   margin: 0 auto 0.5rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.3);
+  border: 3px solid rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.playerCard:hover .roleIcon {
+  transform: scale(1.1) rotate(360deg);
 }
 
 .roleName {
@@ -191,6 +307,7 @@
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 1px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .playerStatus {
@@ -198,87 +315,150 @@
   justify-content: space-between;
   margin-top: 1rem;
   font-size: 0.9rem;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .mayorStatus {
-  color: #ffd700;
+  background: linear-gradient(135deg, #d4a574, #c98d4f);
+  color: #2c1810;
+  padding: 4px 10px;
+  border-radius: 10px;
   font-weight: bold;
+  font-size: 0.85rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 248, 235, 0.4);
 }
 
 .aliveStatus {
   color: #4CAF50;
+  font-weight: bold;
+  text-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+  background: rgba(76, 175, 80, 0.2);
+  padding: 4px 10px;
+  border-radius: 10px;
+  border: 2px solid rgba(76, 175, 80, 0.4);
 }
 
 .deadStatus {
-  color: #f44336;
+  color: #8B4513;
+  font-weight: bold;
+  text-shadow: 0 0 8px rgba(139, 69, 19, 0.5);
+  background: rgba(139, 69, 19, 0.2);
+  padding: 4px 10px;
+  border-radius: 10px;
+  border: 2px solid rgba(139, 69, 19, 0.4);
 }
 
-/* Sección de Acciones */
 .actionsSection {
   text-align: center;
   margin-bottom: 3rem;
+  background-image: url('/wood.webp');
+  background-size: 350px;
+  background-repeat: repeat;
+  filter: saturate(140%);
+  padding: 2rem;
+  border-radius: 18px;
+  border: 4px solid rgba(255, 248, 235, 0.4);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2);
 }
 
 .playAgainButton, .lobbyButton {
-  padding: 1rem 2rem;
-  font-size: 1.2rem;
-  border: none;
-  border-radius: 50px;
-  margin: 0 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  min-width: 200px;
+  padding: 0 35px;
+  border-radius: 18px;
+  background-image: url('/wood.webp');
+  filter: saturate(150%);
+  background-repeat: repeat;
+  background-size: auto;
+  color: #ecd2b6;
+  font-weight: 600;
+  letter-spacing: 2px;
+  font-size: 1.1rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  border: 3px solid rgba(255, 248, 235, 0.5);
+  box-shadow: 1px -1px 15px 4px rgba(255, 238, 193, 0.315);
+  cursor: pointer;
+  transition: transform .14s ease, box-shadow .14s ease, filter .14s ease;
+  margin: 0.5rem;
+  user-select: none;
 }
 
-.playAgainButton {
-  background: linear-gradient(45deg, #4CAF50, #45a049);
-  color: white;
+.playAgainButton:hover, .lobbyButton:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 
+    1px -1px 25px 6px rgba(255, 238, 193, 0.4),
+    0 0 20px rgba(212, 165, 116, 0.5);
+  filter: saturate(150%) brightness(110%);
+  animation: button-glow 1.5s infinite;
 }
 
-.lobbyButton {
-  background: linear-gradient(45deg, #2196F3, #1976D2);
-  color: white;
+@keyframes button-glow {
+  0%, 100% {
+    box-shadow: 1px -1px 25px 6px rgba(255, 238, 193, 0.4);
+  }
+  50% {
+    box-shadow: 1px -1px 33px 7px rgba(255, 238, 193, 0.5);
+  }
 }
 
-.playAgainButton:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
-}
-
-.lobbyButton:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(33, 150, 243, 0.3);
-}
-
-/* Sección de Estadísticas */
 .statsSection {
   text-align: center;
 }
 
 .statCard {
-  background: rgba(255, 255, 255, 0.1);
+  background-image: url('/wood.webp');
+  background-size: 350px;
+  background-repeat: repeat;
+  filter: saturate(140%);
   padding: 2rem;
-  border-radius: 15px;
+  border-radius: 18px;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 4px solid rgba(255, 248, 235, 0.4);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2);
 }
 
 .statCard h3 {
   margin-bottom: 1.5rem;
   color: #ffd700;
-  font-size: 1.5rem;
+  font-size: 1.8rem;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 15px rgba(255, 215, 0, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-bottom: 3px solid rgba(212, 165, 116, 0.6);
+  padding-bottom: 1rem;
 }
 
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .stat {
   text-align: center;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1.2rem;
+  border-radius: 12px;
+  border: 2px solid rgba(212, 165, 116, 0.5);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.stat:hover {
+  transform: translateY(-5px);
+  border-color: rgba(212, 165, 116, 0.8);
+  box-shadow: 0 8px 20px rgba(212, 165, 116, 0.3);
 }
 
 .statNumber {
@@ -287,14 +467,20 @@
   font-weight: bold;
   color: #ffd700;
   margin-bottom: 0.5rem;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(255, 215, 0, 0.3);
 }
 
 .statLabel {
-  font-size: 0.9rem;
-  opacity: 0.8;
+  font-size: 0.95rem;
+  opacity: 0.9;
+  color: #ecd2b6;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-/* Animaciones */
 .slideIn {
   animation: slideInFromTop 1s ease-out;
 }
@@ -323,7 +509,24 @@
   }
 }
 
-/* Responsive */
+@media (max-width: 1024px) {
+  .content {
+    padding: 1.5rem;
+  }
+
+  .winnerTitle {
+    font-size: 2.5rem;
+  }
+
+  .playersGrid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+  
+  .rolesSection, .winnerSection {
+    padding: 2rem;
+  }
+}
+
 @media (max-width: 768px) {
   .content {
     padding: 1rem;
@@ -331,19 +534,199 @@
 
   .winnerTitle {
     font-size: 2rem;
+    letter-spacing: 2px;
+  }
+  
+  .winnerIcon {
+    font-size: 3rem;
   }
 
   .playersGrid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .playAgainButton, .lobbyButton {
     display: block;
     width: 100%;
     margin: 0.5rem 0;
+    height: 55px;
+    font-size: 1rem;
   }
 
   .statsGrid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .rolesTitle {
+    font-size: 2rem;
+  }
+  
+  .rolesSection, .winnerSection, .actionsSection, .statCard {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .winnerTitle {
+    font-size: 1.7rem;
+    letter-spacing: 1px;
+  }
+  
+  .winnerMessage {
+    font-size: 1.1rem;
+  }
+  
+  .winnerIcon {
+    font-size: 2.5rem;
+  }
+  
+  .rolesTitle {
+    font-size: 1.7rem;
+  }
+
+  .playerCard {
+    padding: 1.2rem;
+  }
+
+  .playerName {
+    font-size: 1.1rem;
+  }
+
+  .roleIcon {
+    width: 60px;
+    height: 60px;
+    font-size: 2rem;
+  }
+
+  .roleName {
+    font-size: 1.1rem;
+  }
+
+  .playAgainButton, .lobbyButton {
+    height: 50px;
+    font-size: 0.95rem;
+    padding: 0 25px;
+    min-width: auto;
+  }
+
+  .statNumber {
+    font-size: 2rem;
+  }
+  
+  .statLabel {
+    font-size: 0.85rem;
+  }
+  
+  .rolesSection, .winnerSection, .actionsSection, .statCard {
+    padding: 1.2rem;
+    border-radius: 15px;
+    border-width: 3px;
+  }
+}
+
+@media (max-width: 400px) {
+  .winnerTitle {
+    font-size: 1.5rem;
+  }
+  
+  .winnerMessage {
+    font-size: 1rem;
+  }
+
+  .playerCard {
+    padding: 1rem;
+  }
+
+  .playAgainButton, .lobbyButton {
+    height: 48px;
+    font-size: 0.9rem;
+    padding: 0 20px;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .rolesSection, .winnerSection, .actionsSection, .statCard {
+    padding: 1rem;
+  }
+}
+
+@media (max-height: 600px) and (orientation: landscape) {
+  .content {
+    padding: 0.5rem;
+  }
+  
+  .winnerSection {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .winnerTitle {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .winnerIcon {
+    font-size: 2rem;
+    margin: 0.5rem 0;
+  }
+
+  .playersGrid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem;
+  }
+
+  .playerCard {
+    padding: 0.8rem;
+  }
+
+  .roleIcon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.8rem;
+  }
+
+  .playAgainButton, .lobbyButton {
+    height: 45px;
+    font-size: 0.85rem;
+  }
+  
+  .rolesSection, .actionsSection, .statCard {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+}
+
+/* ========== ACCESIBILIDAD ========== */
+@media (prefers-reduced-motion: reduce) {
+  .playerCard,
+  .winnerIcon,
+  .roleIcon,
+  .playAgainButton,
+  .lobbyButton,
+  .stat,
+  .confetti {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+@media (prefers-contrast: high) {
+  .playerCard,
+  .winnerSection,
+  .rolesSection,
+  .actionsSection,
+  .statCard {
+    border-width: 5px;
+  }
+  
+  .playAgainButton,
+  .lobbyButton {
+    border-width: 4px;
   }
 }

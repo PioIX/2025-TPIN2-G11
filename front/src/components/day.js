@@ -51,6 +51,40 @@ export default function Day({
         });
     }, [isOpen, isOpenMayor, isOpenTieBreak, tieBreakData]);
 
+    useEffect(() => {
+        const positionPlayersInCircle = () => {
+            const cards = document.querySelectorAll('[class*="playerCard"]');
+            const container = document.querySelector('[class*="playersGrid"]');
+
+            if (!cards.length || !container) return;
+
+            const containerWidth = container.offsetWidth;
+            const containerHeight = container.offsetHeight;
+            const radius = Math.min(containerWidth, containerHeight) * 0.42; 
+            const centerX = containerWidth / 2;
+            const centerY = containerHeight / 2;
+            const totalPlayers = cards.length;
+            const angleStep = (2 * Math.PI) / totalPlayers;
+            const startAngle = -Math.PI / 2; 
+
+            cards.forEach((card, index) => {
+                const angle = startAngle + (index * angleStep);
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+
+                card.style.left = `${x}px`;
+                card.style.top = `${y}px`;
+            });
+        };
+
+        positionPlayersInCircle();
+
+        window.addEventListener('resize', positionPlayersInCircle);
+
+        return () => {
+            window.removeEventListener('resize', positionPlayersInCircle);
+        };
+    }, [players]);
 
     useEffect(() => {
         if (lynchedPlayer && !isOpenLynchModal) {
@@ -99,7 +133,7 @@ export default function Day({
     }
 
     return (
-        <>
+        <div className={styles.all}>
 
             {showNightTransition && (
                 <div className={styles.nightTransition}>
@@ -214,6 +248,6 @@ export default function Day({
                 </div>
             </section>
 
-        </>
+        </div>
     );
 }
