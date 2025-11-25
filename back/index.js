@@ -1457,7 +1457,7 @@ io.on("connection", (socket) => {
     const mayorPlayer = room.players.find(p => p.username === electedMayor);
     if (mayorPlayer) {
       console.log(` ${electedMayor} (${mayorPlayer.role}) es ahora el Intendente`);
-      console.log(" Habilidades disponibles: Plan Platita y romper empates");
+      console.log(" Habilidades disponibles: romper empates");
     }
 
     delete room.wasTieBreak;

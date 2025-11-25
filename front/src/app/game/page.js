@@ -56,10 +56,7 @@ export default function Game() {
   const [aliveLobizones, setAliveLobizones] = useState([]);
   const [aliveVillagers, setAliveVillagers] = useState([]);
   const [alivePlayers, setAlivePlayers] = useState([]);
-  const [isOpenPlanPlatita, setIsOpenPlanPlatita] = useState(false);
-  const [planPlatitaPlayers, setPlanPlatitaPlayers] = useState([]);
-  const [planPlatitaUsed, setPlanPlatitaUsed] = useState(false);
-
+ 
 
 
   useEffect(() => {
@@ -656,21 +653,6 @@ export default function Game() {
           setTarotistaResult(null);
         }, 5000);
       });
-
-      socket.on("planPlatitaPlayers", (data) => {
-        console.log("🪙 Jugadores para Plan Platita:", data.players);
-        setPlanPlatitaPlayers(data.players);
-        setIsOpenPlanPlatita(true);
-      });
-
-      socket.on("planPlatitaSuccess", (data) => {
-        console.log("🪙 Plan Platita exitoso:", data.message);
-        alert(data.message);
-        setIsOpenPlanPlatita(false);
-        setPlanPlatitaUsed(true);
-      });
-
-
     };
 
     setupSocketListeners();
@@ -957,9 +939,6 @@ export default function Game() {
         clearTimeout(successorTimeout);
         setSuccessorTimeout(null);
       }
-      setPlanPlatitaUsed(false);
-      setIsOpenPlanPlatita(false);
-      setPlanPlatitaPlayers([]);
 
       console.log("Estados del juego reseteados completamente");
     });
@@ -1003,28 +982,6 @@ export default function Game() {
     }
     setShowTarotistaResult(true);
   };
-
-  const usePlanPlatita = () => {
-    if (socket && roomCode && mayor === username) {
-      console.log("🪙 Usando Plan Platita");
-      socket.emit("usePlanPlatita", {
-        code: roomCode,
-        mayor: username
-      });
-    }
-  };
-
-  const submitPlanPlatita = (targetPlayer) => {
-    if (socket && roomCode) {
-      console.log("🪙 Enviando objetivo del Plan Platita:", targetPlayer);
-      socket.emit("submitPlanPlatita", {
-        code: roomCode,
-        mayor: username,
-        targetPlayer: targetPlayer
-      });
-    }
-  };
-
 
 
   return (
@@ -1103,12 +1060,6 @@ export default function Game() {
                   isOpenLynchModal={isOpenLynchModal}
                   setIsOpenLynchModal={setIsOpenLynchModal}
                   closeLynchModal={closeLynchModal}
-                  usePlanPlatita={usePlanPlatita}
-                  planPlatitaUsed={planPlatitaUsed}
-                  isOpenPlanPlatita={isOpenPlanPlatita}
-                  setIsOpenPlanPlatita={setIsOpenPlanPlatita}
-                  planPlatitaPlayers={planPlatitaPlayers}
-                  submitPlanPlatita={submitPlanPlatita}
                 />
               )}
             </>

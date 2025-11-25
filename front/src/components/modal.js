@@ -58,10 +58,7 @@ export default function Modal({
   successorCandidates,
   chooseSuccessor,
   hasVotedQuestion,
-  usePlanPlatita,
-  planPlatitaUsed,
-  submitPlanPlatita,
-  planPlatitaPlayers }) {
+  }) {
   const mouseDownTarget = useRef(null);
 
   const handleOverlayMouseDown = (e) => {
@@ -215,7 +212,7 @@ export default function Modal({
           <div className={styles.mayor}>
             <>
               <h2>Lo primero que tenemos que hacer es votar un <strong>intendente</strong></h2>
-              <p>quien sea intendente desempatará en los linchamientos y tendra una gran habilidad especial...<strong>el "Plan Platita"</strong></p>
+              <p>quien sea intendente desempatará en los linchamientos</p>
               <br />
               <br />
 
@@ -428,7 +425,7 @@ export default function Modal({
                 </div>
 
                 <div className={styles.successorNote}>
-                  <p>Tu elección es final. El nuevo intendente tendrá el poder del Plan Platita.</p>
+                  <p>Tu elección es final. El nuevo intendente tendrá el poder de desempatar.</p>
                 </div>
               </div>
             </div>
@@ -566,31 +563,6 @@ export default function Modal({
           </div>
         )}
 
-        {type === "planPlatita" && (
-          <>
-            <button className={styles.close} onClick={onClose}>✕</button>
-            <h2>🪙 Plan Platita</h2>
-            <p>¡El poder de la corrupción! Elige a quién linchar:</p>
-
-            <div className={styles.playersSection}>
-              <ul>
-                {planPlatitaPlayers.map((player, index) => (
-                  <li className={styles.playerItem} key={index}>
-                    <Button
-                      onClick={() => {
-                        console.log(`🪙 Plan Platita: linchar a ${player}`);
-                        submitPlanPlatita(player);
-                      }}
-                      title={`Linchar a ${player}`}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <p className={styles.note}>Solo puedes usar esta habilidad UNA vez por partida</p>
-          </>
-        )}
       </div>
     </div>
   );
