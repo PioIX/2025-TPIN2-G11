@@ -1,7 +1,7 @@
 "use client";
 import { useSocket } from "../hooks/useSocket.js";
 import React, { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation"; // Cambiar useSearchParams por useRouter
+import { useRouter } from "next/navigation"; 
 import styles from "../components/lobby.module.css";
 import Button from "../components/button.js";
 
@@ -20,7 +20,7 @@ export default function Lobby({
     playersAmount
 }) {
 
-  const router = useRouter(); // Para la navegación en caso de error
+  const router = useRouter();
 
   const copyCode = () => {
     navigator.clipboard.writeText(roomCode);

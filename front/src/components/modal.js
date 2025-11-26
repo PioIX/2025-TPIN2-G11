@@ -7,23 +7,18 @@ export default function Modal({
   onClose,
   title,
   type,
-  // Props para unirse
   joinCode,
   onChangeJoinCode,
   onSubmitJoinning,
-  // Props para crear sala
   roomCode,
   onChangeRoomCode,
   playersAmount,
   onChangePlayersAmount,
   onSubmitCreate,
-  // Props para ranking
   ranking,
-  // Props para settings
   onOpenLogin,
   onSubmitModifyAccount,
   onSubmitCloseSession,
-  // Props para login/registro
   registered,
   username,
   onChangeUsername,

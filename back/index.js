@@ -71,11 +71,11 @@ function assignRandomRoles(players) {
     "Palermitano", "Palermitano", "Palermitano", "Tarotista"
   ];
 
-  const randomPool = ["Pombero", "Jubilado", "Chamán"];
+  // const randomPool = ["Pombero", "Jubilado", "Chamán"];
 
-  if (players.length > 13) {
-    randomPool.push("Colectivero");
-  }
+  // if (players.length > 13) {
+  //   randomPool.push("Colectivero");
+  // }
 
   const usedRandomRoles = [];
 

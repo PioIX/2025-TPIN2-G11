@@ -1,5 +1,4 @@
 "use client";
-import { useSocket } from "../hooks/useSocket.js";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
@@ -11,16 +10,20 @@ import Image from "next/image";
 
 export default function Home() {
   const router = useRouter();
-  const [joinCode, setJoinCode] = useState("");
-  const [roomCode, setRoomCode] = useState("");
+  // Estados para manejar el modal y sus diferentes tipos
   const [open, setOpen] = useState(false);
   const [typeModal, setTypeModal] = useState("");
-  const [ranking, setRanking] = useState([]);
+  // Estados para manejar los formularios
+  const [joinCode, setJoinCode] = useState("");
+  const [roomCode, setRoomCode] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [registered, setRegistered] = useState(true);
   const [playersAmount, setPlayersAmount] = useState(6);
+  // Estado para manejar el ranking
+  const [ranking, setRanking] = useState([]);
 
+  // Funciones para manejar autenticación
   async function SignUp() {
     if (!username || !password) {
       alert("Por favor complete todos los campos");
@@ -28,6 +31,7 @@ export default function Home() {
     }
 
     try {
+      // fetch post para registrar usuario
       const response = await fetch("http://localhost:4000/regUser", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -37,6 +41,7 @@ export default function Home() {
       const result = await response.json();
       console.log(result);
 
+      // manejo de respuesta del back
       if (result.message === "ok") {
         alert("Registrado correctamente");
         localStorage.setItem("username", username);
@@ -58,6 +63,7 @@ export default function Home() {
 
     let alreadyLogged = false;
 
+    // verificar si ya hay una sesión iniciada en localStorage
     if (localStorage.getItem("username") != null) {
       alert("Ya hay una sesión iniciada. Por favor cierre sesión primero.");
       alreadyLogged = true;
@@ -66,11 +72,13 @@ export default function Home() {
       alreadyLogged = false;
     }
 
+    // verificar usuario y contraseña en el back con un get
     try {
       const response = await fetch(`http://localhost:4000/verifyUser?username=${username}&password=${password}&alreadyLogged=${alreadyLogged}`);
       const result = await response.json();
       console.log(result);
 
+      // manejo de respuesta del back
       if (result.message === "ok") {
         alert("Inicio de sesión exitoso");
         localStorage.setItem("username", username);
@@ -84,7 +92,7 @@ export default function Home() {
     }
   }
 
-  function openModal() {
+  function openJoin() {
     setTypeModal("join");
     setOpen(true);
   }
@@ -213,7 +221,6 @@ export default function Home() {
 
   const handleCloseModal = () => {
     setOpen(false);
-    // Limpiamos todos los estados de inputs NO LO SAQUEN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     setJoinCode("");
     setRoomCode("");
     setUsername("");
@@ -256,7 +263,7 @@ export default function Home() {
 
       <div className={styles.actions}>
         <Button title="CREAR SALA" onClick={createRoom} />
-        <Button title="UNIRME A SALA" onClick={openModal} />
+        <Button title="UNIRME A SALA" onClick={openJoin} />
         <Button title="VER RANKING" onClick={seeRanking} />
       </div>
 
@@ -269,31 +276,29 @@ export default function Home() {
       />
 
       <Modal
+        // general props
         isOpen={open}
         onClose={handleCloseModal}
         title={typeModal}
         type={typeModal}
-
-        // Props para unirse a sala
+        // join room props
         joinCode={joinCode}
         onChangeJoinCode={(e) => setJoinCode(e.target.value)}
         onSubmitJoinning={joinConfirm}
-        // Props para crear sala
+        // create room props
         roomCode={roomCode}
         onChangeRoomCode={(e) => setRoomCode(e.target.value)}
         playersAmount={playersAmount}
         onChangePlayersAmount={(e) => setPlayersAmount(e.target.value)}
         onSubmitCreate={confirmCreateRoom}
-
-        // Props para ranking
+        // ranking props
         ranking={ranking}
-
-        // Props para settings
         onOpenLogin={openLogin}
+        // mnodify account props
         onSubmitModifyAccount={handleModifyAccount}
+        // close session props
         onSubmitCloseSession={handleCloseSession}
-
-        // Props para login/registro
+        // login/register props
         registered={registered}
         username={username}
         onChangeUsername={(e) => setUsername(e.target.value)}

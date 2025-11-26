@@ -1,6 +1,5 @@
 "use client";
 import { useSocket } from "../../hooks/useSocket.js";
-import { useGameLogic } from "../../hooks/useGameLogic.js";
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Lobby from "@/components/lobby.js";
